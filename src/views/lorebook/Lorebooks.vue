@@ -20,7 +20,8 @@ const deleteEntryDialog = ref(false);
 const deleteEntriesDialog = ref(false);
 const dt = ref(null);
 const filters = ref({});
-const submitted = ref(false);
+const lorebookSubmitted = ref(false);
+const entrySubmitted = ref(false);
 const statuses = ref([
     { label: 'PRIVATE', value: 'private' },
     { label: 'PUBLIC', value: 'public' }
@@ -42,72 +43,76 @@ onMounted(() => {
 
 const createNewLorebook = () => {
     lorebook.value = {};
-    submitted.value = false;
+    lorebookSubmitted.value = false;
     lorebookDialog.value = true;
 };
 
 const createNewEntry = () => {
     entry.value = {};
-    submitted.value = false;
+    entrySubmitted.value = false;
     entryDialog.value = true;
 };
 
 const hideLorebookDialog = () => {
     lorebookDialog.value = false;
-    submitted.value = false;
+    lorebookSubmitted.value = false;
 };
 
 const hideEntryDialog = () => {
     entryDialog.value = false;
-    submitted.value = false;
+    entrySubmitted.value = false;
 };
 
 const saveLorebook = async () => {
-    submitted.value = true;
-    if (lorebook.value.id) {
-        try {
-            lorebook.value.visibility = lorebook.value.visibility.value ? lorebook.value.visibility.value : lorebook.value.visibility;
-            await lorebookService.updateLorebook(lorebook.value);
-            lorebooks.value[findLorebookIndexById(lorebook.value.id)] = lorebook.value;
-            toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook updated', life: 3000 });
-        } catch {
-            toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating lorebook', life: 3000 });
+    lorebookSubmitted.value = true;
+    if (entry.value.name.trim() && entry.value.description.trim() && entry.value.visibility.trim()) {
+        if (lorebook.value.id) {
+            try {
+                lorebook.value.visibility = lorebook.value.visibility.value ? lorebook.value.visibility.value : lorebook.value.visibility;
+                await lorebookService.updateLorebook(lorebook.value);
+                lorebooks.value[findLorebookIndexById(lorebook.value.id)] = lorebook.value;
+                toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook updated', life: 3000 });
+            } catch {
+                toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating lorebook', life: 3000 });
+            }
+        } else {
+            try {
+                lorebook.value.visibility = lorebook.value.visibility ? lorebook.value.visibility.value : 'PRIVATE';
+                const createdLorebook = await lorebookService.createLorebook(lorebook.value);
+                lorebooks.value.push(createdLorebook);
+                toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook created', life: 3000 });
+            } catch {
+                toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving lorebook', life: 3000 });
+            }
         }
-    } else {
-        try {
-            lorebook.value.visibility = lorebook.value.visibility ? lorebook.value.visibility.value : 'PRIVATE';
-            const createdLorebook = await lorebookService.createLorebook(lorebook.value);
-            lorebooks.value.push(createdLorebook);
-            toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook created', life: 3000 });
-        } catch {
-            toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving lorebook', life: 3000 });
-        }
+        lorebookDialog.value = false;
+        lorebook.value = {};
     }
-    lorebookDialog.value = false;
-    lorebook.value = {};
 };
 
 const saveEntry = async () => {
-    submitted.value = true;
-    if (entry.value.id) {
-        try {
-            await lorebookService.updateLorebookEntry(entry.value);
-            lorebook.value.entries[findEntryIndexById(entry.value.id)] = entry.value;
-            toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry updated', life: 3000 });
-        } catch {
-            toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating entry', life: 3000 });
+    entrySubmitted.value = true;
+    if (entry.value.name.trim() && entry.value.description.trim()) {
+        if (entry.value.id) {
+            try {
+                await lorebookService.updateLorebookEntry(entry.value);
+                lorebook.value.entries[findEntryIndexById(entry.value.id)] = entry.value;
+                toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry updated', life: 3000 });
+            } catch {
+                toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating entry', life: 3000 });
+            }
+        } else {
+            try {
+                const createdLorebook = await lorebookService.createLorebookEntry(entry.value, lorebook.value);
+                lorebook.value.entries.push(createdLorebook);
+                toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry created', life: 3000 });
+            } catch {
+                toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving entry', life: 3000 });
+            }
         }
-    } else {
-        try {
-            const createdLorebook = await lorebookService.createLorebookEntry(entry.value, lorebook.value);
-            lorebook.value.entries.push(createdLorebook);
-            toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry created', life: 3000 });
-        } catch {
-            toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving entry', life: 3000 });
-        }
+        entryDialog.value = false;
+        entry.value = {};
     }
-    entryDialog.value = false;
-    entry.value = {};
 };
 
 const editLorebook = (editLorebook) => {
@@ -310,17 +315,17 @@ const initFilters = () => {
                 <Dialog v-model:visible="lorebookDialog" :style="{ width: '50%' }" header="Editing lorebook" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText id="name" v-model.trim="lorebook.name" required="true" autofocus :class="{ 'p-invalid': submitted && !lorebook.name }" />
-                        <small class="p-invalid" v-if="submitted && !lorebook.name">Name is required.</small>
+                        <InputText id="name" v-model.trim="lorebook.name" required="true" autofocus :class="{ 'p-invalid': lorebookSubmitted && !lorebook.name }" />
+                        <small class="p-invalid" v-if="lorebookSubmitted && !lorebook.name">Name is required.</small>
                     </div>
                     <div class="field">
                         <label for="description">Description</label>
-                        <Textarea id="description" v-model.trim="lorebook.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': submitted && !lorebook.description }" />
-                        <small class="p-invalid" v-if="submitted && !lorebook.description">Description is required.</small>
+                        <Textarea id="description" v-model.trim="lorebook.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': lorebookSubmitted && !lorebook.description }" />
+                        <small class="p-invalid" v-if="lorebookSubmitted && !lorebook.description">Description is required.</small>
                     </div>
                     <div class="field">
                         <label for="visibility" class="mb-3">Visibility</label>
-                        <Dropdown id="visibility" v-model="lorebook.visibility" :options="statuses" optionLabel="label" placeholder="Lorebook visibility" :class="{ 'p-invalid': submitted && !lorebook.visibility }">
+                        <Dropdown id="visibility" v-model="lorebook.visibility" :options="statuses" optionLabel="label" placeholder="Lorebook visibility" :class="{ 'p-invalid': lorebookSubmitted && !lorebook.visibility }">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value && slotProps.value.value">
                                     <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
@@ -333,7 +338,7 @@ const initFilters = () => {
                                 </span>
                             </template>
                         </Dropdown>
-                        <small class="p-invalid" v-if="submitted && !lorebook.description">Visibility is required.</small>
+                        <small class="p-invalid" v-if="lorebookSubmitted && !lorebook.description">Visibility is required.</small>
                     </div>
                     <template #footer>
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
@@ -408,17 +413,17 @@ const initFilters = () => {
                         <Dialog v-model:visible="entryDialog" :style="{ width: '50%' }" header="Editing entry" :modal="true" class="p-fluid">
                             <div class="field">
                                 <label for="name">Name</label>
-                                <InputText id="name" v-model.trim="entry.name" required="true" autofocus :class="{ 'p-invalid': submitted && !entry.name }" />
-                                <small class="p-invalid" v-if="submitted && !entry.name">Name is required.</small>
+                                <InputText id="name" v-model.trim="entry.name" required="true" autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
+                                <small class="p-invalid" v-if="entrySubmitted && !entry.name">Name is required.</small>
                             </div>
                             <div class="field">
                                 <label for="regex">Regex</label>
-                                <InputText id="regex" v-model.trim="entry.regex" required="false" />
+                                <InputText id="regex" v-model.trim="entry.regex" />
                             </div>
                             <div class="field">
                                 <label for="description">Description</label>
-                                <Textarea id="description" v-model.trim="entry.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': submitted && !entry.description }" />
-                                <small class="p-invalid" v-if="submitted && !entry.description">Description is required.</small>
+                                <Textarea id="description" v-model.trim="entry.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
+                                <small class="p-invalid" v-if="entrySubmitted && !entry.description">Description is required.</small>
                             </div>
                             <template #footer>
                                 <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideEntryDialog" />
