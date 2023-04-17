@@ -1,5 +1,6 @@
 .customer-badge,
 .product-badge,
+.visibility-badge,
 .order-badge {
     border-radius: var(--border-radius);
     padding: .25em .5rem;
@@ -21,6 +22,18 @@
     }
 
     &.status-lowstock {
+        background: #FEEDAF;
+        color: #8A5340;
+    }
+}
+
+.visibility-badge {
+    &.visibility-public {
+        background: #C8E6C9;
+        color: #256029;
+    }
+
+    &.visibility-private {
         background: #FEEDAF;
         color: #8A5340;
     }
