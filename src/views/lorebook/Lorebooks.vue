@@ -65,7 +65,7 @@ const hideEntryDialog = () => {
 
 const saveLorebook = async () => {
     lorebookSubmitted.value = true;
-    if (entry.value.name.trim() && entry.value.description.trim() && entry.value.visibility.trim()) {
+    if (lorebook.value.name.trim() && lorebook.value.description.trim() && lorebook.value.visibility.value.trim()) {
         if (lorebook.value.id) {
             try {
                 lorebook.value.visibility = lorebook.value.visibility.value ? lorebook.value.visibility.value : lorebook.value.visibility;
