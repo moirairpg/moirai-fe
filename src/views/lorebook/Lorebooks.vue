@@ -7,12 +7,17 @@ import LorebookService from '@/service/LorebookService';
 const lorebookService = new LorebookService();
 
 const toast = useToast();
+const lorebook = ref({});
 const lorebooks = ref(null);
+const selectedLorebooks = ref(null);
 const lorebookDialog = ref(false);
 const deleteLorebookDialog = ref(false);
 const deleteLorebooksDialog = ref(false);
-const lorebook = ref({});
-const selectedLorebooks = ref(null);
+const entry = ref({});
+const selectedEntries = ref(null);
+const entryDialog = ref(false);
+const deleteEntryDialog = ref(false);
+const deleteEntriesDialog = ref(false);
 const dt = ref(null);
 const filters = ref({});
 const submitted = ref(false);
@@ -26,17 +31,34 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
-    lorebookService.getAllLorebooks().then((data) => (lorebooks.value = data));
+    lorebookService.getAllLorebooks().then((data) => {
+        if (data.entries === undefined || data.entries.length == 0) {
+            data.entries = [];
+        }
+
+        lorebooks.value = data;
+    });
 });
 
-const openNew = () => {
+const createNewLorebook = () => {
     lorebook.value = {};
     submitted.value = false;
     lorebookDialog.value = true;
 };
 
-const hideDialog = () => {
+const createNewEntry = () => {
+    entry.value = {};
+    submitted.value = false;
+    entryDialog.value = true;
+};
+
+const hideLorebookDialog = () => {
     lorebookDialog.value = false;
+    submitted.value = false;
+};
+
+const hideEntryDialog = () => {
+    entryDialog.value = false;
     submitted.value = false;
 };
 
@@ -46,7 +68,7 @@ const saveLorebook = async () => {
         try {
             lorebook.value.visibility = lorebook.value.visibility.value ? lorebook.value.visibility.value : lorebook.value.visibility;
             await lorebookService.updateLorebook(lorebook.value);
-            lorebooks.value[findIndexById(lorebook.value.id)] = lorebook.value;
+            lorebooks.value[findLorebookIndexById(lorebook.value.id)] = lorebook.value;
             toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook updated', life: 3000 });
         } catch {
             toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating lorebook', life: 3000 });
@@ -65,15 +87,47 @@ const saveLorebook = async () => {
     lorebook.value = {};
 };
 
+const saveEntry = async () => {
+    submitted.value = true;
+    if (entry.value.id) {
+        try {
+            await lorebookService.updateLorebookEntry(entry.value);
+            lorebook.value.entries[findEntryIndexById(entry.value.id)] = entry.value;
+            toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry updated', life: 3000 });
+        } catch {
+            toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating entry', life: 3000 });
+        }
+    } else {
+        try {
+            const createdLorebook = await lorebookService.createLorebookEntry(entry.value, lorebook.value);
+            lorebook.value.entries.push(createdLorebook);
+            toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry created', life: 3000 });
+        } catch {
+            toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving entry', life: 3000 });
+        }
+    }
+    entryDialog.value = false;
+    entry.value = {};
+};
+
 const editLorebook = (editLorebook) => {
     lorebook.value = { ...editLorebook };
-    console.log(lorebook);
     lorebookDialog.value = true;
+};
+
+const editEntry = (editEntry) => {
+    entry.value = { ...editEntry };
+    entryDialog.value = true;
 };
 
 const confirmDeleteLorebook = (editLorebook) => {
     lorebook.value = editLorebook;
     deleteLorebookDialog.value = true;
+};
+
+const confirmDeleteEntry = (editEntry) => {
+    entry.value = editEntry;
+    deleteEntryDialog.value = true;
 };
 
 const deleteLorebook = async () => {
@@ -88,10 +142,33 @@ const deleteLorebook = async () => {
     }
 };
 
-const findIndexById = (id) => {
+const deleteEntry = async () => {
+    try {
+        await lorebookService.deleteLorebookEntry(entry.value);
+        lorebook.value.entries = lorebook.value.entries.filter((val) => val.id !== entry.value.id);
+        deleteEntryDialog.value = false;
+        entry.value = {};
+        toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook deleted', life: 3000 });
+    } catch {
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting lorebook', life: 3000 });
+    }
+};
+
+const findLorebookIndexById = (id) => {
     let index = -1;
     for (let i = 0; i < lorebooks.value.length; i++) {
         if (lorebooks.value[i].id === id) {
+            index = i;
+            break;
+        }
+    }
+    return index;
+};
+
+const findEntryIndexById = (id) => {
+    let index = -1;
+    for (let i = 0; i < lorebook.value.entries.length; i++) {
+        if (lorebook.value.entries[i].id === id) {
             index = i;
             break;
         }
@@ -103,14 +180,44 @@ const exportCSV = () => {
     dt.value.exportCSV();
 };
 
-const confirmDeleteSelected = () => {
+const confirmDeleteSelectedLorebooks = () => {
     deleteLorebooksDialog.value = true;
 };
+
+const confirmDeleteSelectedEntries = () => {
+    deleteEntriesDialog.value = true;
+};
+
 const deleteSelectedLorebooks = () => {
-    lorebooks.value = lorebooks.value.filter((val) => !selectedLorebooks.value.includes(val));
+    lorebooks.value = lorebooks.value
+        .map((val) => {
+            if (!selectedLorebooks.value.includes(val)) {
+                return val;
+            }
+
+            return lorebookService.deleteLorebook(val);
+        })
+        .filter((val) => Object.keys(val).length !== 0);
+
     deleteLorebooksDialog.value = false;
     selectedLorebooks.value = null;
-    toast.add({ severity: 'success', summary: 'Successful', detail: 'Lorebooks Deleted', life: 3000 });
+    toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebooks selected deleted', life: 3000 });
+};
+
+const deleteSelectedEntries = () => {
+    lorebook.value.entries = lorebook.value.entries
+        .map((val) => {
+            if (!selectedEntries.value.includes(val)) {
+                return val;
+            }
+
+            return lorebookService.deleteLorebookEntry(val);
+        })
+        .filter((val) => Object.keys(val).length !== 0);
+
+    deleteEntriesDialog.value = false;
+    selectedEntries.value = null;
+    toast.add({ severity: 'success', summary: 'Success!', detail: 'Entries selected deleted', life: 3000 });
 };
 
 const initFilters = () => {
@@ -128,11 +235,10 @@ const initFilters = () => {
                 <Toolbar class="mb-4">
                     <template v-slot:start>
                         <div class="my-2">
-                            <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="openNew" />
-                            <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelected" :disabled="!selectedLorebooks || !selectedLorebooks.length" />
+                            <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewLorebook" />
+                            <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedLorebooks" :disabled="!selectedLorebooks || !selectedLorebooks.length" />
                         </div>
                     </template>
-
                     <template v-slot:end>
                         <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                         <Button label="Export" icon="pi pi-upload" class="p-button-help" @click="exportCSV($event)" />
@@ -201,7 +307,7 @@ const initFilters = () => {
                     </Column>
                 </DataTable>
 
-                <Dialog v-model:visible="lorebookDialog" :style="{ width: '450px' }" header="Editing lorebook" :modal="true" class="p-fluid">
+                <Dialog v-model:visible="lorebookDialog" :style="{ width: '50%' }" header="Editing lorebook" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
                         <InputText id="name" v-model.trim="lorebook.name" required="true" autofocus :class="{ 'p-invalid': submitted && !lorebook.name }" />
@@ -230,21 +336,123 @@ const initFilters = () => {
                         <small class="p-invalid" v-if="submitted && !lorebook.description">Visibility is required.</small>
                     </div>
                     <template #footer>
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideDialog" />
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
                         <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveLorebook" />
                     </template>
+
+                    <div class="card">
+                        <DataTable
+                            ref="dt"
+                            :value="lorebook.entries"
+                            v-model:selection="selectedEntries"
+                            dataKey="id"
+                            :paginator="true"
+                            :rows="10"
+                            :filters="filters"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            :rowsPerPageOptions="[5, 10, 25]"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
+                            responsiveLayout="scroll"
+                        >
+                            <template #header>
+                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                    <h5 class="m-0">Entries</h5>
+                                    <span class="block mt-2 md:mt-0 p-input-icon-left">
+                                        <i class="pi pi-search" />
+                                        <InputText v-model="filters['global'].value" placeholder="Search..." />
+                                    </span>
+                                </div>
+                                <Toolbar class="mb-4">
+                                    <template v-slot:start>
+                                        <div class="my-2">
+                                            <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewEntry" />
+                                            <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedEntries" :disabled="!selectedEntries || !selectedEntries.length" />
+                                        </div>
+                                    </template>
+                                </Toolbar>
+                            </template>
+
+                            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                            <Column field="id" header="ID" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">ID</span>
+                                    {{ slotProps.data.id }}
+                                </template>
+                            </Column>
+                            <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Name</span>
+                                    {{ slotProps.data.name }}
+                                </template>
+                            </Column>
+                            <Column field="regex" header="Regex" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Regex</span>
+                                    {{ slotProps.data.regex }}
+                                </template>
+                            </Column>
+                            <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Description</span>
+                                    {{ slotProps.data.description }}
+                                </template>
+                            </Column>
+                            <Column headerStyle="min-width:10rem;">
+                                <template #body="slotProps">
+                                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editEntry(slotProps.data)" />
+                                    <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteEntry(slotProps.data)" />
+                                </template>
+                            </Column>
+                        </DataTable>
+
+                        <Dialog v-model:visible="entryDialog" :style="{ width: '50%' }" header="Editing entry" :modal="true" class="p-fluid">
+                            <div class="field">
+                                <label for="name">Name</label>
+                                <InputText id="name" v-model.trim="entry.name" required="true" autofocus :class="{ 'p-invalid': submitted && !entry.name }" />
+                                <small class="p-invalid" v-if="submitted && !entry.name">Name is required.</small>
+                            </div>
+                            <div class="field">
+                                <label for="regex">Regex</label>
+                                <InputText id="regex" v-model.trim="entry.regex" required="false" />
+                            </div>
+                            <div class="field">
+                                <label for="description">Description</label>
+                                <Textarea id="description" v-model.trim="entry.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': submitted && !entry.description }" />
+                                <small class="p-invalid" v-if="submitted && !entry.description">Description is required.</small>
+                            </div>
+                            <template #footer>
+                                <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideEntryDialog" />
+                                <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveEntry" />
+                            </template>
+                        </Dialog>
+                    </div>
                 </Dialog>
 
                 <Dialog v-model:visible="deleteLorebookDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                         <span v-if="lorebook">
-                            Are you sure you want to delete <b>{{ lorebook.name }}</b>?
+                            Are you sure you want to delete <b>{{ lorebook.name }}</b
+                            >?
                         </span>
                     </div>
                     <template #footer>
                         <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteLorebookDialog = false" />
                         <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteLorebook" />
+                    </template>
+                </Dialog>
+
+                <Dialog v-model:visible="deleteEntryDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+                    <div class="flex align-items-center justify-content-center">
+                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+                        <span v-if="entry">
+                            Are you sure you want to delete <b>{{ entry.name }}</b
+                            >?
+                        </span>
+                    </div>
+                    <template #footer>
+                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteEntryDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteEntry" />
                     </template>
                 </Dialog>
 
@@ -256,6 +464,17 @@ const initFilters = () => {
                     <template #footer>
                         <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteLorebooksDialog = false" />
                         <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteSelectedLorebooks" />
+                    </template>
+                </Dialog>
+
+                <Dialog v-model:visible="deleteEntriesDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+                    <div class="flex align-items-center justify-content-center">
+                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+                        <span v-if="entry">Are you sure you want to delete the selected entries?</span>
+                    </div>
+                    <template #footer>
+                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteEntriesDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteSelectedEntries" />
                     </template>
                 </Dialog>
             </div>
