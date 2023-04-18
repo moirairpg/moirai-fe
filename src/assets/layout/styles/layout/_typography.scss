@@ -61,3 +61,10 @@ p {
         margin-bottom: 0;
     }
 }
+
+.table-column-overflow {
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+}
