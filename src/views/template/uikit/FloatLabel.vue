@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import CountryService from '@/service/CountryService';
+import CountryService from '@/service/template/CountryService';
 
 const countries = ref([]);
 const cities = ref([
