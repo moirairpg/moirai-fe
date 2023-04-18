@@ -16,9 +16,14 @@ const deletePersonasDialog = ref(false);
 const dt = ref(null);
 const filters = ref({});
 const personaSubmitted = ref(false);
-const statuses = ref([
+const intents = ref([
     { label: 'CHAT', value: 'chat' },
     { label: 'RPG', value: 'rpg' }
+]);
+const roles = ref([
+    { label: 'SYSTEM', value: 'system' },
+    { label: 'ASSISTANT', value: 'assistant' },
+    { label: 'USER', value: 'user' }
 ]);
 
 onBeforeMount(() => {
@@ -222,7 +227,7 @@ const initFilters = () => {
                     </div>
                     <div class="field">
                         <label for="intent" class="mb-3">Intent</label>
-                        <Dropdown id="intent" v-model="persona.intent" :options="statuses" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">
+                        <Dropdown id="intent" v-model="persona.intent" :options="intents" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value && slotProps.value.value">
                                     <span :class="'intent-badge intent-' + slotProps.value.value">{{ slotProps.value.label }}</span>
@@ -237,6 +242,38 @@ const initFilters = () => {
                         </Dropdown>
                         <small class="p-invalid" v-if="personaSubmitted && !persona.intent">Intent is required.</small>
                     </div>
+
+                    <div class="field">
+                        <label for="nudge" class="mb-3">Nudge</label>
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <Dropdown id="nudge-role" v-model="persona.nudge.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" :class="{ 'p-invalid': personaSubmitted && !persona.nudge?.role }" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <Textarea rows="1" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="bump" class="mb-3">Bump</label>
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <Dropdown id="bump-role" v-model="persona.bump.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" :class="{ 'p-invalid': personaSubmitted && !persona.bump.role }" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <InputNumber showButtons mode="decimal" v-model.trim="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                <Textarea rows="1" v-model.trim="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="field">
                         <label for="personality">Personality</label>
                         <Textarea id="personality" v-model.trim="persona.personality" required="true" rows="10" cols="20" :class="{ 'p-invalid': personaSubmitted && !persona.personality }" />
