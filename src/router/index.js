@@ -18,6 +18,11 @@ const router = createRouter({
                     name: 'lorebooks',
                     component: () => import('@/views/lorebook/Lorebooks.vue')
                 },
+                {
+                    path: '/personas',
+                    name: 'personas',
+                    component: () => import('@/views/persona/Personas.vue')
+                },
                 /* DEFAULT PATHS */
                 {
                     path: '/uikit/formlayout',

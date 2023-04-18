@@ -1,6 +1,7 @@
 .customer-badge,
 .product-badge,
 .visibility-badge,
+.intent-badge,
 .order-badge {
     border-radius: var(--border-radius);
     padding: .25em .5rem;
@@ -27,13 +28,16 @@
     }
 }
 
+.intent-badge,
 .visibility-badge {
-    &.visibility-public {
+    &.visibility-public,
+    &.intent-rpg {
         background: #C8E6C9;
         color: #256029;
     }
 
-    &.visibility-private {
+    &.visibility-private,
+    &.intent-chat {
         background: #FEEDAF;
         color: #8A5340;
     }
