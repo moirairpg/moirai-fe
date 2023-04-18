@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useLayout } from '@/layout/composables/layout';
 import { useRouter } from 'vue-router';
 
-const { layoutConfig, onMenuToggle } = useLayout();
+const { layoutConfig, changeThemeSettings, onMenuToggle } = useLayout();
 
 const outsideClickListener = ref(null);
 const topbarMenuActive = ref(false);
@@ -58,6 +58,26 @@ const isOutsideClicked = (event) => {
 
     return !(sidebarEl.isSameNode(event.target) || sidebarEl.contains(event.target) || topbarEl.isSameNode(event.target) || topbarEl.contains(event.target));
 };
+const onChangeTheme = (theme, mode) => {
+    console.log(`Theme -> ${theme}, Mode -> ${mode}`);
+
+    const elementId = 'theme-css';
+    const linkElement = document.getElementById(elementId);
+    const cloneLinkElement = linkElement.cloneNode(true);
+    const newThemeUrl = linkElement.getAttribute('href').replace(layoutConfig.theme.value, theme);
+    cloneLinkElement.setAttribute('id', elementId + '-clone');
+    cloneLinkElement.setAttribute('href', newThemeUrl);
+    cloneLinkElement.addEventListener('load', () => {
+        linkElement.remove();
+        cloneLinkElement.setAttribute('id', elementId);
+        changeThemeSettings(theme, mode === 'dark');
+    });
+    linkElement.parentNode.insertBefore(cloneLinkElement, linkElement.nextSibling);
+};
+
+const onToggleTheme = () => {
+    layoutConfig.darkTheme.value ? onChangeTheme('mdc-dark-indigo', 'dark') : onChangeTheme('mdc-light-indigo', 'light');
+};
 </script>
 
 <template>
@@ -76,6 +96,7 @@ const isOutsideClicked = (event) => {
         </button>
 
         <div class="layout-topbar-menu" :class="topbarMenuClasses">
+            <InputSwitch v-model="layoutConfig.darkTheme.value" @input="onToggleTheme"></InputSwitch>
             <button @click="onTopBarMenuButton()" class="p-link layout-topbar-button">
                 <i class="pi pi-calendar"></i>
                 <span>Calendar</span>
