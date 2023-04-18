@@ -37,7 +37,7 @@ onMounted(() => {
 });
 
 const createNewPersona = () => {
-    persona.value = {};
+    persona.value = { nudge: { role: null }, bump: { role: null } };
     personaSubmitted.value = false;
     personaDialog.value = true;
 };
