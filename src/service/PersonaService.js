@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
-export default class Service {
+export default class PersonaService {
 
     async getAllPersonas() {
         try {
