@@ -283,13 +283,13 @@ const initFilters = () => {
                     <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                         <template #body="slotProps">
                             <span class="p-column-title">Name</span>
-                            {{ slotProps.data.name }}
+                            <div class="table-column-overflow">{{ slotProps.data.name }}</div>
                         </template>
                     </Column>
                     <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
                         <template #body="slotProps">
                             <span class="p-column-title">Description</span>
-                            {{ slotProps.data.description }}
+                            <div class="table-column-overflow">{{ slotProps.data.description }}</div>
                         </template>
                     </Column>
                     <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
