@@ -16,12 +16,12 @@ const router = createRouter({
                 {
                     path: '/lorebooks',
                     name: 'lorebooks',
-                    component: () => import('@/views/lorebook/Lorebooks.vue')
+                    component: () => import('@/views/Lorebooks.vue')
                 },
                 {
                     path: '/personas',
                     name: 'personas',
-                    component: () => import('@/views/persona/Personas.vue')
+                    component: () => import('@/views/Personas.vue')
                 },
                 /* DEFAULT PATHS */
                 {
