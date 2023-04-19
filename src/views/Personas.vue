@@ -60,7 +60,7 @@ const savePersona = async () => {
             }
         } else {
             try {
-                persona.value.intent = persona.value.intent ? persona.value.intent.value : 'PRIVATE';
+                persona.value.intent = persona.value.intent ? persona.value.intent.value : 'rpg';
                 const createdPersona = await personaService.createPersona(persona.value);
                 personas.value.push(createdPersona);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona created', life: 3000 });
