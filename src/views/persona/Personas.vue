@@ -218,7 +218,7 @@ const initFilters = () => {
                     </Column>
                 </DataTable>
 
-                <Dialog v-model:visible="personaDialog" :style="{ width: '50%' }" header="Editing persona" :modal="true" class="p-fluid">
+                <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
                         <InputText id="name" v-model.trim="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
@@ -284,7 +284,7 @@ const initFilters = () => {
                     </template>
                 </Dialog>
 
-                <Dialog v-model:visible="deletePersonaDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+                <Dialog v-model:visible="deletePersonaDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                         <span v-if="persona">
@@ -298,7 +298,7 @@ const initFilters = () => {
                     </template>
                 </Dialog>
 
-                <Dialog v-model:visible="deletePersonasDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+                <Dialog v-model:visible="deletePersonasDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                         <span v-if="persona">Are you sure you want to delete the selected personas?</span>

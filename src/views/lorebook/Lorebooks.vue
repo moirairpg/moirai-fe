@@ -312,7 +312,7 @@ const initFilters = () => {
                     </Column>
                 </DataTable>
 
-                <Dialog v-model:visible="lorebookDialog" :style="{ width: '50%' }" header="Editing lorebook" :modal="true" class="p-fluid">
+                <Dialog v-model:visible="lorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
                         <InputText id="name" v-model.trim="lorebook.name" required="true" autofocus :class="{ 'p-invalid': lorebookSubmitted && !lorebook.name }" />
@@ -345,7 +345,7 @@ const initFilters = () => {
                         <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveLorebook" />
                     </template>
 
-                    <div class="card">
+                    <div class="card" v-if="lorebook.entries">
                         <DataTable
                             ref="dt"
                             :value="lorebook.entries"
@@ -387,19 +387,19 @@ const initFilters = () => {
                             <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                                 <template #body="slotProps">
                                     <span class="p-column-title">Name</span>
-                                    <div class="table-column-overflow">{{ slotProps.data.name }}</div>
+                                    <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.name }}</div>
                                 </template>
                             </Column>
                             <Column field="regex" header="Regex" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                                 <template #body="slotProps">
                                     <span class="p-column-title">Regex</span>
-                                    <div class="table-column-overflow">{{ slotProps.data.regex }}</div>
+                                    <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.regex }}</div>
                                 </template>
                             </Column>
                             <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
                                 <template #body="slotProps">
                                     <span class="p-column-title">Description</span>
-                                    <div class="table-column-overflow">{{ slotProps.data.description }}</div>
+                                    <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.description }}</div>
                                 </template>
                             </Column>
                             <Column headerStyle="min-width:10rem;">
@@ -410,7 +410,7 @@ const initFilters = () => {
                             </Column>
                         </DataTable>
 
-                        <Dialog v-model:visible="entryDialog" :style="{ width: '50%' }" header="Editing entry" :modal="true" class="p-fluid">
+                        <Dialog v-model:visible="entryDialog" header="Lorebook entry" :modal="true" class="p-fluid">
                             <div class="field">
                                 <label for="name">Name</label>
                                 <InputText id="name" v-model.trim="entry.name" required="true" autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
@@ -433,7 +433,7 @@ const initFilters = () => {
                     </div>
                 </Dialog>
 
-                <Dialog v-model:visible="deleteLorebookDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+                <Dialog v-model:visible="deleteLorebookDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                         <span v-if="lorebook">
@@ -447,7 +447,7 @@ const initFilters = () => {
                     </template>
                 </Dialog>
 
-                <Dialog v-model:visible="deleteEntryDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+                <Dialog v-model:visible="deleteEntryDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                         <span v-if="entry">
@@ -461,7 +461,7 @@ const initFilters = () => {
                     </template>
                 </Dialog>
 
-                <Dialog v-model:visible="deleteLorebooksDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+                <Dialog v-model:visible="deleteLorebooksDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                         <span v-if="lorebook">Are you sure you want to delete the selected lorebooks?</span>
@@ -472,7 +472,7 @@ const initFilters = () => {
                     </template>
                 </Dialog>
 
-                <Dialog v-model:visible="deleteEntriesDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+                <Dialog v-model:visible="deleteEntriesDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                         <span v-if="entry">Are you sure you want to delete the selected entries?</span>

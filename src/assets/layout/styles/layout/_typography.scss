@@ -65,6 +65,10 @@ p {
 .table-column-overflow {
     text-overflow:ellipsis;
     white-space: nowrap;
-    max-width: 300px;
+    max-width: 500px;
     overflow: hidden;
+}
+
+.table-column-overflow-subitem {
+    max-width: 230px !important;
 }
