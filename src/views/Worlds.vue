@@ -19,11 +19,13 @@ const worldDialog = ref(false);
 const deleteWorldDialog = ref(false);
 const deleteWorldsDialog = ref(false);
 const dt = ref(null);
-const filters = ref({});
+const worldSearchFilters = ref({});
+const lorebookSearchFilters = ref({});
 const worldSubmitted = ref(false);
 
 onBeforeMount(() => {
-    initFilters();
+    initWorldSearchFilters();
+    initLorebookSearchFilters();
 });
 
 onMounted(() => {
@@ -145,8 +147,14 @@ const deleteSelectedWorlds = () => {
     toast.add({ severity: 'success', summary: 'Success!', detail: 'Worlds selected deleted', life: 3000 });
 };
 
-const initFilters = () => {
-    filters.value = {
+const initWorldSearchFilters = () => {
+    worldSearchFilters.value = {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    };
+};
+
+const initLorebookSearchFilters = () => {
+    lorebookSearchFilters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
@@ -177,7 +185,7 @@ const initFilters = () => {
                     dataKey="id"
                     :paginator="true"
                     :rows="10"
-                    :filters="filters"
+                    :filters="worldSearchFilters"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     :rowsPerPageOptions="[5, 10, 25]"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
@@ -189,7 +197,7 @@ const initFilters = () => {
                             <h5 class="m-0">Worlds</h5>
                             <span class="block mt-2 md:mt-0 p-input-icon-left">
                                 <i class="pi pi-search" />
-                                <InputText v-model="filters['global'].value" placeholder="Search..." />
+                                <InputText v-model="worldSearchFilters['global'].value" placeholder="Search..." />
                             </span>
                         </div>
                     </template>
@@ -253,10 +261,10 @@ const initFilters = () => {
                             dataKey="id"
                             :paginator="true"
                             :rows="10"
-                            :filters="filters"
+                            :filters="lorebookSearchFilters"
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             :rowsPerPageOptions="[5, 10, 25]"
-                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} world"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
                             responsiveLayout="scroll"
                         >
                             <template #header>
@@ -264,7 +272,7 @@ const initFilters = () => {
                                     <h5 class="m-0">Lorebooks</h5>
                                     <span class="block mt-2 md:mt-0 p-input-icon-left">
                                         <i class="pi pi-search" />
-                                        <InputText v-model="filters['global'].value" placeholder="Search..." />
+                                        <InputText v-model="lorebookSearchFilters['global'].value" placeholder="Search..." />
                                     </span>
                                 </div>
                             </template>
