@@ -11,22 +11,34 @@ const router = createRouter({
                 {
                     path: '/',
                     name: 'dashboard',
-                    component: () => import('@/views/Dashboard.vue')
+                    component: () => import('@/views/Dashboard.vue'),
+                    meta: {
+                        title: 'ChatRPG | Dashboard'
+                    }
                 },
                 {
                     path: '/lorebooks',
                     name: 'lorebooks',
-                    component: () => import('@/views/Lorebooks.vue')
+                    component: () => import('@/views/Lorebooks.vue'),
+                    meta: {
+                        title: 'ChatRPG | Lorebooks'
+                    }
                 },
                 {
                     path: '/personas',
                     name: 'personas',
-                    component: () => import('@/views/Personas.vue')
+                    component: () => import('@/views/Personas.vue'),
+                    meta: {
+                        title: 'ChatRPG | Personas'
+                    }
                 },
                 {
                     path: '/worlds',
                     name: 'worlds',
-                    component: () => import('@/views/Worlds.vue')
+                    component: () => import('@/views/Worlds.vue'),
+                    meta: {
+                        title: 'ChatRPG | Worlds'
+                    }
                 },
                 /* DEFAULT PATHS */
                 {
@@ -187,5 +199,11 @@ const router = createRouter({
         }
     ]
 });
+
+router.beforeEach((toRoute, fromRoute, next) => {
+    window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
+
+    next();
+})
 
 export default router;
