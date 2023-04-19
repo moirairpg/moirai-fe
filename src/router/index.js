@@ -23,6 +23,11 @@ const router = createRouter({
                     name: 'personas',
                     component: () => import('@/views/Personas.vue')
                 },
+                {
+                    path: '/worlds',
+                    name: 'worlds',
+                    component: () => import('@/views/Worlds.vue')
+                },
                 /* DEFAULT PATHS */
                 {
                     path: '/uikit/formlayout',
