@@ -19,7 +19,8 @@ const entryDialog = ref(false);
 const deleteEntryDialog = ref(false);
 const deleteEntriesDialog = ref(false);
 const dt = ref(null);
-const filters = ref({});
+const lorebookFilters = ref({});
+const entryFilters = ref({});
 const lorebookSubmitted = ref(false);
 const entrySubmitted = ref(false);
 const statuses = ref([
@@ -28,7 +29,8 @@ const statuses = ref([
 ]);
 
 onBeforeMount(() => {
-    initFilters();
+    initLorebookFilters();
+    initEntryFilters();
 });
 
 onMounted(() => {
@@ -227,8 +229,14 @@ const deleteSelectedEntries = () => {
     toast.add({ severity: 'success', summary: 'Success!', detail: 'Entries selected deleted', life: 3000 });
 };
 
-const initFilters = () => {
-    filters.value = {
+const initLorebookFilters = () => {
+    lorebookFilters.value = {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    };
+};
+
+const initEntryFilters = () => {
+    entryFilters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
@@ -259,7 +267,7 @@ const initFilters = () => {
                     dataKey="id"
                     :paginator="true"
                     :rows="10"
-                    :filters="filters"
+                    :filters="lorebookFilters"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     :rowsPerPageOptions="[5, 10, 25]"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
@@ -270,7 +278,7 @@ const initFilters = () => {
                             <h5 class="m-0">Lorebooks</h5>
                             <span class="block mt-2 md:mt-0 p-input-icon-left">
                                 <i class="pi pi-search" />
-                                <InputText v-model="filters['global'].value" placeholder="Search..." />
+                                <InputText v-model="lorebookFilters['global'].value" placeholder="Search..." />
                             </span>
                         </div>
                     </template>
@@ -355,7 +363,7 @@ const initFilters = () => {
                             dataKey="id"
                             :paginator="true"
                             :rows="10"
-                            :filters="filters"
+                            :filters="entryFilters"
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             :rowsPerPageOptions="[5, 10, 25]"
                             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
@@ -366,7 +374,7 @@ const initFilters = () => {
                                     <h5 class="m-0">Entries</h5>
                                     <span class="block mt-2 md:mt-0 p-input-icon-left">
                                         <i class="pi pi-search" />
-                                        <InputText v-model="filters['global'].value" placeholder="Search..." />
+                                        <InputText v-model="entryFilters['global'].value" placeholder="Search..." />
                                     </span>
                                 </div>
                                 <Toolbar class="mb-4">
