@@ -39,7 +39,7 @@ onMounted(() => {
 });
 
 const createNewWorld = () => {
-    world.value = {};
+    world.value = { lorebook: { id: '0' } };
     worldSubmitted.value = false;
     worldDialog.value = true;
 };
@@ -93,7 +93,7 @@ const selectLorebook = () => {
     world.value.lorebook = lorebook.value;
     lorebookDialog.value = false;
     lorebook.value = {};
-}
+};
 
 const confirmDeleteWorld = (editWorld) => {
     world.value = editWorld;
@@ -266,7 +266,7 @@ const initLorebookSearchFilters = () => {
                             :rowsPerPageOptions="[5, 10, 25]"
                             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
                             responsiveLayout="scroll"
-                            :rowStyle="({ id }) => id === world.lorebook.id ? 'color: var(--surface-0);background-color: var(--surface-500)': null"
+                            :rowStyle="({ id }) => (id === world.lorebook.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
                         >
                             <template #header>
                                 <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
