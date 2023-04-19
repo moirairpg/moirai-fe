@@ -43,6 +43,7 @@ onMounted(() => {
 
 const createNewLorebook = () => {
     lorebook.value = {};
+    lorebook.value.entries = null;
     lorebookSubmitted.value = false;
     lorebookDialog.value = true;
 };
@@ -121,6 +122,7 @@ const editLorebook = (editLorebook) => {
 };
 
 const editEntry = (editEntry) => {
+    editEntry.entries = [];
     entry.value = { ...editEntry };
     entryDialog.value = true;
 };
@@ -345,7 +347,7 @@ const initFilters = () => {
                         <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveLorebook" />
                     </template>
 
-                    <div class="card" v-if="lorebook.entries">
+                    <div class="card" v-if="lorebook.entries !== null">
                         <DataTable
                             ref="dt"
                             :value="lorebook.entries"
