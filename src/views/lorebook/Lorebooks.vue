@@ -387,19 +387,19 @@ const initFilters = () => {
                             <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                                 <template #body="slotProps">
                                     <span class="p-column-title">Name</span>
-                                    {{ slotProps.data.name }}
+                                    <div class="table-column-overflow">{{ slotProps.data.name }}</div>
                                 </template>
                             </Column>
                             <Column field="regex" header="Regex" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                                 <template #body="slotProps">
                                     <span class="p-column-title">Regex</span>
-                                    {{ slotProps.data.regex }}
+                                    <div class="table-column-overflow">{{ slotProps.data.regex }}</div>
                                 </template>
                             </Column>
                             <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
                                 <template #body="slotProps">
                                     <span class="p-column-title">Description</span>
-                                    {{ slotProps.data.description }}
+                                    <div class="table-column-overflow">{{ slotProps.data.description }}</div>
                                 </template>
                             </Column>
                             <Column headerStyle="min-width:10rem;">

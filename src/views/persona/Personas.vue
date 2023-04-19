@@ -7,7 +7,7 @@ import PersonaService from '@/service/PersonaService';
 const personaService = new PersonaService();
 
 const toast = useToast();
-const persona = ref({});
+const persona = ref({ nudge: { role: null }, bump: { role: null } });
 const personas = ref(null);
 const selectedPersonas = ref(null);
 const personaDialog = ref(false);
@@ -37,7 +37,6 @@ onMounted(() => {
 });
 
 const createNewPersona = () => {
-    persona.value = { nudge: { role: null }, bump: { role: null } };
     personaSubmitted.value = false;
     personaDialog.value = true;
 };
