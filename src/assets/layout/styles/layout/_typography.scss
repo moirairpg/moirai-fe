@@ -1,4 +1,9 @@
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     margin: 1.5rem 0 1rem 0;
     font-family: inherit;
     font-weight: 500;
@@ -35,8 +40,8 @@ h6 {
 }
 
 mark {
-    background: #FFF8E1;
-    padding: .25rem .4rem;
+    background: #fff8e1;
+    padding: 0.25rem 0.4rem;
     border-radius: $borderRadius;
     font-family: monospace;
 }
@@ -44,7 +49,7 @@ mark {
 blockquote {
     margin: 1rem 0;
     padding: 0 2rem;
-    border-left: 4px solid #90A4AE;
+    border-left: 4px solid #90a4ae;
 }
 
 hr {
@@ -63,10 +68,66 @@ p {
 }
 
 .table-column-overflow {
-    text-overflow:ellipsis;
+    text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 500px;
     overflow: hidden;
+}
+
+.card-overflow {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
+    @media screen and (min-width: 1080px) {
+        max-width: 30vw;
+    }
+
+    @media screen and (max-width: 1080px) {
+        max-width: 50vw;
+    }
+}
+
+.card-overflow-title {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
+    @media screen and (min-width: 1080px) {
+        max-width: 20vw;
+    }
+
+    @media screen and (max-width: 1080px) {
+        max-width: 50vw;
+    }
+}
+
+.card-overflow-subitem-title {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
+    @media screen and (min-width: 1080px) {
+        max-width: 20vw;
+    }
+
+    @media screen and (max-width: 1080px) {
+        max-width: 50vw;
+    }
+}
+
+.card-overflow-subitem {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
+    @media screen and (min-width: 1080px) {
+        max-width: 20vw;
+    }
+
+    @media screen and (max-width: 1080px) {
+        max-width: 60vw;
+    }
 }
 
 .table-column-overflow-subitem {
