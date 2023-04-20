@@ -76,6 +76,7 @@ const onChangeTheme = (theme, mode) => {
 };
 
 const onToggleTheme = () => {
+    layoutConfig.darkTheme.value = !layoutConfig.darkTheme.value;
     layoutConfig.darkTheme.value ? onChangeTheme('mdc-dark-indigo', 'dark') : onChangeTheme('mdc-light-indigo', 'light');
 };
 </script>
@@ -84,7 +85,7 @@ const onToggleTheme = () => {
     <div class="layout-topbar">
         <router-link to="/" class="layout-topbar-logo">
             <img :src="logoUrl" alt="logo" />
-            <span>SAKAI</span>
+            <span>ChatRPG</span>
         </router-link>
 
         <button class="p-link layout-menu-button layout-topbar-button" @click="onMenuToggle()">
@@ -96,15 +97,17 @@ const onToggleTheme = () => {
         </button>
 
         <div class="layout-topbar-menu" :class="topbarMenuClasses">
-            <InputSwitch v-model="layoutConfig.darkTheme.value" @input="onToggleTheme"></InputSwitch>
-            <button @click="onTopBarMenuButton()" class="p-link layout-topbar-button">
-                <i class="pi pi-calendar"></i>
-                <span>Calendar</span>
+            <!-- <InputSwitch v-model="layoutConfig.darkTheme.value" @input="onToggleTheme"></InputSwitch> -->
+            <button @click="onToggleTheme()" class="p-link layout-topbar-button">
+                <i :class="layoutConfig.darkTheme.value ? 'pi pi-sun' : 'pi pi-moon'"></i>
+                <span>Toggle theme</span>
             </button>
+
             <button @click="onTopBarMenuButton()" class="p-link layout-topbar-button">
                 <i class="pi pi-user"></i>
                 <span>Profile</span>
             </button>
+
             <button @click="onSettingsClick()" class="p-link layout-topbar-button">
                 <i class="pi pi-cog"></i>
                 <span>Settings</span>
