@@ -15,11 +15,13 @@ const lorebook = ref({});
 const lorebooks = ref(null);
 const selectedLorebooks = ref(null);
 const lorebookDialog = ref(false);
+const viewLorebookDialog = ref(false);
 const deleteLorebookDialog = ref(false);
 const deleteLorebooksDialog = ref(false);
 const entry = ref({});
 const selectedEntries = ref(null);
 const entryDialog = ref(false);
+const viewEntryDialog = ref(false);
 const deleteEntryDialog = ref(false);
 const deleteEntriesDialog = ref(false);
 const dt = ref(null);
@@ -27,7 +29,7 @@ const lorebookFilters = ref({});
 const entryFilters = ref({});
 const lorebookSubmitted = ref(false);
 const entrySubmitted = ref(false);
-const statuses = ref([
+const visibilities = ref([
     { label: 'PRIVATE', value: 'private' },
     { label: 'PUBLIC', value: 'public' }
 ]);
@@ -38,17 +40,26 @@ onBeforeMount(() => {
 });
 
 onMounted(async () => {
-    await lorebookService.getAllLorebooks().then(async (data) => {
+    await lorebookService.getAllLorebooks(loggedUser.id).then(async (data) => {
         const lbs = [];
-        for (let lb of data) {
-            const ownerData = await discordService.retrieveUserData(lb.owner);
-            lb.ownerData = ownerData;
 
-            if (lb.entries === undefined || lb.entries.length == 0) {
-                lb.entries = [];
+        if (data?.[0] !== undefined) {
+            for (let lb of data) {
+                let canEdit = false;
+                const ownerData = await discordService.retrieveUserData(lb.owner);
+                if (lb.owner === loggedUser.id || lb.writePermissions?.contains(loggedUser.id)) {
+                    canEdit = true;
+                }
+
+                if (lb.entries === undefined || lb.entries.length == 0) {
+                    lb.entries = [];
+                }
+
+                lb.ownerData = ownerData;
+                lb.canEdit = canEdit;
+
+                lbs.push(lb);
             }
-
-            lbs.push(lb);
         }
 
         lorebooks.value = lbs;
@@ -68,6 +79,14 @@ const createNewEntry = () => {
     entryDialog.value = true;
 };
 
+const hideViewLorebookDialog = () => {
+    viewLorebookDialog.value = false;
+};
+
+const hideViewLorebookEntryDialog = () => {
+    viewLorebookEntryDialog.value = false;
+};
+
 const hideLorebookDialog = () => {
     lorebookDialog.value = false;
     lorebookSubmitted.value = false;
@@ -83,9 +102,12 @@ const saveLorebook = async () => {
     if (lorebook.value.name.trim() && lorebook.value.description.trim() && lorebook.value.visibility) {
         if (lorebook.value.id) {
             try {
+                const canEdit = lorebook.value.canEdit;
                 const lorebookOwner = lorebook.value.ownerData;
                 lorebook.value.visibility = lorebook.value.visibility.value ? lorebook.value.visibility.value : lorebook.value.visibility;
-                await lorebookService.updateLorebook(lorebook.value);
+                await lorebookService.updateLorebook(lorebook.value, loggedUser.id);
+
+                lorebook.value.canEdit = canEdit;
                 lorebook.value.ownerData = lorebookOwner;
                 lorebooks.value[findLorebookIndexById(lorebook.value.id)] = lorebook.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook updated', life: 3000 });
@@ -95,9 +117,12 @@ const saveLorebook = async () => {
             }
         } else {
             try {
-                lorebook.value.visibility = lorebook.value.visibility ? lorebook.value.visibility.value : 'PRIVATE';
+                const canEdit = lorebook.value.canEdit;
                 lorebook.value.owner = loggedUser.id;
-                const createdLorebook = await lorebookService.createLorebook(lorebook.value);
+                lorebook.value.visibility = lorebook.value.visibility ? lorebook.value.visibility.value : 'PRIVATE';
+                const createdLorebook = await lorebookService.createLorebook(lorebook.value, loggedUser.id);
+
+                createdLorebook.canEdit = canEdit;
                 createdLorebook.ownerData = loggedUser;
                 lorebooks.value.push(createdLorebook);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook created', life: 3000 });
@@ -116,7 +141,7 @@ const saveEntry = async () => {
     if (entry.value.name.trim() && entry.value.description.trim()) {
         if (entry.value.id) {
             try {
-                await lorebookService.updateLorebookEntry(entry.value);
+                await lorebookService.updateLorebookEntry(entry.value, loggedUser.id);
                 lorebook.value.entries[findEntryIndexById(entry.value.id)] = entry.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry updated', life: 3000 });
             } catch (error) {
@@ -125,7 +150,7 @@ const saveEntry = async () => {
             }
         } else {
             try {
-                const createdLorebook = await lorebookService.createLorebookEntry(entry.value, lorebook.value);
+                const createdLorebook = await lorebookService.createLorebookEntry(entry.value, lorebook.value, loggedUser.id);
                 lorebook.value.entries.push(createdLorebook);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry created', life: 3000 });
             } catch (error) {
@@ -136,6 +161,16 @@ const saveEntry = async () => {
         entryDialog.value = false;
         entry.value = {};
     }
+};
+
+const viewLorebookEntry = (editEntry) => {
+    entry.value = { ...editEntry };
+    viewEntryDialog.value = true;
+};
+
+const viewLorebook = (editLorebook) => {
+    lorebook.value = { ...editLorebook };
+    viewLorebookDialog.value = true;
 };
 
 const editLorebook = (editLorebook) => {
@@ -161,7 +196,7 @@ const confirmDeleteEntry = (editEntry) => {
 
 const deleteLorebook = async () => {
     try {
-        await lorebookService.deleteLorebook(lorebook.value);
+        await lorebookService.deleteLorebook(lorebook.value, loggedUser.id);
         lorebooks.value = lorebooks.value.filter((val) => val.id !== lorebook.value.id);
         deleteLorebookDialog.value = false;
         lorebook.value = {};
@@ -174,7 +209,7 @@ const deleteLorebook = async () => {
 
 const deleteEntry = async () => {
     try {
-        await lorebookService.deleteLorebookEntry(entry.value);
+        await lorebookService.deleteLorebookEntry(entry.value, loggedUser.id);
         lorebook.value.entries = lorebook.value.entries.filter((val) => val.id !== entry.value.id);
         deleteEntryDialog.value = false;
         entry.value = {};
@@ -321,8 +356,9 @@ const initEntryFilters = () => {
                                             {{ slotProps.data.description }}
                                         </p>
                                         <div class="flex align-items-center justify-content-between">
-                                            <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editLorebook(slotProps.data)" />
-                                            <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteLorebook(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editLorebook(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteLorebook(slotProps.data)" />
+                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewLorebook(slotProps.data)" />
                                         </div>
                                     </div>
                                 </div>
@@ -395,13 +431,131 @@ const initEntryFilters = () => {
                             </Column>
                             <Column headerStyle="min-width:10rem;">
                                 <template #body="slotProps">
-                                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editLorebook(slotProps.data)" />
-                                    <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteLorebook(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editLorebook(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteLorebook(slotProps.data)" />
+                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewLorebook(slotProps.data)" />
                                 </template>
                             </Column>
                         </DataTable>
                     </TabPanel>
                 </TabView>
+
+                <Dialog v-model:visible="viewLorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <InputText id="name" v-model.trim="lorebook.name" disabled />
+                    </div>
+                    <div class="field">
+                        <label for="description">Description</label>
+                        <Textarea id="description" v-model.trim="lorebook.description" rows="3" cols="20" disabled />
+                    </div>
+                    <div class="card" v-if="lorebook.entries !== null">
+                        <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                            <h5 class="m-0">Entries</h5>
+                        </div>
+                        <TabView>
+                            <h5>Entries</h5>
+                            <TabPanel header="Card view">
+                                <DataView
+                                    layout="grid"
+                                    ref="dt"
+                                    :value="lorebook.entries"
+                                    dataKey="id"
+                                    :paginator="true"
+                                    :rows="6"
+                                    :filters="entryFilters"
+                                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                    :rowsPerPageOptions="[6, 12, 18]"
+                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                                    responsiveLayout="scroll"
+                                >
+                                    <template #empty>No entries found.</template>
+
+                                    <template #grid="slotProps">
+                                        <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
+                                            <div class="p-4 border-1 surface-border surface-card border-round">
+                                                <div class="flex flex-column align-items-center gap-3 py-5">
+                                                    <div align="center" class="text-2xl font-bold card-overflow-subitem-title">{{ slotProps.data.name }}</div>
+                                                </div>
+                                                <p align="center" class="card-overflow-subitem">
+                                                    {{ slotProps.data.description }}
+                                                </p>
+                                                <div class="flex align-items-center justify-content-between">
+                                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewLorebookEntry(slotProps.data)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </DataView>
+                            </TabPanel>
+                            <TabPanel header="Table view">
+                                <DataTable
+                                    ref="dt"
+                                    :value="lorebook.entries"
+                                    v-model:selection="selectedEntries"
+                                    dataKey="id"
+                                    :paginator="true"
+                                    :rows="10"
+                                    :filters="entryFilters"
+                                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                    :rowsPerPageOptions="[5, 10, 25]"
+                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                                    responsiveLayout="scroll"
+                                >
+                                    <template #empty>No entries found.</template>
+
+                                    <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                                    <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                        <template #body="slotProps">
+                                            <span class="p-column-title">Name</span>
+                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.name }}</div>
+                                        </template>
+                                    </Column>
+                                    <Column field="regex" header="Regex" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                        <template #body="slotProps">
+                                            <span class="p-column-title">Regex</span>
+                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.regex }}</div>
+                                        </template>
+                                    </Column>
+                                    <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                                        <template #body="slotProps">
+                                            <span class="p-column-title">Description</span>
+                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.description }}</div>
+                                        </template>
+                                    </Column>
+                                    <Column headerStyle="min-width:10rem;">
+                                        <template #body="slotProps">
+                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewLorebookEntry(slotProps.data)" />
+                                        </template>
+                                    </Column>
+                                </DataTable>
+                            </TabPanel>
+                        </TabView>
+                    </div>
+                    <template #footer>
+                        <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideViewLorebookDialog" />
+                    </template>
+
+                    <Dialog v-model:visible="viewEntryDialog" header="Lorebook entry" :modal="true" class="p-fluid">
+                        <div class="field">
+                            <label for="name">Name</label>
+                            <InputText id="name" v-model.trim="entry.name" disabled autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
+                            <small class="p-invalid" v-if="entrySubmitted && !entry.name">Name is required.</small>
+                        </div>
+                        <div class="field">
+                            <label for="regex">Regex</label>
+                            <InputText disabled id="regex" v-model.trim="entry.regex" />
+                        </div>
+                        <div class="field">
+                            <label for="description">Description</label>
+                            <Textarea id="description" v-model.trim="entry.description" disabled rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
+                            <small class="p-invalid" v-if="entrySubmitted && !entry.description">Description is required.</small>
+                        </div>
+                        <template #footer>
+                            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewLorebookEntryDialog" />
+                        </template>
+                    </Dialog>
+                </Dialog>
 
                 <Dialog v-model:visible="lorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
                     <div class="field">
@@ -416,7 +570,7 @@ const initEntryFilters = () => {
                     </div>
                     <div class="field">
                         <label for="visibility" class="mb-3">Visibility</label>
-                        <Dropdown id="visibility" v-model="lorebook.visibility" :options="statuses" optionLabel="label" placeholder="Lorebook visibility" :class="{ 'p-invalid': lorebookSubmitted && !lorebook.visibility }">
+                        <Dropdown id="visibility" v-model="lorebook.visibility" :options="visibilities" optionLabel="label" placeholder="Lorebook visibility" :class="{ 'p-invalid': lorebookSubmitted && !lorebook.visibility }">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value && slotProps.value.value">
                                     <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
@@ -453,7 +607,7 @@ const initEntryFilters = () => {
                                     :filters="entryFilters"
                                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                                     :rowsPerPageOptions="[6, 12, 18]"
-                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
+                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
                                     responsiveLayout="scroll"
                                 >
                                     <template #header>
@@ -497,7 +651,7 @@ const initEntryFilters = () => {
                                     :filters="entryFilters"
                                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                                     :rowsPerPageOptions="[5, 10, 25]"
-                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
+                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
                                     responsiveLayout="scroll"
                                 >
                                     <template #header>
@@ -520,12 +674,6 @@ const initEntryFilters = () => {
                                     <template #empty>No entries found.</template>
 
                                     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                                    <Column field="id" header="ID" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                        <template #body="slotProps">
-                                            <span class="p-column-title">ID</span>
-                                            {{ slotProps.data.id }}
-                                        </template>
-                                    </Column>
                                     <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                                         <template #body="slotProps">
                                             <span class="p-column-title">Name</span>
