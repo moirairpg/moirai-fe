@@ -43,8 +43,8 @@ jobs:
               --name chatrpg-fe \
               --hostname chatrpg-fe \
               --network deployuser_dockerlan \
-              -e CHATRPG_DISCORD_LOGIN_URL=$CHATRPG_DISCORD_LOGIN_URL \
-              -e CHATRPG_DISCORD_CLIENT_ID=$CHATRPG_DISCORD_CLIENT_ID \
-              -e CHATRPG_DISCORD_CLIENT_SECRET=$CHATRPG_DISCORD_CLIENT_SECRET \
+              -e CHATRPG_DISCORD_LOGIN_URL=${{ secrets.CHATRPG_DISCORD_LOGIN_URL }} \
+              -e CHATRPG_DISCORD_CLIENT_ID=${{ secrets.CHATRPG_DISCORD_CLIENT_ID }} \
+              -e CHATRPG_DISCORD_CLIENT_SECRET=${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }} \
               -p 80:80 \
               registry.gitlab.com/thaalesalves/chatrpg:front-end
