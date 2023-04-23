@@ -85,7 +85,8 @@ const saveLorebook = async () => {
                 await lorebookService.updateLorebook(lorebook.value);
                 lorebooks.value[findLorebookIndexById(lorebook.value.id)] = lorebook.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook updated', life: 3000 });
-            } catch {
+            } catch (error) {
+                console.error(`An error ocurred while updating the lorebook -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating lorebook', life: 3000 });
             }
         } else {
@@ -96,7 +97,8 @@ const saveLorebook = async () => {
                 createdLorebook.ownerData = authData;
                 lorebooks.value.push(createdLorebook);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook created', life: 3000 });
-            } catch {
+            } catch (error) {
+                console.error(`An error ocurred while saving the lorebook -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving lorebook', life: 3000 });
             }
         }
@@ -113,7 +115,8 @@ const saveEntry = async () => {
                 await lorebookService.updateLorebookEntry(entry.value);
                 lorebook.value.entries[findEntryIndexById(entry.value.id)] = entry.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry updated', life: 3000 });
-            } catch {
+            } catch (error) {
+                console.error(`An error ocurred while updating the entry -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating entry', life: 3000 });
             }
         } else {
@@ -121,7 +124,8 @@ const saveEntry = async () => {
                 const createdLorebook = await lorebookService.createLorebookEntry(entry.value, lorebook.value);
                 lorebook.value.entries.push(createdLorebook);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry created', life: 3000 });
-            } catch {
+            } catch (error) {
+                console.error(`An error ocurred while saving the entry -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving entry', life: 3000 });
             }
         }
@@ -158,7 +162,8 @@ const deleteLorebook = async () => {
         deleteLorebookDialog.value = false;
         lorebook.value = {};
         toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook deleted', life: 3000 });
-    } catch {
+    } catch (error) {
+        console.error(`An error ocurred while deleting the lorebook -> ${error}`);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting lorebook', life: 3000 });
     }
 };
@@ -169,9 +174,10 @@ const deleteEntry = async () => {
         lorebook.value.entries = lorebook.value.entries.filter((val) => val.id !== entry.value.id);
         deleteEntryDialog.value = false;
         entry.value = {};
-        toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook deleted', life: 3000 });
-    } catch {
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting lorebook', life: 3000 });
+        toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook entry deleted', life: 3000 });
+    } catch (error) {
+        console.error(`An error ocurred while deleting the entry -> ${error}`);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting lorebook entry', life: 3000 });
     }
 };
 

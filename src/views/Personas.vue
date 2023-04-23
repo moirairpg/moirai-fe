@@ -55,7 +55,8 @@ const savePersona = async () => {
                 await personaService.updatePersona(persona.value);
                 personas.value[findPersonaIndexById(persona.value.id)] = persona.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona updated', life: 3000 });
-            } catch {
+            } catch (error) {
+                console.error(`An error ocurred while updating the persona -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating persona', life: 3000 });
             }
         } else {
@@ -64,7 +65,8 @@ const savePersona = async () => {
                 const createdPersona = await personaService.createPersona(persona.value);
                 personas.value.push(createdPersona);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona created', life: 3000 });
-            } catch {
+            } catch (error) {
+                console.error(`An error ocurred while saving the persona -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving persona', life: 3000 });
             }
         }
@@ -90,7 +92,8 @@ const deletePersona = async () => {
         deletePersonaDialog.value = false;
         persona.value = {};
         toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona deleted', life: 3000 });
-    } catch {
+    } catch (error) {
+                console.error(`An error ocurred while deleting the persona -> ${error}`);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting persona', life: 3000 });
     }
 };
