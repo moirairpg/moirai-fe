@@ -4,9 +4,13 @@ import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import WorldService from '@/service/WorldService';
 import LorebookService from '@/service/LorebookService';
+import DiscordService from '@/service/DiscordService';
+import store from '../store';
 
 const worldService = new WorldService();
 const lorebookService = new LorebookService();
+const discordService = new DiscordService();
+const loggedUser = store.getters.loggedUser;
 
 const toast = useToast();
 const world = ref({});
@@ -28,13 +32,27 @@ onBeforeMount(() => {
     initLorebookSearchFilters();
 });
 
-onMounted(() => {
-    worldService.getAllWorlds().then((data) => {
-        worlds.value = data;
+onMounted(async () => {
+    await worldService.getAllWorlds().then(async (data) => {
+        const ws = [];
+        for (let w of data) {
+            const ownerData = await discordService.retrieveUserData(w.owner);
+            w.ownerData = ownerData;
+            ws.push(w);
+        }
+
+        worlds.value = ws;
     });
 
-    lorebookService.getAllLorebooks().then((data) => {
-        lorebooks.value = data;
+    await lorebookService.getAllLorebooks().then(async (data) => {
+        const lbs = [];
+        for (let lb of data) {
+            const ownerData = await discordService.retrieveUserData(lb.owner);
+            lb.ownerData = ownerData;
+            lbs.push(lb);
+        }
+
+        lorebooks.value = lbs;
     });
 });
 
@@ -59,7 +77,9 @@ const saveWorld = async () => {
     if (world.value.name.trim() && world.value.description.trim()) {
         if (world.value.id) {
             try {
+                const worldOwner = world.value.ownerData;
                 await worldService.updateWorld(world.value);
+                world.value.ownerData = worldOwner;
                 worlds.value[findWorldIndexById(world.value.id)] = world.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World updated', life: 3000 });
             } catch (error) {
@@ -68,7 +88,10 @@ const saveWorld = async () => {
             }
         } else {
             try {
+                world.value.owner = loggedUser.id;
+                console.log(`World -> ${JSON.stringify(world, null, 2)}`);
                 const createdWorld = await worldService.createWorld(world.value);
+                createdWorld.ownerData = loggedUser;
                 worlds.value.push(createdWorld);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World created', life: 3000 });
             } catch (error) {
@@ -168,81 +191,140 @@ const initLorebookSearchFilters = () => {
         <div class="col-12">
             <div class="card">
                 <Toast />
-                <Toolbar class="mb-4">
-                    <template v-slot:start>
-                        <div class="my-2">
-                            <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
-                            <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedWorlds" :disabled="!selectedWorlds || !selectedWorlds.length" />
-                        </div>
-                    </template>
-                    <template v-slot:end>
-                        <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
-                        <Button label="Export" icon="pi pi-upload" class="p-button-help" @click="exportCSV($event)" />
-                    </template>
-                </Toolbar>
+                <TabView>
+                    <TabPanel header="Card view">
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                                <Button label="Export" icon="pi pi-upload" class="p-button-help" @click="exportCSV($event)" />
+                            </template>
+                        </Toolbar>
 
-                <DataTable
-                    ref="dt"
-                    :value="worlds"
-                    v-model:selection="selectedWorlds"
-                    dataKey="id"
-                    :paginator="true"
-                    :rows="10"
-                    :filters="worldSearchFilters"
-                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    :rowsPerPageOptions="[5, 10, 25]"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
-                    responsiveLayout="scroll"
-                    maxLength
-                >
-                    <template #header>
-                        <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                            <h5 class="m-0">Worlds</h5>
-                            <span class="block mt-2 md:mt-0 p-input-icon-left">
-                                <i class="pi pi-search" />
-                                <InputText v-model="worldSearchFilters['global'].value" placeholder="Search..." />
-                            </span>
-                        </div>
-                    </template>
+                        <DataView
+                            layout="grid"
+                            ref="dt"
+                            :value="worlds"
+                            dataKey="id"
+                            :paginator="true"
+                            :rows="6"
+                            :filters="worldSearchFilters"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            :rowsPerPageOptions="[6, 12, 18]"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
+                            responsiveLayout="scroll"
+                        >
+                            <template #header>
+                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                    <h5 class="m-0">Worlds</h5>
+                                </div>
+                            </template>
 
-                    <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                    <Column field="id" header="ID" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">ID</span>
-                            {{ slotProps.data.id }}
-                        </template>
-                    </Column>
-                    <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Name</span>
-                            <div class="table-column-overflow">{{ slotProps.data.name }}</div>
-                        </template>
-                    </Column>
-                    <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Description</span>
-                            <div class="table-column-overflow">{{ slotProps.data.description }}</div>
-                        </template>
-                    </Column>
-                    <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Owner</span>
-                            {{ slotProps.data.owner }}
-                        </template>
-                    </Column>
-                    <Column field="lorebook" header="Lorebook" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Lorebook</span>
-                            {{ slotProps.data.lorebook.name }}
-                        </template>
-                    </Column>
-                    <Column headerStyle="min-width:10rem;">
-                        <template #body="slotProps">
-                            <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
-                            <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
-                        </template>
-                    </Column>
-                </DataTable>
+                            <template #empty>No worlds found.</template>
+
+                            <template #grid="slotProps">
+                                <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
+                                    <div class="p-4 border-1 surface-border surface-card border-round">
+                                        <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+                                            <div class="flex align-items-center gap-2">
+                                                <i class="pi pi-user"></i>
+                                                <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
+                                            </div>
+                                            <Tag :value="slotProps.data.visibility" :class="'visibility-badge visibility-' + (slotProps.data.visibility ? slotProps.data.visibility.toLowerCase() : '')"></Tag>
+                                        </div>
+                                        <div class="flex flex-column align-items-center gap-3 py-5">
+                                            <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
+                                        </div>
+                                        <p align="center" class="card-overflow">
+                                            {{ slotProps.data.description }}
+                                        </p>
+                                        <div class="flex align-items-center justify-content-between">
+                                            <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
+                                            <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </DataView>
+                    </TabPanel>
+                    <TabPanel header="Table view">
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
+                                    <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedWorlds" :disabled="!selectedWorlds || !selectedWorlds.length" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                                <Button label="Export" icon="pi pi-upload" class="p-button-help" @click="exportCSV($event)" />
+                            </template>
+                        </Toolbar>
+
+                        <DataTable
+                            ref="dt"
+                            :value="worlds"
+                            v-model:selection="selectedWorlds"
+                            dataKey="id"
+                            :paginator="true"
+                            :rows="10"
+                            :filters="worldSearchFilters"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            :rowsPerPageOptions="[5, 10, 25]"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
+                            responsiveLayout="scroll"
+                            maxLength
+                        >
+                            <template #header>
+                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                    <h5 class="m-0">Worlds</h5>
+                                    <span class="block mt-2 md:mt-0 p-input-icon-left">
+                                        <i class="pi pi-search" />
+                                        <InputText v-model="worldSearchFilters['global'].value" placeholder="Search..." />
+                                    </span>
+                                </div>
+                            </template>
+
+                            <template #empty>No worlds found.</template>
+
+                            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                            <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Name</span>
+                                    <div class="table-column-overflow">{{ slotProps.data.name }}</div>
+                                </template>
+                            </Column>
+                            <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Description</span>
+                                    <div class="table-column-overflow">{{ slotProps.data.description }}</div>
+                                </template>
+                            </Column>
+                            <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Owner</span>
+                                    {{ slotProps.data.ownerData.username }}
+                                </template>
+                            </Column>
+                            <Column field="lorebook" header="Lorebook" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Lorebook</span>
+                                    {{ slotProps.data.lorebook.name }}
+                                </template>
+                            </Column>
+                            <Column headerStyle="min-width:10rem;">
+                                <template #body="slotProps">
+                                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
+                                    <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </TabPanel>
+                </TabView>
 
                 <Dialog v-model:visible="worldDialog" header="World" :modal="true" class="p-fluid">
                     <div class="field">
@@ -258,59 +340,108 @@ const initLorebookSearchFilters = () => {
                     </div>
 
                     <div class="card" v-if="lorebooks">
-                        <DataTable
-                            ref="dt"
-                            :value="lorebooks"
-                            dataKey="id"
-                            :paginator="true"
-                            :rows="10"
-                            :filters="lorebookSearchFilters"
-                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                            :rowsPerPageOptions="[5, 10, 25]"
-                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
-                            responsiveLayout="scroll"
-                            :rowStyle="({ id }) => (id === world.lorebook.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
-                        >
-                            <template #header>
-                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                    <h5 class="m-0">Lorebooks</h5>
-                                    <span class="block mt-2 md:mt-0 p-input-icon-left">
-                                        <i class="pi pi-search" />
-                                        <InputText v-model="lorebookSearchFilters['global'].value" placeholder="Search..." />
-                                    </span>
-                                </div>
-                            </template>
+                        <TabView>
+                            <TabPanel header="Card view">
+                                <DataView
+                                    layout="grid"
+                                    ref="dt"
+                                    :value="lorebooks"
+                                    dataKey="id"
+                                    :paginator="true"
+                                    :rows="6"
+                                    :filters="lorebookSearchFilters"
+                                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                    :rowsPerPageOptions="[6, 12, 18]"
+                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
+                                    responsiveLayout="scroll"
+                                    maxLength
+                                    :gridStyle="({ id }) => (id === world.lorebook.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
+                                >
+                                    <template #header>
+                                        <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                            <h5 class="m-0">Lorebooks</h5>
+                                        </div>
+                                    </template>
 
-                            <Column field="id" header="ID" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">ID</span>
-                                    {{ slotProps.data.id }}
-                                </template>
-                            </Column>
-                            <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Name</span>
-                                    <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.name }}</div>
-                                </template>
-                            </Column>
-                            <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Description</span>
-                                    <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.description }}</div>
-                                </template>
-                            </Column>
-                            <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:8rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Owner</span>
-                                    <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.owner }}</div>
-                                </template>
-                            </Column>
-                            <Column headerStyle="min-width:10rem;">
-                                <template #body="slotProps">
-                                    <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(slotProps.data)" />
-                                </template>
-                            </Column>
-                        </DataTable>
+                                    <template #empty>No personas found.</template>
+
+                                    <template #grid="slotProps">
+                                        <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
+                                            <div class="p-4 border-1 surface-border surface-card border-round">
+                                                <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+                                                    <div class="flex align-items-center gap-2">
+                                                        <i class="pi pi-user"></i>
+                                                        <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
+                                                    </div>
+                                                    <Tag
+                                                        :value="`${world.lorebook.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`"
+                                                        :class="'visibility-badge'"
+                                                    />
+                                                </div>
+                                                <div class="flex flex-column align-items-center gap-3 py-5">
+                                                    <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
+                                                </div>
+                                                <p align="center" class="card-overflow">
+                                                    {{ slotProps.data.description }}
+                                                </p>
+                                                <div class="flex align-items-center justify-content-between">
+                                                    <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(slotProps.data)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </DataView>
+                            </TabPanel>
+                            <TabPanel header="Table view">
+                                <DataTable
+                                    ref="dt"
+                                    :value="lorebooks"
+                                    dataKey="id"
+                                    :paginator="true"
+                                    :rows="10"
+                                    :filters="lorebookSearchFilters"
+                                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                    :rowsPerPageOptions="[5, 10, 25]"
+                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
+                                    responsiveLayout="scroll"
+                                    :rowStyle="({ id }) => (id === world.lorebook.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
+                                >
+                                    <template #header>
+                                        <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                            <h5 class="m-0">Lorebooks</h5>
+                                            <span class="block mt-2 md:mt-0 p-input-icon-left">
+                                                <i class="pi pi-search" />
+                                                <InputText v-model="lorebookSearchFilters['global'].value" placeholder="Search..." />
+                                            </span>
+                                        </div>
+                                    </template>
+
+                                    <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                        <template #body="slotProps">
+                                            <span class="p-column-title">Name</span>
+                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.name }}</div>
+                                        </template>
+                                    </Column>
+                                    <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                                        <template #body="slotProps">
+                                            <span class="p-column-title">Description</span>
+                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.description }}</div>
+                                        </template>
+                                    </Column>
+                                    <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                                        <template #body="slotProps">
+                                            <span class="p-column-title">Owner</span>
+                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.ownerData.username }}</div>
+                                        </template>
+                                    </Column>
+                                    <Column headerStyle="min-width:10rem;">
+                                        <template #body="slotProps">
+                                            <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(slotProps.data)" />
+                                        </template>
+                                    </Column>
+                                </DataTable>
+                            </TabPanel>
+                        </TabView>
 
                         <Dialog v-model:visible="lorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
                             <div class="field">

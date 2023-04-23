@@ -26,6 +26,7 @@ export default class PersonaService {
 
     async updatePersona(persona) {
         try {
+            delete persona.ownerData;
             const response = await axios.put(`${baseUrl}/persona/${persona.id}`, persona)
             return await response.data
         } catch (error) {

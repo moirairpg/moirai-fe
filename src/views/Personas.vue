@@ -3,8 +3,12 @@ import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import PersonaService from '@/service/PersonaService';
+import DiscordService from '@/service/DiscordService';
+import store from '../store';
 
 const personaService = new PersonaService();
+const discordService = new DiscordService();
+const loggedUser = store.getters.loggedUser;
 
 const toast = useToast();
 const persona = ref({ nudge: { role: null }, bump: { role: null } });
@@ -30,13 +34,20 @@ onBeforeMount(() => {
     initFilters();
 });
 
-onMounted(() => {
-    personaService.getAllPersonas().then((data) => {
-        personas.value = data;
+onMounted(async () => {
+    personaService.getAllPersonas().then(async (data) => {
+        const ps = [];
+        for (let p of data) {
+            const ownerData = await discordService.retrieveUserData(p.owner);
+            p.ownerData = ownerData;
+            ps.push(p);
+        }
+        personas.value = ps;
     });
 });
 
 const createNewPersona = () => {
+    persona.value = { nudge: { role: null }, bump: { role: null } };
     personaSubmitted.value = false;
     personaDialog.value = true;
 };
@@ -51,8 +62,10 @@ const savePersona = async () => {
     if (persona.value.name.trim() && persona.value.personality.trim() && persona.value.intent) {
         if (persona.value.id) {
             try {
+                const personaOwner = persona.value.ownerData;
                 persona.value.intent = persona.value.intent.value ? persona.value.intent.value : persona.value.intent;
                 await personaService.updatePersona(persona.value);
+                persona.value.ownerData = personaOwner;
                 personas.value[findPersonaIndexById(persona.value.id)] = persona.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona updated', life: 3000 });
             } catch (error) {
@@ -62,7 +75,9 @@ const savePersona = async () => {
         } else {
             try {
                 persona.value.intent = persona.value.intent ? persona.value.intent.value : 'rpg';
+                persona.value.owner = loggedUser.id;
                 const createdPersona = await personaService.createPersona(persona.value);
+                createdPersona.ownerData = loggedUser;
                 personas.value.push(createdPersona);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona created', life: 3000 });
             } catch (error) {
@@ -71,7 +86,7 @@ const savePersona = async () => {
             }
         }
         personaDialog.value = false;
-        persona.value = {};
+        persona.value = { nudge: { role: null }, bump: { role: null } };
     }
 };
 
@@ -93,7 +108,7 @@ const deletePersona = async () => {
         persona.value = {};
         toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona deleted', life: 3000 });
     } catch (error) {
-                console.error(`An error ocurred while deleting the persona -> ${error}`);
+        console.error(`An error ocurred while deleting the persona -> ${error}`);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting persona', life: 3000 });
     }
 };
@@ -145,81 +160,142 @@ const initFilters = () => {
         <div class="col-12">
             <div class="card">
                 <Toast />
-                <Toolbar class="mb-4">
-                    <template v-slot:start>
-                        <div class="my-2">
-                            <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewPersona" />
-                            <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedPersonas" :disabled="!selectedPersonas || !selectedPersonas.length" />
-                        </div>
-                    </template>
-                    <template v-slot:end>
-                        <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
-                        <Button label="Export" icon="pi pi-upload" class="p-button-help" @click="exportCSV($event)" />
-                    </template>
-                </Toolbar>
 
-                <DataTable
-                    ref="dt"
-                    :value="personas"
-                    v-model:selection="selectedPersonas"
-                    dataKey="id"
-                    :paginator="true"
-                    :rows="10"
-                    :filters="filters"
-                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    :rowsPerPageOptions="[5, 10, 25]"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
-                    responsiveLayout="scroll"
-                    maxLength
-                >
-                    <template #header>
-                        <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                            <h5 class="m-0">Personas</h5>
-                            <span class="block mt-2 md:mt-0 p-input-icon-left">
-                                <i class="pi pi-search" />
-                                <InputText v-model="filters['global'].value" placeholder="Search..." />
-                            </span>
-                        </div>
-                    </template>
+                <TabView>
+                    <TabPanel header="Card view">
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewPersona" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                                <Button label="Export" icon="pi pi-upload" class="p-button-help" @click="exportCSV($event)" />
+                            </template>
+                        </Toolbar>
 
-                    <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                    <Column field="id" header="ID" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">ID</span>
-                            {{ slotProps.data.id }}
-                        </template>
-                    </Column>
-                    <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Name</span>
-                            <div class="table-column-overflow">{{ slotProps.data.name }}</div>
-                        </template>
-                    </Column>
-                    <Column field="personality" header="Personality" :sortable="true" headerStyle="width:14%; min-width:8rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Personality</span>
-                            <div class="table-column-overflow">{{ slotProps.data.personality }}</div>
-                        </template>
-                    </Column>
-                    <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Owner</span>
-                            {{ slotProps.data.owner }}
-                        </template>
-                    </Column>
-                    <Column field="intent" header="Intent" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                        <template #body="slotProps">
-                            <span class="p-column-title">Intent</span>
-                            <span :class="'intent-badge intent-' + (slotProps.data.intent ? slotProps.data.intent.toLowerCase() : '')">{{ slotProps.data.intent }}</span>
-                        </template>
-                    </Column>
-                    <Column headerStyle="min-width:10rem;">
-                        <template #body="slotProps">
-                            <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
-                            <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
-                        </template>
-                    </Column>
-                </DataTable>
+                        <DataView
+                            layout="grid"
+                            ref="dt"
+                            :value="personas"
+                            dataKey="id"
+                            :paginator="true"
+                            :rows="6"
+                            :filters="filters"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            :rowsPerPageOptions="[6, 12, 18]"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
+                            responsiveLayout="scroll"
+                            maxLength
+                        >
+                            <template #header>
+                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                    <h5 class="m-0">Personas</h5>
+                                </div>
+                            </template>
+
+                            <template #empty>No personas found.</template>
+
+                            <template #grid="slotProps">
+                                <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
+                                    <div class="p-4 border-1 surface-border surface-card border-round">
+                                        <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+                                            <div class="flex align-items-center gap-2">
+                                                <i class="pi pi-user"></i>
+                                                <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
+                                            </div>
+                                            <Tag :value="slotProps.data.intent" :class="'intent-badge intent-' + (slotProps.data.intent ? slotProps.data.intent.toLowerCase() : '')"></Tag>
+                                        </div>
+                                        <div class="flex flex-column align-items-center gap-3 py-5">
+                                            <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
+                                        </div>
+                                        <p align="center" class="card-overflow">
+                                            {{ slotProps.data.personality }}
+                                        </p>
+                                        <div class="flex align-items-center justify-content-between">
+                                            <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
+                                            <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </DataView>
+                    </TabPanel>
+                    <TabPanel header="Table view">
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewPersona" />
+                                    <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedPersonas" :disabled="!selectedPersonas || !selectedPersonas.length" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                                <Button label="Export" icon="pi pi-upload" class="p-button-help" @click="exportCSV($event)" />
+                            </template>
+                        </Toolbar>
+
+                        <DataTable
+                            ref="dt"
+                            :value="personas"
+                            v-model:selection="selectedPersonas"
+                            dataKey="id"
+                            :paginator="true"
+                            :rows="10"
+                            :filters="filters"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            :rowsPerPageOptions="[5, 10, 25]"
+                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
+                            responsiveLayout="scroll"
+                            maxLength
+                        >
+                            <template #header>
+                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                    <h5 class="m-0">Personas</h5>
+                                    <span class="block mt-2 md:mt-0 p-input-icon-left">
+                                        <i class="pi pi-search" />
+                                        <InputText v-model="filters['global'].value" placeholder="Search..." />
+                                    </span>
+                                </div>
+                            </template>
+
+                            <template #empty>No personas found.</template>
+
+                            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                            <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Name</span>
+                                    <div class="table-column-overflow">{{ slotProps.data.name }}</div>
+                                </template>
+                            </Column>
+                            <Column field="personality" header="Personality" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Personality</span>
+                                    <div class="table-column-overflow">{{ slotProps.data.personality }}</div>
+                                </template>
+                            </Column>
+                            <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Owner</span>
+                                    {{ slotProps.data.ownerData.username }}
+                                </template>
+                            </Column>
+                            <Column field="intent" header="Intent" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">Intent</span>
+                                    <span :class="'intent-badge intent-' + (slotProps.data.intent ? slotProps.data.intent.toLowerCase() : '')">{{ slotProps.data.intent }}</span>
+                                </template>
+                            </Column>
+                            <Column headerStyle="min-width:10rem;">
+                                <template #body="slotProps">
+                                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
+                                    <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </TabPanel>
+                </TabView>
 
                 <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
