@@ -45,7 +45,7 @@ const store = createStore({
     },
     getters: {
         isLoggedIn: (state) => {
-            return state => state.loggedIn;
+            return state.loggedIn;
         },
         loggedUser: (state) => {
             return state.loggedUserData;
