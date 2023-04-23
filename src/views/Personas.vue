@@ -29,6 +29,10 @@ const roles = ref([
     { label: 'ASSISTANT', value: 'assistant' },
     { label: 'USER', value: 'user' }
 ]);
+const visibilities = ref([
+    { label: 'PRIVATE', value: 'private' },
+    { label: 'PUBLIC', value: 'public' }
+]);
 
 onBeforeMount(() => {
     initFilters();
@@ -37,11 +41,14 @@ onBeforeMount(() => {
 onMounted(async () => {
     personaService.getAllPersonas().then(async (data) => {
         const ps = [];
-        for (let p of data) {
-            const ownerData = await discordService.retrieveUserData(p.owner);
-            p.ownerData = ownerData;
-            ps.push(p);
+        if (data?.[0] !== undefined) {
+            for (let p of data) {
+                const ownerData = await discordService.retrieveUserData(p.owner);
+                p.ownerData = ownerData;
+                ps.push(p);
+            }
         }
+
         personas.value = ps;
     });
 });
@@ -59,10 +66,11 @@ const hidePersonaDialog = () => {
 
 const savePersona = async () => {
     personaSubmitted.value = true;
-    if (persona.value.name.trim() && persona.value.personality.trim() && persona.value.intent) {
+    if (persona.value.name.trim() && persona.value.personality.trim() && persona.value.intent && persona.value.visibility) {
         if (persona.value.id) {
             try {
                 const personaOwner = persona.value.ownerData;
+                persona.value.visibility = persona.value.visibility.value ? persona.value.visibility.value : persona.value.visibility;
                 persona.value.intent = persona.value.intent.value ? persona.value.intent.value : persona.value.intent;
                 await personaService.updatePersona(persona.value);
                 persona.value.ownerData = personaOwner;
@@ -74,6 +82,7 @@ const savePersona = async () => {
             }
         } else {
             try {
+                persona.value.visibility = persona.value.visibility.value ? persona.value.visibility.value : persona.value.visibility;
                 persona.value.intent = persona.value.intent ? persona.value.intent.value : 'rpg';
                 persona.value.owner = loggedUser.id;
                 const createdPersona = await personaService.createPersona(persona.value);
@@ -303,6 +312,25 @@ const initFilters = () => {
                         <InputText id="name" v-model.trim="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
                         <small class="p-invalid" v-if="personaSubmitted && !persona.name">Name is required.</small>
                     </div>
+
+                    <div class="field">
+                        <label for="visibility" class="mb-3">Visibility</label>
+                        <Dropdown id="visibility" v-model="persona.visibility" :options="visibilities" optionLabel="label" placeholder="Persona visibility" :class="{ 'p-invalid': personaSubmitted && !persona.visibility }">
+                            <template #value="slotProps">
+                                <div v-if="slotProps.value && slotProps.value.value">
+                                    <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
+                                </div>
+                                <div v-else-if="slotProps.value && !slotProps.value.value">
+                                    <span :class="'visibility-badge visibility-' + slotProps.value.toLowerCase()">{{ slotProps.value }}</span>
+                                </div>
+                                <span v-else>
+                                    {{ slotProps.placeholder }}
+                                </span>
+                            </template>
+                        </Dropdown>
+                        <small class="p-invalid" v-if="personaSubmitted && !persona.description">Visibility is required.</small>
+                    </div>
+
                     <div class="field">
                         <label for="intent" class="mb-3">Intent</label>
                         <Dropdown id="intent" v-model="persona.intent" :options="intents" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">

@@ -26,6 +26,10 @@ const dt = ref(null);
 const worldSearchFilters = ref({});
 const lorebookSearchFilters = ref({});
 const worldSubmitted = ref(false);
+const visibilities = ref([
+    { label: 'PRIVATE', value: 'private' },
+    { label: 'PUBLIC', value: 'public' }
+]);
 
 onBeforeMount(() => {
     initWorldSearchFilters();
@@ -35,10 +39,12 @@ onBeforeMount(() => {
 onMounted(async () => {
     await worldService.getAllWorlds().then(async (data) => {
         const ws = [];
-        for (let w of data) {
-            const ownerData = await discordService.retrieveUserData(w.owner);
-            w.ownerData = ownerData;
-            ws.push(w);
+        if (data?.[0] !== undefined) {
+            for (let w of data) {
+                const ownerData = await discordService.retrieveUserData(w.owner);
+                w.ownerData = ownerData;
+                ws.push(w);
+            }
         }
 
         worlds.value = ws;
@@ -74,10 +80,11 @@ const hideLorebookDialog = () => {
 
 const saveWorld = async () => {
     worldSubmitted.value = true;
-    if (world.value.name.trim() && world.value.description.trim()) {
+    if (world.value.name.trim() && world.value.description.trim() && world.value.visibility) {
         if (world.value.id) {
             try {
                 const worldOwner = world.value.ownerData;
+                world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
                 await worldService.updateWorld(world.value);
                 world.value.ownerData = worldOwner;
                 worlds.value[findWorldIndexById(world.value.id)] = world.value;
@@ -88,8 +95,8 @@ const saveWorld = async () => {
             }
         } else {
             try {
+                world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
                 world.value.owner = loggedUser.id;
-                console.log(`World -> ${JSON.stringify(world, null, 2)}`);
                 const createdWorld = await worldService.createWorld(world.value);
                 createdWorld.ownerData = loggedUser;
                 worlds.value.push(createdWorld);
@@ -339,6 +346,24 @@ const initLorebookSearchFilters = () => {
                         <small class="p-invalid" v-if="worldSubmitted && !world.description">Description is required.</small>
                     </div>
 
+                    <div class="field">
+                        <label for="visibility" class="mb-3">Visibility</label>
+                        <Dropdown id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
+                            <template #value="slotProps">
+                                <div v-if="slotProps.value && slotProps.value.value">
+                                    <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
+                                </div>
+                                <div v-else-if="slotProps.value && !slotProps.value.value">
+                                    <span :class="'visibility-badge visibility-' + slotProps.value.toLowerCase()">{{ slotProps.value }}</span>
+                                </div>
+                                <span v-else>
+                                    {{ slotProps.placeholder }}
+                                </span>
+                            </template>
+                        </Dropdown>
+                        <small class="p-invalid" v-if="worldSubmitted && !world.description">Visibility is required.</small>
+                    </div>
+
                     <div class="card" v-if="lorebooks">
                         <TabView>
                             <TabPanel header="Card view">
@@ -373,10 +398,7 @@ const initLorebookSearchFilters = () => {
                                                         <i class="pi pi-user"></i>
                                                         <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
                                                     </div>
-                                                    <Tag
-                                                        :value="`${world.lorebook.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`"
-                                                        :class="'visibility-badge'"
-                                                    />
+                                                    <Tag :value="`${world.lorebook.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`" :class="'visibility-badge'" />
                                                 </div>
                                                 <div class="flex flex-column align-items-center gap-3 py-5">
                                                     <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
