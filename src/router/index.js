@@ -6,34 +6,6 @@ const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
-            path: '/login',
-            name: 'login',
-            component: () => import('@/views/Login.vue')
-        },
-        {
-            path: '/discord',
-            name: 'discord',
-            component: () => import('@/views/DiscordLogin.vue'),
-            meta: {
-                title: 'ChatRPG | Logging in...'
-            }
-        },
-        {
-            path: '/error/not-found',
-            name: 'notfound',
-            component: () => import('@/views/template/pages/NotFound.vue')
-        },
-        {
-            path: '/error/access-denied',
-            name: 'accessDenied',
-            component: () => import('@/views/template/pages/auth/Access.vue')
-        },
-        {
-            path: '/error',
-            name: 'error',
-            component: () => import('@/views/template/pages/auth/Error.vue')
-        },
-        {
             path: '/',
             component: AppLayout,
             children: [
@@ -74,22 +46,65 @@ const router = createRouter({
                     }
                 }
             ]
+        },
+        {
+            path: '/auth',
+            name: 'login',
+            component: () => import('@/views/Login.vue'),
+            meta: {
+                title: 'ChatRPG | Authentication',
+                requiresLogin: false
+            }
+        },
+        {
+            path: '/auth/discord',
+            name: 'discord',
+            component: () => import('@/views/DiscordLogin.vue'),
+            meta: {
+                title: 'ChatRPG | Logging in...',
+                requiresLogin: false
+            }
+        },
+        {
+            path: '/error',
+            name: 'error',
+            component: () => import('@/views/template/pages/auth/Error.vue'),
+            meta: {
+                title: 'ChatRPG | Error',
+                requiresLogin: false
+            }
+        },
+        {
+            path: '/error/not-found',
+            name: 'notfound',
+            component: () => import('@/views/template/pages/NotFound.vue'),
+            meta: {
+                title: 'ChatRPG | Not Found',
+                requiresLogin: false
+            }
+        },
+        {
+            path: '/error/access-denied',
+            name: 'accessDenied',
+            component: () => import('@/views/template/pages/auth/Access.vue'),
+            meta: {
+                title: 'ChatRPG | Access Denied',
+                requiresLogin: false
+            }
         }
     ]
 });
 
 router.beforeEach((toRoute, fromRoute, next) => {
 
-    console.log(`Loggedin -> ${store.getters.isLoggedIn}`)
+    window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
     if (toRoute.matched.some(record => record.meta.requiresLogin)) {
         if (!store.getters.isLoggedIn) {
             next({ name: 'login' })
         } else {
-            window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
             next();
         }
     } else {
-        window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
         next();
     }
 })
