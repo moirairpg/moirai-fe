@@ -40,11 +40,11 @@ jobs:
             sudo docker rm -f chatrpg-fe
             sudo docker rmi -f registry.gitlab.com/thaalesalves/chatrpg:front-end
             sudo docker run -d \
-              --name chatrpg-fe \
-              --hostname chatrpg-fe \
-              --network deployuser_dockerlan \
-              -e CHATRPG_DISCORD_LOGIN_URL=${{ secrets.CHATRPG_DISCORD_LOGIN_URL }} \
-              -e CHATRPG_DISCORD_CLIENT_ID=${{ secrets.CHATRPG_DISCORD_CLIENT_ID }} \
-              -e CHATRPG_DISCORD_CLIENT_SECRET=${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }} \
+              --name=chatrpg-fe \
+              --hostname=chatrpg-fe \
+              --network=deployuser_dockerlan \
+              -e CHATRPG_DISCORD_LOGIN_URL="${{ secrets.CHATRPG_DISCORD_LOGIN_URL }}" \
+              -e CHATRPG_DISCORD_CLIENT_ID="${{ secrets.CHATRPG_DISCORD_CLIENT_ID }}" \
+              -e CHATRPG_DISCORD_CLIENT_SECRET="${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }}" \
               -p 80:80 \
               registry.gitlab.com/thaalesalves/chatrpg:front-end
