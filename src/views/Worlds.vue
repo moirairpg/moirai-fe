@@ -62,7 +62,8 @@ const saveWorld = async () => {
                 await worldService.updateWorld(world.value);
                 worlds.value[findWorldIndexById(world.value.id)] = world.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World updated', life: 3000 });
-            } catch {
+            } catch (error) {
+                console.error(`An error ocurred while updating the world -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating world', life: 3000 });
             }
         } else {
@@ -70,7 +71,8 @@ const saveWorld = async () => {
                 const createdWorld = await worldService.createWorld(world.value);
                 worlds.value.push(createdWorld);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World created', life: 3000 });
-            } catch {
+            } catch (error) {
+                console.error(`An error ocurred while saving the world -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving world', life: 3000 });
             }
         }
@@ -107,7 +109,8 @@ const deleteWorld = async () => {
         deleteWorldDialog.value = false;
         world.value = {};
         toast.add({ severity: 'success', summary: 'Success!', detail: 'World deleted', life: 3000 });
-    } catch {
+    } catch (error) {
+        console.error(`An error ocurred while deleting the world -> ${error}`);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting world', life: 3000 });
     }
 };
