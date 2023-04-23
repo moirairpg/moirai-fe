@@ -16,6 +16,7 @@ export default class WorldService {
 
     async createWorld(world) {
         try {
+            delete world.lorebook.ownerData;
             const newWorld = await axios.post(`${baseUrl}/world`, world)
             return newWorld.data.world
         } catch (error) {
@@ -26,6 +27,8 @@ export default class WorldService {
 
     async updateWorld(world) {
         try {
+            delete world.ownerData;
+            delete world.lorebook.ownerData;
             const response = await axios.put(`${baseUrl}/world/${world.id}`, world)
             return await response.data
         } catch (error) {

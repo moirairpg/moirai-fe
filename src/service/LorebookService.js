@@ -27,10 +27,11 @@ export default class LorebookService {
 
     async updateLorebook(lorebook) {
         try {
+            delete lorebook.ownerData;
             const response = await axios.put(`${baseUrl}/lore/book/${lorebook.id}`, lorebook)
             return await response.data
         } catch (error) {
-            console.error(`Error updating lorebook with id ${lorebook.id} -> ${error}`)
+            console.error(`Error updating lorebook with id ${lorebook.id} -> ${JSON.stringify(error, null, 2)}`)
             throw error
         }
     }
