@@ -25,6 +25,9 @@ jobs:
         env:
           CHATRPG_DISCORD_CLIENT_ID: "${{ secrets.CHATRPG_DISCORD_CLIENT_ID }}"
           CHATRPG_DISCORD_CLIENT_SECRET: "${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }}"
+          CHATRPG_DISCORD_LOGIN_URL: "${{ vars.CHATRPG_DISCORD_LOGIN_URL }}"
+          CHATRPG_BACKEND_API_URL: "${{ vars.CHATRPG_BACKEND_API_URL }}"
+          CHATRPG_DISCORD_REDIRECT_URL: "${{ vars.CHATRPG_DISCORD_REDIRECT_URL }}"
       - name: Build and push image to GitLab Container Registry
         if: github.ref == 'refs/heads/master'
         run: |
@@ -49,5 +52,6 @@ jobs:
               -e CHATRPG_DISCORD_LOGIN_URL="${{ env.CHATRPG_DISCORD_LOGIN_URL }}" \
               -e CHATRPG_DISCORD_CLIENT_ID="${{ secrets.CHATRPG_DISCORD_CLIENT_ID }}" \
               -e CHATRPG_DISCORD_CLIENT_SECRET="${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }}" \
+              -e CHATRPG_DISCORD_REDIRECT_URL="${{ vars.CHATRPG_DISCORD_REDIRECT_URL }}" \
               -p 80:80 \
               registry.gitlab.com/thaalesalves/chatrpg:front-end
