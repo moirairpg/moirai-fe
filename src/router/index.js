@@ -80,6 +80,7 @@ const router = createRouter({
 
 router.beforeEach((toRoute, fromRoute, next) => {
 
+    console.log(`Loggedin -> ${store.getters.isLoggedIn}`)
     if (toRoute.matched.some(record => record.meta.requiresLogin)) {
         if (!store.getters.isLoggedIn) {
             next({ name: 'login' })

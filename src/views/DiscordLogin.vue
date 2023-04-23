@@ -10,9 +10,7 @@ export default {
         await discordService.retrieveToken(authCode);
         await discordService.retrieveSelfUserData();
 
-        console.log(`Logged -> ${this.$store.getters.isLoggedIn}`)
         this.$router.push('/');
-        // window.location.replace('/');
     }
 };
 </script>
