@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
+import store from './store';
 
 import PrimeVue from 'primevue/config';
 import AutoComplete from 'primevue/autocomplete';
@@ -107,6 +108,7 @@ import '@/assets/styles.scss';
 
 const app = createApp(App);
 
+app.use(store);
 app.use(router);
 app.use(PrimeVue, { ripple: true });
 app.use(ToastService);
