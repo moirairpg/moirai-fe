@@ -23,9 +23,11 @@ jobs:
       - name: Run build
         run: npm run build
         env:
-          CHATRPG_DISCORD_LOGIN_URL: "${{ secrets.CHATRPG_DISCORD_LOGIN_URL }}"
           CHATRPG_DISCORD_CLIENT_ID: "${{ secrets.CHATRPG_DISCORD_CLIENT_ID }}"
           CHATRPG_DISCORD_CLIENT_SECRET: "${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }}"
+          CHATRPG_DISCORD_LOGIN_URL: "${{ env.CHATRPG_DISCORD_LOGIN_URL }}"
+          CHATRPG_BACKEND_API_URL: "${{ env.CHATRPG_BACKEND_API_URL }}"
+          CHATRPG_DISCORD_REDIRECT_URL: "${{ env.CHATRPG_DISCORD_REDIRECT_URL }}"
       - name: Build and push image to GitLab Container Registry
         if: github.ref == 'refs/heads/master'
         run: |
@@ -47,7 +49,7 @@ jobs:
               --name=chatrpg-fe \
               --hostname=chatrpg-fe \
               --network=deployuser_dockerlan \
-              -e CHATRPG_DISCORD_LOGIN_URL="${{ secrets.CHATRPG_DISCORD_LOGIN_URL }}" \
+              -e CHATRPG_DISCORD_LOGIN_URL="${{ env.CHATRPG_DISCORD_LOGIN_URL }}" \
               -e CHATRPG_DISCORD_CLIENT_ID="${{ secrets.CHATRPG_DISCORD_CLIENT_ID }}" \
               -e CHATRPG_DISCORD_CLIENT_SECRET="${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }}" \
               -p 80:80 \
