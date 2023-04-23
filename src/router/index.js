@@ -1,9 +1,38 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import AppLayout from '@/layout/AppLayout.vue';
+import store from '../store'
 
 const router = createRouter({
     history: createWebHistory(),
     routes: [
+        {
+            path: '/login',
+            name: 'login',
+            component: () => import('@/views/Login.vue')
+        },
+        {
+            path: '/discord',
+            name: 'discord',
+            component: () => import('@/views/DiscordLogin.vue'),
+            meta: {
+                title: 'ChatRPG | Logging in...'
+            }
+        },
+        {
+            path: '/error/not-found',
+            name: 'notfound',
+            component: () => import('@/views/template/pages/NotFound.vue')
+        },
+        {
+            path: '/error/access-denied',
+            name: 'accessDenied',
+            component: () => import('@/views/template/pages/auth/Access.vue')
+        },
+        {
+            path: '/error',
+            name: 'error',
+            component: () => import('@/views/template/pages/auth/Error.vue')
+        },
         {
             path: '/',
             component: AppLayout,
@@ -13,7 +42,8 @@ const router = createRouter({
                     name: 'dashboard',
                     component: () => import('@/views/Dashboard.vue'),
                     meta: {
-                        title: 'ChatRPG | Dashboard'
+                        title: 'ChatRPG | Dashboard',
+                        requiresLogin: true
                     }
                 },
                 {
@@ -21,7 +51,8 @@ const router = createRouter({
                     name: 'lorebooks',
                     component: () => import('@/views/Lorebooks.vue'),
                     meta: {
-                        title: 'ChatRPG | Lorebooks'
+                        title: 'ChatRPG | Lorebooks',
+                        requiresLogin: true
                     }
                 },
                 {
@@ -29,7 +60,8 @@ const router = createRouter({
                     name: 'personas',
                     component: () => import('@/views/Personas.vue'),
                     meta: {
-                        title: 'ChatRPG | Personas'
+                        title: 'ChatRPG | Personas',
+                        requiresLogin: true
                     }
                 },
                 {
@@ -37,173 +69,28 @@ const router = createRouter({
                     name: 'worlds',
                     component: () => import('@/views/Worlds.vue'),
                     meta: {
-                        title: 'ChatRPG | Worlds'
+                        title: 'ChatRPG | Worlds',
+                        requiresLogin: true
                     }
-                },
-                /* DEFAULT PATHS */
-                {
-                    path: '/uikit/formlayout',
-                    name: 'formlayout',
-                    component: () => import('@/views/template/uikit/FormLayout.vue')
-                },
-                {
-                    path: '/uikit/input',
-                    name: 'input',
-                    component: () => import('@/views/template/uikit/Input.vue')
-                },
-                {
-                    path: '/uikit/floatlabel',
-                    name: 'floatlabel',
-                    component: () => import('@/views/template/uikit/FloatLabel.vue')
-                },
-                {
-                    path: '/uikit/invalidstate',
-                    name: 'invalidstate',
-                    component: () => import('@/views/template/uikit/InvalidState.vue')
-                },
-                {
-                    path: '/uikit/button',
-                    name: 'button',
-                    component: () => import('@/views/template/uikit/Button.vue')
-                },
-                {
-                    path: '/uikit/table',
-                    name: 'table',
-                    component: () => import('@/views/template/uikit/Table.vue')
-                },
-                {
-                    path: '/uikit/list',
-                    name: 'list',
-                    component: () => import('@/views/template/uikit/List.vue')
-                },
-                {
-                    path: '/uikit/tree',
-                    name: 'tree',
-                    component: () => import('@/views/template/uikit/Tree.vue')
-                },
-                {
-                    path: '/uikit/panel',
-                    name: 'panel',
-                    component: () => import('@/views/template/uikit/Panels.vue')
-                },
-
-                {
-                    path: '/uikit/overlay',
-                    name: 'overlay',
-                    component: () => import('@/views/template/uikit/Overlay.vue')
-                },
-                {
-                    path: '/uikit/media',
-                    name: 'media',
-                    component: () => import('@/views/template/uikit/Media.vue')
-                },
-                {
-                    path: '/uikit/menu',
-                    component: () => import('@/views/template/uikit/Menu.vue'),
-                    children: [
-                        {
-                            path: '/uikit/menu',
-                            component: () => import('@/views/template/uikit/menu/PersonalDemo.vue')
-                        },
-                        {
-                            path: '/uikit/menu/seat',
-                            component: () => import('@/views/template/uikit/menu/SeatDemo.vue')
-                        },
-                        {
-                            path: '/uikit/menu/payment',
-                            component: () => import('@/views/template/uikit/menu/PaymentDemo.vue')
-                        },
-                        {
-                            path: '/uikit/menu/confirmation',
-                            component: () => import('@/views/template/uikit/menu/ConfirmationDemo.vue')
-                        }
-                    ]
-                },
-                {
-                    path: '/uikit/message',
-                    name: 'message',
-                    component: () => import('@/views/template/uikit/Messages.vue')
-                },
-                {
-                    path: '/uikit/file',
-                    name: 'file',
-                    component: () => import('@/views/template/uikit/File.vue')
-                },
-                {
-                    path: '/uikit/charts',
-                    name: 'charts',
-                    component: () => import('@/views/template/uikit/Chart.vue')
-                },
-                {
-                    path: '/uikit/misc',
-                    name: 'misc',
-                    component: () => import('@/views/template/uikit/Misc.vue')
-                },
-                {
-                    path: '/blocks',
-                    name: 'blocks',
-                    component: () => import('@/views/template/utilities/Blocks.vue')
-                },
-                {
-                    path: '/utilities/icons',
-                    name: 'icons',
-                    component: () => import('@/views/template/utilities/Icons.vue')
-                },
-                {
-                    path: '/pages/timeline',
-                    name: 'timeline',
-                    component: () => import('@/views/template/pages/Timeline.vue')
-                },
-                {
-                    path: '/pages/empty',
-                    name: 'empty',
-                    component: () => import('@/views/template/pages/Empty.vue')
-                },
-                {
-                    path: '/pages/crud',
-                    name: 'crud',
-                    component: () => import('@/views/template/pages/Crud.vue')
-                },
-                {
-                    path: '/documentation',
-                    name: 'documentation',
-                    component: () => import('@/views/template/utilities/Documentation.vue')
                 }
             ]
-        },
-        {
-            path: '/landing',
-            name: 'landing',
-            component: () => import('@/views/template/pages/Landing.vue')
-        },
-        {
-            path: '/pages/notfound',
-            name: 'notfound',
-            component: () => import('@/views/template/pages/NotFound.vue')
-        },
-
-        {
-            path: '/auth/login',
-            name: 'login',
-            component: () => import('@/views/template/pages/auth/Login.vue')
-        },
-        {
-            path: '/auth/access',
-            name: 'accessDenied',
-            component: () => import('@/views/template/pages/auth/Access.vue')
-        },
-        {
-            path: '/auth/error',
-            name: 'error',
-            component: () => import('@/views/template/pages/auth/Error.vue')
         }
     ]
 });
 
 router.beforeEach((toRoute, fromRoute, next) => {
-    window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
 
-    next();
+    if (toRoute.matched.some(record => record.meta.requiresLogin)) {
+        if (!store.getters.isLoggedIn) {
+            next({ name: 'login' })
+        } else {
+            window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
+            next();
+        }
+    } else {
+        window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
+        next();
+    }
 })
 
 export default router;
