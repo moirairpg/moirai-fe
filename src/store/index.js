@@ -1,14 +1,21 @@
 import { createStore } from 'vuex';
-import VuexPersist from 'vuex-persist';
+import VuexPersistence from 'vuex-persist';
+import Cookies from 'js-cookie';
+import SecureLS from "secure-ls";
 
-const badMutations = [];
+const ls = new SecureLS({
+    encodingType: "aes",
+    isCompression: true,
+    encryptionSecret: "n@sXypWXEyGEJMNgmF.v2HMUw6da7Fhytxhyi.nDJa9PHdhMb!x-ibp6aXh3Z2geKFznz!RkbMiry-Y2TLx2yzf4xg6!xjg2hvVB"
+})
 
-const vuexLocalStorage = new VuexPersist({
-    key: 'vuex',
-    storage: window.localStorage,
+const vuexCookie = new VuexPersistence({
+    restoreState: (key, storage) => Cookies.get(key),
+    saveState: (key, state, storage) => Cookies.set(key, state, { expires: 3 }),
     filter: mutation => (badMutations.indexOf(mutation.type) === -1)
 });
 
+const badMutations = [];
 const store = createStore({
     state: {
         loggedIn: false,
@@ -17,12 +24,15 @@ const store = createStore({
     },
     mutations: {
         UPDATE_AUTH_DATA(state, payload) {
+            ls.set('authData', payload)
             state.authData = payload;
         },
         UPDATE_LOGGED_IN(state, payload) {
+            ls.set('loggedIn', payload)
             state.loggedIn = payload;
         },
         UPDATE_LOGGED_USER_DATA(state, payload) {
+            ls.set('loggedUserData', payload)
             state.loggedUserData = payload;
         }
     },
@@ -45,16 +55,19 @@ const store = createStore({
     },
     getters: {
         isLoggedIn: (state) => {
-            return state.loggedIn;
+            const loggedIn = ls.get('loggedIn')
+            return loggedIn !== undefined ? loggedIn : state.loggedIn;
         },
         loggedUser: (state) => {
-            return state.loggedUserData;
+            const loggedUserData = ls.get('loggedUserData')
+            return loggedUserData !== undefined ? loggedUserData : state.loggedUserData;
         },
         authData: (state) => {
-            return state.authData;
+            const authData = ls.get('authData')
+            return authData !== undefined ? authData : state.authData;
         }
     },
-    plugins: [vuexLocalStorage.plugin]
-})
+    plugins: [vuexCookie.plugin]
+});
 
 export default store;
