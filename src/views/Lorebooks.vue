@@ -3,8 +3,11 @@ import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import LorebookService from '@/service/LorebookService';
+import DiscordService from '@/service/DiscordService';
 
 const lorebookService = new LorebookService();
+const discordService = new DiscordService();
+const authData = JSON.parse(localStorage.getItem('user_data'));
 
 const toast = useToast();
 const lorebook = ref({});
@@ -33,13 +36,20 @@ onBeforeMount(() => {
     initEntryFilters();
 });
 
-onMounted(() => {
-    lorebookService.getAllLorebooks().then((data) => {
+onMounted(async () => {
+    await lorebookService.getAllLorebooks().then(async (data) => {
         if (data.entries === undefined || data.entries.length == 0) {
             data.entries = [];
         }
 
-        lorebooks.value = data;
+        const lbs = [];
+        for (let lb of data) {
+            const ownerData = await discordService.retrieveUserData(lb.owner);
+            lb.ownerData = ownerData;
+            lbs.push(lb);
+        }
+
+        lorebooks.value = lbs;
     });
 });
 
@@ -81,7 +91,9 @@ const saveLorebook = async () => {
         } else {
             try {
                 lorebook.value.visibility = lorebook.value.visibility ? lorebook.value.visibility.value : 'PRIVATE';
+                lorebook.value.owner = authData.id;
                 const createdLorebook = await lorebookService.createLorebook(lorebook.value);
+                createdLorebook.ownerData = authData;
                 lorebooks.value.push(createdLorebook);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook created', life: 3000 });
             } catch {
@@ -189,14 +201,6 @@ const exportCSV = () => {
     dt.value.exportCSV();
 };
 
-const confirmDeleteSelectedLorebooks = () => {
-    deleteLorebooksDialog.value = true;
-};
-
-const confirmDeleteSelectedEntries = () => {
-    deleteEntriesDialog.value = true;
-};
-
 const deleteSelectedLorebooks = () => {
     lorebooks.value = lorebooks.value
         .map((val) => {
@@ -251,7 +255,6 @@ const initEntryFilters = () => {
                     <template v-slot:start>
                         <div class="my-2">
                             <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewLorebook" />
-                            <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedLorebooks" :disabled="!selectedLorebooks || !selectedLorebooks.length" />
                         </div>
                     </template>
                     <template v-slot:end>
@@ -287,7 +290,7 @@ const initEntryFilters = () => {
                                 <div class="flex flex-wrap align-items-center justify-content-between gap-2">
                                     <div class="flex align-items-center gap-2">
                                         <i class="pi pi-user"></i>
-                                        <span class="font-semibold">{{ slotProps.data.owner }}</span>
+                                        <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
                                     </div>
                                     <Tag :value="slotProps.data.visibility" :class="'visibility-badge visibility-' + (slotProps.data.visibility ? slotProps.data.visibility.toLowerCase() : '')"></Tag>
                                 </div>
