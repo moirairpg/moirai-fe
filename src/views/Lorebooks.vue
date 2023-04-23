@@ -84,7 +84,7 @@ const hideViewLorebookDialog = () => {
 };
 
 const hideViewLorebookEntryDialog = () => {
-    viewLorebookEntryDialog.value = false;
+    viewEntryDialog.value = false;
 };
 
 const hideLorebookDialog = () => {
