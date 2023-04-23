@@ -3,10 +3,11 @@ import VuexPersistence from 'vuex-persist';
 import Cookies from 'js-cookie';
 import SecureLS from "secure-ls";
 
+const encryptionKey = import.meta.env.VITE_CHATRPG_COOKIE_ENCRYPTION_KEY;
 const ls = new SecureLS({
     encodingType: "aes",
     isCompression: true,
-    encryptionSecret: "n@sXypWXEyGEJMNgmF.v2HMUw6da7Fhytxhyi.nDJa9PHdhMb!x-ibp6aXh3Z2geKFznz!RkbMiry-Y2TLx2yzf4xg6!xjg2hvVB"
+    encryptionSecret: encryptionKey
 })
 
 const vuexCookie = new VuexPersistence({
