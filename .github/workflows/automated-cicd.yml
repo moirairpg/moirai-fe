@@ -25,9 +25,6 @@ jobs:
         env:
           CHATRPG_DISCORD_CLIENT_ID: "${{ secrets.CHATRPG_DISCORD_CLIENT_ID }}"
           CHATRPG_DISCORD_CLIENT_SECRET: "${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }}"
-          CHATRPG_DISCORD_LOGIN_URL: "${{ env.CHATRPG_DISCORD_LOGIN_URL }}"
-          CHATRPG_BACKEND_API_URL: "${{ env.CHATRPG_BACKEND_API_URL }}"
-          CHATRPG_DISCORD_REDIRECT_URL: "${{ env.CHATRPG_DISCORD_REDIRECT_URL }}"
       - name: Build and push image to GitLab Container Registry
         if: github.ref == 'refs/heads/master'
         run: |
