@@ -39,7 +39,7 @@ onBeforeMount(() => {
 });
 
 onMounted(async () => {
-    personaService.getAllPersonas().then(async (data) => {
+    personaService.getAllPersonas(loggedUser.id).then(async (data) => {
         const ps = [];
         if (data?.[0] !== undefined) {
             for (let p of data) {
@@ -72,7 +72,7 @@ const savePersona = async () => {
                 const personaOwner = persona.value.ownerData;
                 persona.value.visibility = persona.value.visibility.value ? persona.value.visibility.value : persona.value.visibility;
                 persona.value.intent = persona.value.intent.value ? persona.value.intent.value : persona.value.intent;
-                await personaService.updatePersona(persona.value);
+                await personaService.updatePersona(persona.value, loggedUser.id);
                 persona.value.ownerData = personaOwner;
                 personas.value[findPersonaIndexById(persona.value.id)] = persona.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona updated', life: 3000 });
@@ -85,7 +85,7 @@ const savePersona = async () => {
                 persona.value.visibility = persona.value.visibility.value ? persona.value.visibility.value : persona.value.visibility;
                 persona.value.intent = persona.value.intent ? persona.value.intent.value : 'rpg';
                 persona.value.owner = loggedUser.id;
-                const createdPersona = await personaService.createPersona(persona.value);
+                const createdPersona = await personaService.createPersona(persona.value, loggedUser.id);
                 createdPersona.ownerData = loggedUser;
                 personas.value.push(createdPersona);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona created', life: 3000 });
@@ -111,7 +111,7 @@ const confirmDeletePersona = (editPersona) => {
 
 const deletePersona = async () => {
     try {
-        await personaService.deletePersona(persona.value);
+        await personaService.deletePersona(persona.value, loggedUser.id);
         personas.value = personas.value.filter((val) => val.id !== persona.value.id);
         deletePersonaDialog.value = false;
         persona.value = {};

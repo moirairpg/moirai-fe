@@ -1,5 +1,5 @@
-import axios from 'axios'
-import store from '../store'
+import axios from 'axios';
+import store from '../store';
 
 const clientId = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_ID;
 const clientSecret = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_SECRET;
@@ -8,7 +8,6 @@ const baseUrl = import.meta.env.VITE_CHATRPG_DISCORD_API_BASE_URL;
 const backendBaseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 export default class DiscordService {
-
     async retrieveToken(authCode) {
         try {
             const myHeaders = new Headers();
@@ -29,15 +28,14 @@ export default class DiscordService {
                 redirect: 'follow'
             };
 
-            const authData = await fetch(`${baseUrl}/oauth2/token`, requestOptions)
-                .then(response => response.json());
+            const authData = await fetch(`${baseUrl}/oauth2/token`, requestOptions).then((response) => response.json());
 
             store.dispatch('setAuthData', authData);
             store.dispatch('setLoggedIn', true);
             return authData;
         } catch (error) {
-            console.error(`Error logging in to Discord data -> ${error}`)
-            throw error
+            console.error(`Error logging in to Discord data -> ${error}`);
+            throw error;
         }
     }
 
@@ -47,7 +45,7 @@ export default class DiscordService {
             const response = await axios({
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.access_token}`
                 },
                 url: `${baseUrl}/users/@me`
             });
@@ -55,8 +53,8 @@ export default class DiscordService {
             store.dispatch('setLoggedUser', response.data);
             return response.data;
         } catch (error) {
-            console.error(`Error retrieving discord self user data -> ${error}`)
-            throw error
+            console.error(`Error retrieving discord self user data -> ${error}`);
+            throw error;
         }
     }
 
@@ -68,8 +66,8 @@ export default class DiscordService {
 
             return response.data;
         } catch (error) {
-            console.error(`Error retrieving discord user data -> ${error}`)
-            throw error
+            console.error(`Error retrieving discord user data -> ${error}`);
+            throw error;
         }
     }
 }

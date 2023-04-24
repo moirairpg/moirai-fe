@@ -37,7 +37,7 @@ onBeforeMount(() => {
 });
 
 onMounted(async () => {
-    await worldService.getAllWorlds().then(async (data) => {
+    await worldService.getAllWorlds(loggedUser.id).then(async (data) => {
         const ws = [];
         if (data?.[0] !== undefined) {
             for (let w of data) {
@@ -50,12 +50,26 @@ onMounted(async () => {
         worlds.value = ws;
     });
 
-    await lorebookService.getAllLorebooks().then(async (data) => {
+    await lorebookService.getAllLorebooks(loggedUser.id).then(async (data) => {
         const lbs = [];
-        for (let lb of data) {
-            const ownerData = await discordService.retrieveUserData(lb.owner);
-            lb.ownerData = ownerData;
-            lbs.push(lb);
+
+        if (data?.[0] !== undefined) {
+            for (let lb of data) {
+                let canEdit = false;
+                const ownerData = await discordService.retrieveUserData(lb.owner);
+                if (lb.owner === loggedUser.id || lb.writePermissions?.contains(loggedUser.id)) {
+                    canEdit = true;
+                }
+
+                if (lb.entries === undefined || lb.entries.length == 0) {
+                    lb.entries = [];
+                }
+
+                lb.ownerData = ownerData;
+                lb.canEdit = canEdit;
+
+                lbs.push(lb);
+            }
         }
 
         lorebooks.value = lbs;
@@ -85,7 +99,7 @@ const saveWorld = async () => {
             try {
                 const worldOwner = world.value.ownerData;
                 world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
-                await worldService.updateWorld(world.value);
+                await worldService.updateWorld(world.value, loggedUser.id);
                 world.value.ownerData = worldOwner;
                 worlds.value[findWorldIndexById(world.value.id)] = world.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World updated', life: 3000 });
@@ -97,7 +111,7 @@ const saveWorld = async () => {
             try {
                 world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
                 world.value.owner = loggedUser.id;
-                const createdWorld = await worldService.createWorld(world.value);
+                const createdWorld = await worldService.createWorld(world.value, loggedUser.id);
                 createdWorld.ownerData = loggedUser;
                 worlds.value.push(createdWorld);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World created', life: 3000 });
@@ -134,7 +148,7 @@ const confirmDeleteWorld = (editWorld) => {
 
 const deleteWorld = async () => {
     try {
-        await worldService.deleteWorld(world.value);
+        await worldService.deleteWorld(world.value, loggedUser.id);
         worlds.value = worlds.value.filter((val) => val.id !== world.value.id);
         deleteWorldDialog.value = false;
         world.value = {};
