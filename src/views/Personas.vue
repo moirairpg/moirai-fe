@@ -15,6 +15,7 @@ const persona = ref({ nudge: { role: null }, bump: { role: null } });
 const personas = ref(null);
 const selectedPersonas = ref(null);
 const personaDialog = ref(false);
+const viewPersonaDialog = ref(false);
 const deletePersonaDialog = ref(false);
 const deletePersonasDialog = ref(false);
 const dt = ref(null);
@@ -43,8 +44,14 @@ onMounted(async () => {
         const ps = [];
         if (data?.[0] !== undefined) {
             for (let p of data) {
+                let canEdit = false;
                 const ownerData = await discordService.retrieveUserData(p.owner);
+                if (p.owner === loggedUser.id || p.writePermissions?.contains(loggedUser.id)) {
+                    canEdit = true;
+                }
+
                 p.ownerData = ownerData;
+                p.canEdit = canEdit;
                 ps.push(p);
             }
         }
@@ -64,15 +71,22 @@ const hidePersonaDialog = () => {
     personaSubmitted.value = false;
 };
 
+const hideViewPersonaDialog = () => {
+    viewPersonaDialog.value = false;
+};
+
 const savePersona = async () => {
     personaSubmitted.value = true;
     if (persona.value.name.trim() && persona.value.personality.trim() && persona.value.intent && persona.value.visibility) {
         if (persona.value.id) {
             try {
+                const canEdit = persona.value.canEdit;
                 const personaOwner = persona.value.ownerData;
                 persona.value.visibility = persona.value.visibility.value ? persona.value.visibility.value : persona.value.visibility;
                 persona.value.intent = persona.value.intent.value ? persona.value.intent.value : persona.value.intent;
                 await personaService.updatePersona(persona.value, loggedUser.id);
+
+                persona.value.canEdit = canEdit;
                 persona.value.ownerData = personaOwner;
                 personas.value[findPersonaIndexById(persona.value.id)] = persona.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona updated', life: 3000 });
@@ -86,6 +100,8 @@ const savePersona = async () => {
                 persona.value.intent = persona.value.intent ? persona.value.intent.value : 'rpg';
                 persona.value.owner = loggedUser.id;
                 const createdPersona = await personaService.createPersona(persona.value, loggedUser.id);
+
+                createdPersona.canEdit = true;
                 createdPersona.ownerData = loggedUser;
                 personas.value.push(createdPersona);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona created', life: 3000 });
@@ -97,6 +113,11 @@ const savePersona = async () => {
         personaDialog.value = false;
         persona.value = { nudge: { role: null }, bump: { role: null } };
     }
+};
+
+const viewPersona = (editPersona) => {
+    persona.value = { ...editPersona };
+    viewPersonaDialog.value = true;
 };
 
 const editPersona = (editPersona) => {
@@ -223,8 +244,9 @@ const initFilters = () => {
                                             {{ slotProps.data.personality }}
                                         </p>
                                         <div class="flex align-items-center justify-content-between">
-                                            <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
-                                            <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
+                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
                                         </div>
                                     </div>
                                 </div>
@@ -298,13 +320,65 @@ const initFilters = () => {
                             </Column>
                             <Column headerStyle="min-width:10rem;">
                                 <template #body="slotProps">
-                                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
-                                    <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
+                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
                                 </template>
                             </Column>
                         </DataTable>
                     </TabPanel>
                 </TabView>
+
+                <Dialog v-model:visible="viewPersonaDialog" header="Persona" :modal="true" class="p-fluid">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <InputText disabled id="name" v-model.trim="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
+                    </div>
+
+                    <div class="field">
+                        <label for="intent" class="mb-3">Intent</label>
+                        <Textarea disabled id="intent" v-model="persona.intent" placeholder="Persona intent" />
+                    </div>
+
+                    <div class="field">
+                        <label for="nudge" class="mb-3">Nudge</label>
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <InputText disabled id="nudge-role" v-model="persona.nudge.role" placeholder="Nudge role" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <Textarea disabled rows="1" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="bump" class="mb-3">Bump</label>
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <InputText disabled id="bump-role" v-model="persona.bump.role" placeholder="Bump role" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <InputNumber disabled mode="decimal" v-model.trim="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                <Textarea disabled rows="1" v-model.trim="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="personality">Personality</label>
+                        <Textarea disabled id="personality" v-model.trim="persona.personality" required="true" rows="10" cols="20" />
+                    </div>
+                    <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewPersonaDialog" />
+                    </template>
+                </Dialog>
 
                 <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">

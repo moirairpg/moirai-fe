@@ -117,12 +117,11 @@ const saveLorebook = async () => {
             }
         } else {
             try {
-                const canEdit = lorebook.value.canEdit;
                 lorebook.value.owner = loggedUser.id;
                 lorebook.value.visibility = lorebook.value.visibility ? lorebook.value.visibility.value : 'PRIVATE';
                 const createdLorebook = await lorebookService.createLorebook(lorebook.value, loggedUser.id);
 
-                createdLorebook.canEdit = canEdit;
+                createdLorebook.canEdit = true;
                 createdLorebook.ownerData = loggedUser;
                 lorebooks.value.push(createdLorebook);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook created', life: 3000 });
