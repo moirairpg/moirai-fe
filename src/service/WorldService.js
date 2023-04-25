@@ -1,4 +1,4 @@
-import axios from 'axios';
+import webclient from '../resources/webclient';
 import store from '../resources/store';
 
 const authData = store.getters.authData;
@@ -7,7 +7,7 @@ const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 export default class WorldService {
     async getAllWorlds(requesterUserId) {
         try {
-            const response = await axios(`${baseUrl}/world`, {
+            const response = await webclient(`${baseUrl}/world`, {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
@@ -15,7 +15,7 @@ export default class WorldService {
                 }
             });
 
-            return await response.data.worlds;
+            return await response.worlds;
         } catch (error) {
             console.error(`Error retrieving world data -> ${error}`);
             throw error;
@@ -25,7 +25,7 @@ export default class WorldService {
     async createWorld(world, requesterUserId) {
         try {
             delete world.lorebook.ownerData;
-            const newWorld = await axios(`${baseUrl}/world`, {
+            const response = await webclient(`${baseUrl}/world`, {
                 method: 'POST',
                 data: world,
                 headers: {
@@ -34,7 +34,7 @@ export default class WorldService {
                 }
             });
 
-            return newWorld.data.world;
+            return response.world;
         } catch (error) {
             console.error(`Error creating world -> ${error}`);
             throw error;
@@ -45,7 +45,7 @@ export default class WorldService {
         try {
             delete world.ownerData;
             delete world.lorebook.ownerData;
-            const response = await axios(`${baseUrl}/world/${world.id}`, {
+            const response = await webclient(`${baseUrl}/world/${world.id}`, {
                 method: 'PUT',
                 data: world,
                 headers: {
@@ -54,7 +54,7 @@ export default class WorldService {
                 }
             });
 
-            return await response.data;
+            return await response;
         } catch (error) {
             console.error(`Error updating world with id ${world.id} -> ${error}`);
             throw error;
@@ -63,7 +63,7 @@ export default class WorldService {
 
     async deleteWorld(world, requesterUserId) {
         try {
-            await axios(`${baseUrl}/world/${world.id}`, {
+            await webclient(`${baseUrl}/world/${world.id}`, {
                 method: 'DELETE',
                 data: world,
                 headers: {

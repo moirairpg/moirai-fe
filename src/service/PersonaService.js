@@ -1,4 +1,4 @@
-import axios from 'axios';
+import webclient from '../resources/webclient';
 import store from '../resources/store';
 
 const authData = store.getters.authData;
@@ -7,7 +7,7 @@ const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 export default class PersonaService {
     async getAllPersonas(requesterUserId) {
         try {
-            const response = await axios(`${baseUrl}/persona`, {
+            const response = await webclient(`${baseUrl}/persona`, {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
@@ -15,7 +15,7 @@ export default class PersonaService {
                 }
             });
 
-            return await response.data.personas;
+            return await response.personas;
         } catch (error) {
             console.error(`Error retrieving persona data -> ${error}`);
             throw error;
@@ -24,7 +24,7 @@ export default class PersonaService {
 
     async createPersona(persona, requesterUserId) {
         try {
-            const newPersona = await axios(`${baseUrl}/persona`, {
+            const response = await webclient(`${baseUrl}/persona`, {
                 method: 'POST',
                 data: persona,
                 headers: {
@@ -33,7 +33,7 @@ export default class PersonaService {
                 }
             });
 
-            return newPersona.data.persona;
+            return response.persona;
         } catch (error) {
             console.error(`Error creating persona -> ${error}`);
             throw error;
@@ -43,7 +43,7 @@ export default class PersonaService {
     async updatePersona(persona, requesterUserId) {
         try {
             delete persona.ownerData;
-            const response = await axios(`${baseUrl}/persona/${persona.id}`, {
+            const response = await webclient(`${baseUrl}/persona/${persona.id}`, {
                 method: 'PUT',
                 data: persona,
                 headers: {
@@ -52,7 +52,7 @@ export default class PersonaService {
                 }
             });
 
-            return await response.data;
+            return await response;
         } catch (error) {
             console.error(`Error updating persona with id ${persona.id} -> ${error}`);
             throw error;
@@ -61,7 +61,7 @@ export default class PersonaService {
 
     async deletePersona(persona, requesterUserId) {
         try {
-            await axios(`${baseUrl}/persona/${persona.id}`, {
+            await webclient(`${baseUrl}/persona/${persona.id}`, {
                 method: 'DELETE',
                 data: persona,
                 headers: {
