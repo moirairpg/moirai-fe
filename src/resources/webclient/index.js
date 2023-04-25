@@ -9,7 +9,7 @@ const webclient = async (url, opts) => {
         });
 
         axios.interceptors.response.use((response) => {
-            console.trace(`Received response from ${response.url}`, JSON.stringify(response, null, 2));
+            console.trace(`Received response from ${response.config.url}`, JSON.stringify(response, null, 2));
             return response;
         });
     }
