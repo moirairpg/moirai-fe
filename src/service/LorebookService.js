@@ -1,5 +1,5 @@
-import axios from 'axios';
-import store from '../store';
+import webclient from '../resources/webclient';
+import store from '../resources/store';
 
 const authData = store.getters.authData;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
@@ -8,7 +8,7 @@ export default class LorebookService {
     /* LOREBOOK */
     async getAllLorebooks(requesterUserId) {
         try {
-            const response = await axios(`${baseUrl}/lore/book`, {
+            const response = await webclient(`${baseUrl}/lore/book`, {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
@@ -16,7 +16,7 @@ export default class LorebookService {
                 }
             });
 
-            return await response.data.lorebooks;
+            return await response.lorebooks;
         } catch (error) {
             console.error(`Error retrieving lorebook data -> ${error}`);
             throw error;
@@ -26,7 +26,7 @@ export default class LorebookService {
     async createLorebook(lorebook, requesterUserId) {
         try {
             delete lorebook.canEdit;
-            const newLorebook = await axios(`${baseUrl}/lore/book`, {
+            const response = await webclient(`${baseUrl}/lore/book`, {
                 method: 'POST',
                 data: lorebook,
                 headers: {
@@ -35,7 +35,7 @@ export default class LorebookService {
                 }
             });
 
-            return newLorebook.data.lorebook;
+            return response.lorebook;
         } catch (error) {
             console.error(`Error creating lorebook -> ${error}`);
             throw error;
@@ -46,7 +46,7 @@ export default class LorebookService {
         try {
             delete lorebook.canEdit;
             delete lorebook.ownerData;
-            const response = await axios(`${baseUrl}/lore/book/${lorebook.id}`, {
+            const response = await webclient(`${baseUrl}/lore/book/${lorebook.id}`, {
                 method: 'PUT',
                 data: lorebook,
                 headers: {
@@ -55,7 +55,7 @@ export default class LorebookService {
                 }
             });
 
-            return await response.data;
+            return await response;
         } catch (error) {
             console.error(`Error updating lorebook with id ${lorebook.id} -> ${JSON.stringify(error, null, 2)}`);
             throw error;
@@ -64,7 +64,7 @@ export default class LorebookService {
 
     async deleteLorebook(lorebook, requesterUserId) {
         try {
-            await axios(`${baseUrl}/lore/book/${lorebook.id}`, {
+            await webclient(`${baseUrl}/lore/book/${lorebook.id}`, {
                 method: 'DELETE',
                 data: lorebook,
                 headers: {
@@ -81,7 +81,7 @@ export default class LorebookService {
     /* LOREBOOK ENTRIES */
     async getAllEntriesFromLorebook(lorebook) {
         try {
-            const response = await axios(`${baseUrl}/lore/entry/lorebook/${lorebook.id}`, {
+            const response = await webclient(`${baseUrl}/lore/entry/lorebook/${lorebook.id}`, {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
@@ -89,7 +89,7 @@ export default class LorebookService {
                 }
             });
 
-            return await response.data.lorebook_entries;
+            return await response.lorebook_entries;
         } catch (error) {
             console.error(`Error retrieving lorebook data from lorebook with id ${lorebook.id} -> ${error}`);
             throw error;
@@ -98,7 +98,7 @@ export default class LorebookService {
 
     async createLorebookEntry(entry, lorebook, requesterUserId) {
         try {
-            const response = await axios(`${baseUrl}/lore/entry/${lorebook.id}`, {
+            const response = await webclient(`${baseUrl}/lore/entry/${lorebook.id}`, {
                 method: 'POST',
                 data: entry,
                 headers: {
@@ -107,7 +107,7 @@ export default class LorebookService {
                 }
             });
 
-            return response.data.lorebook_entry;
+            return response.lorebook_entry;
         } catch (error) {
             console.error(`Error creating lorebook entry with id ${entry.id} -> ${error}`);
             throw error;
@@ -116,7 +116,7 @@ export default class LorebookService {
 
     async updateLorebookEntry(entry, requesterUserId) {
         try {
-            const response = await axios(`${baseUrl}/lore/entry/${entry.id}`, {
+            const response = await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
                 method: 'PUT',
                 data: entry,
                 headers: {
@@ -125,7 +125,7 @@ export default class LorebookService {
                 }
             });
 
-            return response.data;
+            return response;
         } catch (error) {
             console.error(`Error updating lorebook entry with id ${entry.id} -> ${error}`);
             throw error;
@@ -134,7 +134,7 @@ export default class LorebookService {
 
     async deleteLorebookEntry(entry, requesterUserId) {
         try {
-            await axios.delete(`${baseUrl}/lore/entry/${entry.id}`, {
+            await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
                 method: 'DELETE',
                 data: entry,
                 headers: {

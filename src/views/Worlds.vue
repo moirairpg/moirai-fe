@@ -5,7 +5,7 @@ import { useToast } from 'primevue/usetoast';
 import WorldService from '@/service/WorldService';
 import LorebookService from '@/service/LorebookService';
 import DiscordService from '@/service/DiscordService';
-import store from '../store';
+import store from '../resources/store';
 
 const worldService = new WorldService();
 const lorebookService = new LorebookService();

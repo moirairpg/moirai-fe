@@ -1,5 +1,5 @@
-import axios from 'axios';
-import store from '../store';
+import webclient from '../resources/webclient';
+import store from '../resources/store';
 
 const clientId = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_ID;
 const clientSecret = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_SECRET;
@@ -42,7 +42,7 @@ export default class DiscordService {
     async retrieveSelfUserData() {
         try {
             const authData = store.getters.authData;
-            const response = await axios({
+            const response = await webclient({
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${authData.access_token}`
@@ -50,8 +50,8 @@ export default class DiscordService {
                 url: `${baseUrl}/users/@me`
             });
 
-            store.dispatch('setLoggedUser', response.data);
-            return response.data;
+            store.dispatch('setLoggedUser', response);
+            return response;
         } catch (error) {
             console.error(`Error retrieving discord self user data -> ${error}`);
             throw error;
@@ -60,11 +60,11 @@ export default class DiscordService {
 
     async retrieveUserData(userId) {
         try {
-            const response = await axios(`${backendBaseUrl}/discord/user/${userId}`, {
+            const response = await webclient(`${backendBaseUrl}/discord/user/${userId}`, {
                 method: 'GET'
             });
 
-            return response.data;
+            return response;
         } catch (error) {
             console.error(`Error retrieving discord user data -> ${error}`);
             throw error;

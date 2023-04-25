@@ -4,7 +4,7 @@ import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import LorebookService from '@/service/LorebookService';
 import DiscordService from '@/service/DiscordService';
-import store from '../store';
+import store from '../resources/store';
 
 const lorebookService = new LorebookService();
 const discordService = new DiscordService();

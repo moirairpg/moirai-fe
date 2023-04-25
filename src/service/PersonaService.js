@@ -1,5 +1,5 @@
 import axios from 'axios';
-import store from '../store';
+import store from '../resources/store';
 
 const authData = store.getters.authData;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;

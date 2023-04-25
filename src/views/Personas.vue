@@ -4,7 +4,7 @@ import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import PersonaService from '@/service/PersonaService';
 import DiscordService from '@/service/DiscordService';
-import store from '../store';
+import store from '../resources/store';
 
 const personaService = new PersonaService();
 const discordService = new DiscordService();
