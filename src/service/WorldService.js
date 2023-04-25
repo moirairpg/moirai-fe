@@ -25,6 +25,7 @@ export default class WorldService {
     async createWorld(world, requesterUserId) {
         try {
             delete world.lorebook.ownerData;
+            delete world.lorebook.canEdit;
             const response = await webclient(`${baseUrl}/world`, {
                 method: 'POST',
                 data: world,
