@@ -1,87 +1,150 @@
-import axios from 'axios'
+import webclient from '../resources/webclient';
+import store from '../resources/store';
 
+const authData = store.getters.authData;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 export default class LorebookService {
-
     /* LOREBOOK */
-    async getAllLorebooks() {
+    async getAllLorebooks(requesterUserId) {
         try {
-            const response = await axios.get(`${baseUrl}/lore/book`)
-            return await response.data.lorebooks
+            const response = await webclient(`${baseUrl}/lore/book`, {
+                method: 'GET',
+                headers: {
+                    requester: requesterUserId,
+                    Authorization: `Bearer ${authData.access_token}`
+                }
+            });
+
+            return await response.lorebooks;
         } catch (error) {
-            console.error(`Error retrieving lorebook data -> ${error}`)
-            throw error
+            console.error(`Error retrieving lorebook data -> ${error}`);
+            throw error;
         }
     }
 
-    async createLorebook(lorebook) {
+    async createLorebook(lorebook, requesterUserId) {
         try {
-            const newLorebook = await axios.post(`${baseUrl}/lore/book`, lorebook)
-            return newLorebook.data.lorebook
+            delete lorebook.canEdit;
+            const response = await webclient(`${baseUrl}/lore/book`, {
+                method: 'POST',
+                data: lorebook,
+                headers: {
+                    requester: requesterUserId,
+                    Authorization: `Bearer ${authData.access_token}`
+                }
+            });
+
+            return response.lorebook;
         } catch (error) {
-            console.error(`Error creating lorebook -> ${error}`)
-            throw error
+            console.error(`Error creating lorebook -> ${error}`);
+            throw error;
         }
     }
 
-    async updateLorebook(lorebook) {
+    async updateLorebook(lorebook, requesterUserId) {
         try {
+            delete lorebook.canEdit;
             delete lorebook.ownerData;
-            const response = await axios.put(`${baseUrl}/lore/book/${lorebook.id}`, lorebook)
-            return await response.data
+            const response = await webclient(`${baseUrl}/lore/book/${lorebook.id}`, {
+                method: 'PUT',
+                data: lorebook,
+                headers: {
+                    requester: requesterUserId,
+                    Authorization: `Bearer ${authData.access_token}`
+                }
+            });
+
+            return await response;
         } catch (error) {
-            console.error(`Error updating lorebook with id ${lorebook.id} -> ${JSON.stringify(error, null, 2)}`)
-            throw error
+            console.error(`Error updating lorebook with id ${lorebook.id} -> ${JSON.stringify(error, null, 2)}`);
+            throw error;
         }
     }
 
-    async deleteLorebook(lorebook) {
+    async deleteLorebook(lorebook, requesterUserId) {
         try {
-            await axios.delete(`${baseUrl}/lore/book/${lorebook.id}`, lorebook)
+            await webclient(`${baseUrl}/lore/book/${lorebook.id}`, {
+                method: 'DELETE',
+                data: lorebook,
+                headers: {
+                    requester: requesterUserId,
+                    Authorization: `Bearer ${authData.access_token}`
+                }
+            });
         } catch (error) {
-            console.error(`Error deleting lorebook with id ${lorebook.id} -> ${error}`)
-            throw error
+            console.error(`Error deleting lorebook with id ${lorebook.id} -> ${error}`);
+            throw error;
         }
     }
 
     /* LOREBOOK ENTRIES */
     async getAllEntriesFromLorebook(lorebook) {
         try {
-            const response = await axios.get(`${baseUrl}/lore/entry/lorebook/${lorebook.id}`)
-            return await response.data.lorebook_entries
+            const response = await webclient(`${baseUrl}/lore/entry/lorebook/${lorebook.id}`, {
+                method: 'GET',
+                headers: {
+                    requester: requesterUserId,
+                    Authorization: `Bearer ${authData.access_token}`
+                }
+            });
+
+            return await response.lorebook_entries;
         } catch (error) {
-            console.error(`Error retrieving lorebook data from lorebook with id ${lorebook.id} -> ${error}`)
-            throw error
+            console.error(`Error retrieving lorebook data from lorebook with id ${lorebook.id} -> ${error}`);
+            throw error;
         }
     }
 
-    async createLorebookEntry(entry, lorebook) {
+    async createLorebookEntry(entry, lorebook, requesterUserId) {
         try {
-            const response = await axios.post(`${baseUrl}/lore/entry/${lorebook.id}`, entry)
-            return response.data.lorebook_entry
+            const response = await webclient(`${baseUrl}/lore/entry/${lorebook.id}`, {
+                method: 'POST',
+                data: entry,
+                headers: {
+                    requester: requesterUserId,
+                    Authorization: `Bearer ${authData.access_token}`
+                }
+            });
+
+            return response.lorebook_entry;
         } catch (error) {
-            console.error(`Error creating lorebook entry with id ${entry.id} -> ${error}`)
-            throw error
+            console.error(`Error creating lorebook entry with id ${entry.id} -> ${error}`);
+            throw error;
         }
     }
 
-    async updateLorebookEntry(entry) {
+    async updateLorebookEntry(entry, requesterUserId) {
         try {
-            const response = await axios.put(`${baseUrl}/lore/entry/${entry.id}`, entry)
-            return response.data
+            const response = await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
+                method: 'PUT',
+                data: entry,
+                headers: {
+                    requester: requesterUserId,
+                    Authorization: `Bearer ${authData.access_token}`
+                }
+            });
+
+            return response;
         } catch (error) {
-            console.error(`Error updating lorebook entry with id ${entry.id} -> ${error}`)
-            throw error
+            console.error(`Error updating lorebook entry with id ${entry.id} -> ${error}`);
+            throw error;
         }
     }
 
-    async deleteLorebookEntry(entry) {
+    async deleteLorebookEntry(entry, requesterUserId) {
         try {
-            await axios.delete(`${baseUrl}/lore/entry/${entry.id}`, entry)
+            await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
+                method: 'DELETE',
+                data: entry,
+                headers: {
+                    requester: requesterUserId,
+                    Authorization: `Bearer ${authData.access_token}`
+                }
+            });
         } catch (error) {
-            console.error(`Error deleting lorebook entry with id ${entry.id} -> ${error}`)
-            throw error
+            console.error(`Error deleting lorebook entry with id ${entry.id} -> ${error}`);
+            throw error;
         }
     }
 }

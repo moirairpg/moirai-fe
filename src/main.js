@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from './router';
-import store from './store';
+import router from './resources/router';
+import store from './resources/store';
 
 import PrimeVue from 'primevue/config';
 import AutoComplete from 'primevue/autocomplete';

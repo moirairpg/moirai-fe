@@ -5,7 +5,7 @@ import { useToast } from 'primevue/usetoast';
 import WorldService from '@/service/WorldService';
 import LorebookService from '@/service/LorebookService';
 import DiscordService from '@/service/DiscordService';
-import store from '../store';
+import store from '../resources/store';
 
 const worldService = new WorldService();
 const lorebookService = new LorebookService();
@@ -20,12 +20,17 @@ const lorebooks = ref(null);
 const lorebookDialog = ref(false);
 const selectedWorlds = ref(null);
 const worldDialog = ref(false);
+const viewWorldDialog = ref(false);
 const deleteWorldDialog = ref(false);
 const deleteWorldsDialog = ref(false);
 const dt = ref(null);
 const worldSearchFilters = ref({});
 const lorebookSearchFilters = ref({});
 const worldSubmitted = ref(false);
+const visibilities = ref([
+    { label: 'PRIVATE', value: 'private' },
+    { label: 'PUBLIC', value: 'public' }
+]);
 
 onBeforeMount(() => {
     initWorldSearchFilters();
@@ -33,26 +38,42 @@ onBeforeMount(() => {
 });
 
 onMounted(async () => {
-    await worldService.getAllWorlds().then(async (data) => {
-        const ws = [];
-        for (let w of data) {
-            const ownerData = await discordService.retrieveUserData(w.owner);
-            w.ownerData = ownerData;
-            ws.push(w);
-        }
-
-        worlds.value = ws;
-    });
-
-    await lorebookService.getAllLorebooks().then(async (data) => {
+    await lorebookService.getAllLorebooks(loggedUser.id).then(async (data) => {
         const lbs = [];
-        for (let lb of data) {
-            const ownerData = await discordService.retrieveUserData(lb.owner);
-            lb.ownerData = ownerData;
-            lbs.push(lb);
+
+        if (data?.[0] !== undefined) {
+            for (let lb of data) {
+                const ownerData = await discordService.retrieveUserData(lb.owner);
+                if (lb.entries === undefined || lb.entries.length == 0) {
+                    lb.entries = [];
+                }
+
+                lb.ownerData = ownerData;
+                lbs.push(lb);
+            }
         }
 
         lorebooks.value = lbs;
+    });
+
+    await worldService.getAllWorlds(loggedUser.id).then(async (data) => {
+        const ws = [];
+        if (data?.[0] !== undefined) {
+            for (let w of data) {
+                let canEdit = false;
+                if (w.owner === loggedUser.id || w.writePermissions?.contains(loggedUser.id)) {
+                    canEdit = true;
+                }
+
+                const ownerData = await discordService.retrieveUserData(w.owner);
+                w.lorebook = lorebooks.value.find((l) => w.lorebook.id === l.id);
+                w.ownerData = ownerData;
+                w.canEdit = canEdit;
+                ws.push(w);
+            }
+        }
+
+        worlds.value = ws;
     });
 });
 
@@ -67,6 +88,10 @@ const hideWorldDialog = () => {
     worldDialog.value = false;
 };
 
+const hideViewWorldDialog = () => {
+    viewWorldDialog.value = false;
+};
+
 const hideLorebookDialog = () => {
     lorebookDialog.value = false;
     lorebookSubmitted.value = false;
@@ -74,11 +99,15 @@ const hideLorebookDialog = () => {
 
 const saveWorld = async () => {
     worldSubmitted.value = true;
-    if (world.value.name.trim() && world.value.description.trim()) {
+    if (world.value.name.trim() && world.value.description.trim() && world.value.visibility) {
         if (world.value.id) {
             try {
+                const canEdit = world.value.canEdit;
                 const worldOwner = world.value.ownerData;
-                await worldService.updateWorld(world.value);
+                world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
+                await worldService.updateWorld(world.value, loggedUser.id);
+
+                world.value.canEdit = canEdit;
                 world.value.ownerData = worldOwner;
                 worlds.value[findWorldIndexById(world.value.id)] = world.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World updated', life: 3000 });
@@ -88,9 +117,11 @@ const saveWorld = async () => {
             }
         } else {
             try {
+                world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
                 world.value.owner = loggedUser.id;
-                console.log(`World -> ${JSON.stringify(world, null, 2)}`);
-                const createdWorld = await worldService.createWorld(world.value);
+                const createdWorld = await worldService.createWorld(world.value, loggedUser.id);
+
+                createdWorld.canEdit = true;
                 createdWorld.ownerData = loggedUser;
                 worlds.value.push(createdWorld);
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World created', life: 3000 });
@@ -102,6 +133,11 @@ const saveWorld = async () => {
         worldDialog.value = false;
         world.value = {};
     }
+};
+
+const viewWorld = (editWorld) => {
+    world.value = { ...editWorld };
+    viewWorldDialog.value = true;
 };
 
 const editWorld = (editWorld) => {
@@ -127,7 +163,7 @@ const confirmDeleteWorld = (editWorld) => {
 
 const deleteWorld = async () => {
     try {
-        await worldService.deleteWorld(world.value);
+        await worldService.deleteWorld(world.value, loggedUser.id);
         worlds.value = worlds.value.filter((val) => val.id !== world.value.id);
         deleteWorldDialog.value = false;
         world.value = {};
@@ -243,8 +279,9 @@ const initLorebookSearchFilters = () => {
                                             {{ slotProps.data.description }}
                                         </p>
                                         <div class="flex align-items-center justify-content-between">
-                                            <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
-                                            <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
+                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewWorld(slotProps.data)" />
                                         </div>
                                     </div>
                                 </div>
@@ -318,13 +355,59 @@ const initLorebookSearchFilters = () => {
                             </Column>
                             <Column headerStyle="min-width:10rem;">
                                 <template #body="slotProps">
-                                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
-                                    <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
+                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewWorld(slotProps.data)" />
                                 </template>
                             </Column>
                         </DataTable>
                     </TabPanel>
                 </TabView>
+
+                <Dialog v-model:visible="viewWorldDialog" header="World" :modal="true" class="p-fluid">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <InputText disabled id="name" v-model.trim="world.name" />
+                    </div>
+
+                    <div class="field">
+                        <label for="description">Description</label>
+                        <Textarea disabled id="description" v-model.trim="world.description" rows="5" cols="20" />
+                    </div>
+
+                    <div class="field">
+                        <label for="visibility" class="mb-3">Visibility</label>
+                        <InputText disabled id="visibility" v-model="world.visibility" placeholder="World visibility" />
+                    </div>
+
+                    <Card>
+                        <template #title>Lorebook</template>
+                        <template #content>
+                            <div class="col-12">
+                                <div class="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4">
+                                    <div class="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
+                                        <div class="flex flex-column align-items-center sm:align-items-start gap-3">
+                                            <div class="text-2xl font-bold text-900">{{ world.lorebook.name }}</div>
+                                            <div class="flex align-items-center gap-3">
+                                                <span class="flex align-items-center gap-2">
+                                                    <i class="pi pi-user"></i>
+                                                    <span class="font-semibold">{{ world.lorebook.ownerData.username }}</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="flex sm:flex-column align-items-center sm:align-items-end gap-3 sm:gap-2">
+                                            <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(world.lorebook)" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </Card>
+
+                    <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewWorldDialog" />
+                    </template>
+                </Dialog>
 
                 <Dialog v-model:visible="worldDialog" header="World" :modal="true" class="p-fluid">
                     <div class="field">
@@ -337,6 +420,24 @@ const initLorebookSearchFilters = () => {
                         <label for="description">Description</label>
                         <Textarea id="description" v-model.trim="world.description" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.description }" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.description">Description is required.</small>
+                    </div>
+
+                    <div class="field">
+                        <label for="visibility" class="mb-3">Visibility</label>
+                        <Dropdown id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
+                            <template #value="slotProps">
+                                <div v-if="slotProps.value && slotProps.value.value">
+                                    <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
+                                </div>
+                                <div v-else-if="slotProps.value && !slotProps.value.value">
+                                    <span :class="'visibility-badge visibility-' + slotProps.value.toLowerCase()">{{ slotProps.value }}</span>
+                                </div>
+                                <span v-else>
+                                    {{ slotProps.placeholder }}
+                                </span>
+                            </template>
+                        </Dropdown>
+                        <small class="p-invalid" v-if="worldSubmitted && !world.description">Visibility is required.</small>
                     </div>
 
                     <div class="card" v-if="lorebooks">
@@ -373,10 +474,7 @@ const initLorebookSearchFilters = () => {
                                                         <i class="pi pi-user"></i>
                                                         <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
                                                     </div>
-                                                    <Tag
-                                                        :value="`${world.lorebook.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`"
-                                                        :class="'visibility-badge'"
-                                                    />
+                                                    <Tag :value="`${world.lorebook.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`" :class="'visibility-badge'" />
                                                 </div>
                                                 <div class="flex flex-column align-items-center gap-3 py-5">
                                                     <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
@@ -442,26 +540,26 @@ const initLorebookSearchFilters = () => {
                                 </DataTable>
                             </TabPanel>
                         </TabView>
-
-                        <Dialog v-model:visible="lorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
-                            <div class="field">
-                                <label for="name">Name</label>
-                                <InputText id="name" v-model.trim="lorebook.name" disabled />
-                            </div>
-                            <div class="field">
-                                <label for="description">Description</label>
-                                <Textarea id="description" v-model.trim="lorebook.description" rows="3" cols="20" disabled />
-                            </div>
-                            <template #footer>
-                                <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
-                                <Button label="Select" icon="pi pi-check" class="p-button-text" @click="selectLorebook" />
-                            </template>
-                        </Dialog>
                     </div>
 
                     <template #footer>
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideWorldDialog" />
                         <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveWorld" />
+                    </template>
+                </Dialog>
+
+                <Dialog v-model:visible="lorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <InputText id="name" v-model.trim="lorebook.name" disabled />
+                    </div>
+                    <div class="field">
+                        <label for="description">Description</label>
+                        <Textarea id="description" v-model.trim="lorebook.description" rows="3" cols="20" disabled />
+                    </div>
+                    <template #footer>
+                        <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
+                        <Button v-if="worldDialog" label="Select" icon="pi pi-check" class="p-button-text" @click="selectLorebook" />
                     </template>
                 </Dialog>
 

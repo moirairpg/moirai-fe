@@ -1,5 +1,5 @@
-import axios from 'axios'
-import store from '../store'
+import webclient from '../resources/webclient';
+import store from '../resources/store';
 
 const clientId = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_ID;
 const clientSecret = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_SECRET;
@@ -8,7 +8,6 @@ const baseUrl = import.meta.env.VITE_CHATRPG_DISCORD_API_BASE_URL;
 const backendBaseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 export default class DiscordService {
-
     async retrieveToken(authCode) {
         try {
             const myHeaders = new Headers();
@@ -29,47 +28,46 @@ export default class DiscordService {
                 redirect: 'follow'
             };
 
-            const authData = await fetch(`${baseUrl}/oauth2/token`, requestOptions)
-                .then(response => response.json());
+            const authData = await fetch(`${baseUrl}/oauth2/token`, requestOptions).then((response) => response.json());
 
             store.dispatch('setAuthData', authData);
             store.dispatch('setLoggedIn', true);
             return authData;
         } catch (error) {
-            console.error(`Error logging in to Discord data -> ${error}`)
-            throw error
+            console.error(`Error logging in to Discord data -> ${error}`);
+            throw error;
         }
     }
 
     async retrieveSelfUserData() {
         try {
             const authData = store.getters.authData;
-            const response = await axios({
+            const response = await webclient({
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.access_token}`
                 },
                 url: `${baseUrl}/users/@me`
             });
 
-            store.dispatch('setLoggedUser', response.data);
-            return response.data;
+            store.dispatch('setLoggedUser', response);
+            return response;
         } catch (error) {
-            console.error(`Error retrieving discord self user data -> ${error}`)
-            throw error
+            console.error(`Error retrieving discord self user data -> ${error}`);
+            throw error;
         }
     }
 
     async retrieveUserData(userId) {
         try {
-            const response = await axios(`${backendBaseUrl}/discord/user/${userId}`, {
+            const response = await webclient(`${backendBaseUrl}/discord/user/${userId}`, {
                 method: 'GET'
             });
 
-            return response.data;
+            return response;
         } catch (error) {
-            console.error(`Error retrieving discord user data -> ${error}`)
-            throw error
+            console.error(`Error retrieving discord user data -> ${error}`);
+            throw error;
         }
     }
 }
