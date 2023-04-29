@@ -102,13 +102,9 @@ const saveLorebook = async () => {
     if (lorebook.value.name.trim() && lorebook.value.description.trim() && lorebook.value.visibility) {
         if (lorebook.value.id) {
             try {
-                const canEdit = lorebook.value.canEdit;
-                const lorebookOwner = lorebook.value.ownerData;
                 lorebook.value.visibility = lorebook.value.visibility.value ? lorebook.value.visibility.value : lorebook.value.visibility;
                 await lorebookService.updateLorebook(lorebook.value, loggedUser.id);
 
-                lorebook.value.canEdit = canEdit;
-                lorebook.value.ownerData = lorebookOwner;
                 lorebooks.value[findLorebookIndexById(lorebook.value.id)] = lorebook.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook updated', life: 3000 });
             } catch (error) {

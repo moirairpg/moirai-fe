@@ -26,7 +26,16 @@ export default class PersonaService {
         try {
             const response = await webclient(`${baseUrl}/persona`, {
                 method: 'POST',
-                data: persona,
+                data: {
+                    id: persona.id,
+                    name: persona.name,
+                    intent: persona.intent,
+                    personality: persona.personality,
+                    owner: persona.owner,
+                    visibility: persona.visibility,
+                    nudge: persona.nudge,
+                    bump: persona.bump
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -42,10 +51,18 @@ export default class PersonaService {
 
     async updatePersona(persona, requesterUserId) {
         try {
-            delete persona.ownerData;
             const response = await webclient(`${baseUrl}/persona/${persona.id}`, {
                 method: 'PUT',
-                data: persona,
+                data: {
+                    id: persona.id,
+                    name: persona.name,
+                    intent: persona.intent,
+                    personality: persona.personality,
+                    owner: persona.owner,
+                    visibility: persona.visibility,
+                    nudge: persona.nudge,
+                    bump: persona.bump
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -63,7 +80,6 @@ export default class PersonaService {
         try {
             await webclient(`${baseUrl}/persona/${persona.id}`, {
                 method: 'DELETE',
-                data: persona,
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`

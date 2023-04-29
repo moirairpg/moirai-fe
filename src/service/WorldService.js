@@ -24,11 +24,19 @@ export default class WorldService {
 
     async createWorld(world, requesterUserId) {
         try {
-            delete world.lorebook.ownerData;
-            delete world.lorebook.canEdit;
             const response = await webclient(`${baseUrl}/world`, {
                 method: 'POST',
-                data: world,
+                data: {
+                    id: world.id,
+                    name: world.name,
+                    description: world.description,
+                    owner: world.owner,
+                    visibility: world.visibility,
+                    initial_prompt: world.initial_prompt,
+                    lorebook: {
+                        id: world.lorebook.id
+                    }
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -44,11 +52,19 @@ export default class WorldService {
 
     async updateWorld(world, requesterUserId) {
         try {
-            delete world.ownerData;
-            delete world.lorebook.ownerData;
             const response = await webclient(`${baseUrl}/world/${world.id}`, {
                 method: 'PUT',
-                data: world,
+                data: {
+                    id: world.id,
+                    name: world.name,
+                    description: world.description,
+                    owner: world.owner,
+                    visibility: world.visibility,
+                    initial_prompt: world.initial_prompt,
+                    lorebook: {
+                        id: world.lorebook.id
+                    }
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -66,7 +82,6 @@ export default class WorldService {
         try {
             await webclient(`${baseUrl}/world/${world.id}`, {
                 method: 'DELETE',
-                data: world,
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`

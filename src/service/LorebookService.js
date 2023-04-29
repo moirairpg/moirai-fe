@@ -25,10 +25,16 @@ export default class LorebookService {
 
     async createLorebook(lorebook, requesterUserId) {
         try {
-            delete lorebook.canEdit;
             const response = await webclient(`${baseUrl}/lore/book`, {
                 method: 'POST',
-                data: lorebook,
+                data: {
+                    id: lorebook.id,
+                    name: lorebook.name,
+                    description: lorebook.description,
+                    owner: lorebook.owner,
+                    visibility: lorebook.visibility,
+                    entries: lorebook.entries
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -44,11 +50,16 @@ export default class LorebookService {
 
     async updateLorebook(lorebook, requesterUserId) {
         try {
-            delete lorebook.canEdit;
-            delete lorebook.ownerData;
             const response = await webclient(`${baseUrl}/lore/book/${lorebook.id}`, {
                 method: 'PUT',
-                data: lorebook,
+                data: {
+                    id: lorebook.id,
+                    name: lorebook.name,
+                    description: lorebook.description,
+                    owner: lorebook.owner,
+                    visibility: lorebook.visibility,
+                    entries: lorebook.entries
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -66,7 +77,6 @@ export default class LorebookService {
         try {
             await webclient(`${baseUrl}/lore/book/${lorebook.id}`, {
                 method: 'DELETE',
-                data: lorebook,
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -100,7 +110,12 @@ export default class LorebookService {
         try {
             const response = await webclient(`${baseUrl}/lore/entry/${lorebook.id}`, {
                 method: 'POST',
-                data: entry,
+                data: {
+                    id: entry.id,
+                    name: entry.name,
+                    description: entry.description,
+                    regex: entry.regex
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -118,7 +133,12 @@ export default class LorebookService {
         try {
             const response = await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
                 method: 'PUT',
-                data: entry,
+                data: {
+                    id: entry.id,
+                    name: entry.name,
+                    description: entry.description,
+                    regex: entry.regex
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`
@@ -136,7 +156,6 @@ export default class LorebookService {
         try {
             await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
                 method: 'DELETE',
-                data: entry,
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`

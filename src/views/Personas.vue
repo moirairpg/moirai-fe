@@ -80,14 +80,10 @@ const savePersona = async () => {
     if (persona.value.name.trim() && persona.value.personality.trim() && persona.value.intent && persona.value.visibility) {
         if (persona.value.id) {
             try {
-                const canEdit = persona.value.canEdit;
-                const personaOwner = persona.value.ownerData;
                 persona.value.visibility = persona.value.visibility.value ? persona.value.visibility.value : persona.value.visibility;
                 persona.value.intent = persona.value.intent.value ? persona.value.intent.value : persona.value.intent;
                 await personaService.updatePersona(persona.value, loggedUser.id);
 
-                persona.value.canEdit = canEdit;
-                persona.value.ownerData = personaOwner;
                 personas.value[findPersonaIndexById(persona.value.id)] = persona.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona updated', life: 3000 });
             } catch (error) {
@@ -427,7 +423,7 @@ const initFilters = () => {
                         <label for="nudge" class="mb-3">Nudge</label>
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <Dropdown id="nudge-role" v-model="persona.nudge.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" :class="{ 'p-invalid': personaSubmitted && !persona.nudge?.role }" />
+                                <Dropdown id="nudge-role" v-model="persona.nudge.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <Textarea rows="1" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
@@ -439,7 +435,7 @@ const initFilters = () => {
                         <label for="bump" class="mb-3">Bump</label>
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <Dropdown id="bump-role" v-model="persona.bump.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" :class="{ 'p-invalid': personaSubmitted && !persona.bump.role }" />
+                                <Dropdown id="bump-role" v-model="persona.bump.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <InputNumber showButtons mode="decimal" v-model.trim="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
