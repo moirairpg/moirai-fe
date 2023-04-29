@@ -102,13 +102,9 @@ const saveWorld = async () => {
     if (world.value.name.trim() && world.value.description.trim() && world.value.visibility) {
         if (world.value.id) {
             try {
-                const canEdit = world.value.canEdit;
-                const worldOwner = world.value.ownerData;
                 world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
                 await worldService.updateWorld(world.value, loggedUser.id);
 
-                world.value.canEdit = canEdit;
-                world.value.ownerData = worldOwner;
                 worlds.value[findWorldIndexById(world.value.id)] = world.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World updated', life: 3000 });
             } catch (error) {
@@ -376,6 +372,11 @@ const initLorebookSearchFilters = () => {
                     </div>
 
                     <div class="field">
+                        <label for="initial_prompt">Prompt</label>
+                        <Textarea disabled id="initial_prompt" v-model.trim="world.initial_prompt" rows="5" cols="20" />
+                    </div>
+
+                    <div class="field">
                         <label for="visibility" class="mb-3">Visibility</label>
                         <InputText disabled id="visibility" v-model="world.visibility" placeholder="World visibility" />
                     </div>
@@ -423,6 +424,12 @@ const initLorebookSearchFilters = () => {
                     </div>
 
                     <div class="field">
+                        <label for="initial_prompt">Prompt</label>
+                        <Textarea id="initial_prompt" v-model.trim="world.initial_prompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initial_prompt }" />
+                        <small class="p-invalid" v-if="worldSubmitted && !world.initial_prompt">Prompt is required.</small>
+                    </div>
+
+                    <div class="field">
                         <label for="visibility" class="mb-3">Visibility</label>
                         <Dropdown id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
                             <template #value="slotProps">
@@ -437,7 +444,7 @@ const initLorebookSearchFilters = () => {
                                 </span>
                             </template>
                         </Dropdown>
-                        <small class="p-invalid" v-if="worldSubmitted && !world.description">Visibility is required.</small>
+                        <small class="p-invalid" v-if="worldSubmitted && !world.visibility">Visibility is required.</small>
                     </div>
 
                     <div class="card" v-if="lorebooks">
