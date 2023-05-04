@@ -44,6 +44,15 @@ const router = createRouter({
                         title: 'ChatRPG | Worlds',
                         requiresLogin: true
                     }
+                },
+                {
+                    path: '/channel-configs',
+                    name: 'channel-configs',
+                    component: () => import('@/views/ChannelConfigurations.vue'),
+                    meta: {
+                        title: 'ChatRPG | Channel Configuration',
+                        requiresLogin: true
+                    }
                 }
             ]
         },
