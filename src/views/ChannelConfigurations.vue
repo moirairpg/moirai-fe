@@ -21,9 +21,19 @@ const deleteChannelConfigDialog = ref(false);
 const deleteChannelConfigsDialog = ref(false);
 const channelConfigSearchFilters = ref({});
 const channelConfigSubmitted = ref(false);
-const visibilities = ref([
-    { label: 'PRIVATE', value: 'private' },
-    { label: 'PUBLIC', value: 'public' }
+const selectedModel = ref(null);
+const strictFilter = ref(false);
+const temperatureValue = ref(40);
+const presPenValue = ref(1.2);
+const freqPenValue = ref(1.2);
+const modelsAvailable = ref([
+    { label: 'GPT-4 (32K)', value: 'gpt432k' },
+    { label: 'GPT-4 (8K)', value: 'gpt4' },
+    { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt' },
+    { label: 'GPT-3 (Davinci)', value: 'davinci' },
+    { label: 'GPT-3 (Babbage)', value: 'babbage' },
+    { label: 'GPT-3 (Curie)', value: 'curie' },
+    { label: 'GPT-3 (Ada)', value: 'ada' }
 ]);
 
 onBeforeMount(() => {
@@ -359,9 +369,67 @@ const initChannelConfigSearchFilters = () => {
 
                 <Dialog v-model:visible="channelConfigDialog" header="World" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name">Name</label>
+                        <label for="name">Configuration name</label>
                         <InputText id="name" v-model.trim="channelConfig.name" required="true" autofocus :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.name }" />
-                        <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.name">Name is required.</small>
+                        <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.name">Configuration name is required.</small>
+                    </div>
+
+                    <div class="field">
+                        <label for="ai-model">AI Model</label>
+                        <Dropdown v-model="selectedModel" :options="modelsAvailable" optionLabel="label" placeholder="AI Model" />
+                        <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.name">AI model is required.</small>
+                        <div class="col-12 md:col-4">
+                            <div class="field-checkbox mb-0">
+                                <Checkbox id="strict-filter" name="option" value="Strict filtering" v-model="strictFilter" />
+                                <label for="strict-filter">Strict filtering</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-4 lg:mb-0">
+                                <label for="name">Randomness</label>
+                                <InputNumber v-model.number="temperatureValue" />
+                                <Slider v-model.number="temperatureValue" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-4 lg:mb-0">
+                                <label for="name">Presence penalty</label>
+                                <InputNumber v-model.number="presPenValue" />
+                                <Slider v-model="presPenValue" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-4 lg:mb-0">
+                                <label for="name">Frequency penalty</label>
+                                <InputNumber v-model.number="freqPenValue" />
+                                <Slider v-model="freqPenValue" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <label for="name">Max tokens</label>
+                                <InputNumber />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <label for="name">Message history number</label>
+                                <InputNumber />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <label for="name">Stop sequences</label>
+                                <InputText />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <label for="name">Logit bias</label>
+                                <InputText />
+                            </div>
+                        </div>
                     </div>
 
                     <div class="card" v-if="channelConfigs">
