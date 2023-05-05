@@ -30,6 +30,8 @@ const presPenPercentage = ref(50);
 const freqPenValue = ref(0);
 const freqPenPercentage = ref(50);
 const maxTokens = ref(200);
+const maxHistoryMessageNumber = ref(10);
+const stopSequences = ref(null);
 const modelsAvailable = ref([
     { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
     { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
@@ -406,7 +408,7 @@ const getFreqPenValue = (freqPenPercentage) => {
 
                     <div class="field">
                         <label for="ai-model">AI Model</label>
-                        <Dropdown v-model="selectedModel" :options="modelsAvailable" optionLabel="label" />
+                        <Dropdown v-model="selectedModel" :options="modelsAvailable" optionLabel="label" :class="{ 'p-invalid': channelConfigSubmitted && !selectedModel }" />
                         <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
                         <div class="col-12 md:col-4">
                             <div class="field-checkbox mb-0">
@@ -440,11 +442,13 @@ const getFreqPenValue = (freqPenPercentage) => {
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <label for="name">Max tokens</label>
-                                <InputNumber v-model.number="maxTokens" :min="100" :max="selectedModel.maxTokens" />
+                                <InputNumber v-model.number="maxTokens" :min="100" :max="selectedModel.maxTokens" :class="{ 'p-invalid': channelConfigSubmitted && !maxTokens }" />
+                                <small class="p-invalid" v-if="channelConfigSubmitted && !maxTokens">Max token count is required.</small>
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <label for="name">Message history number</label>
-                                <InputNumber />
+                                <InputNumber v-model.number="maxHistoryMessageNumber" :min="5" :max="20" :class="{ 'p-invalid': channelConfigSubmitted && !maxHistoryMessageNumber }" />
+                                <small class="p-invalid" v-if="channelConfigSubmitted && !maxHistoryMessageNumber">Message history count is required.</small>
                             </div>
                         </div>
                     </div>
@@ -453,7 +457,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <label for="name">Stop sequences</label>
-                                <InputText />
+                                <Chips v-model="stopSequences" :max="4" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <label for="name">Logit bias</label>
