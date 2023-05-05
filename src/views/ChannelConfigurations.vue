@@ -21,7 +21,7 @@ const deleteChannelConfigDialog = ref(false);
 const deleteChannelConfigsDialog = ref(false);
 const channelConfigSearchFilters = ref({});
 const channelConfigSubmitted = ref(false);
-const selectedModel = ref(null);
+const selectedModel = ref({ maxTokens: 200 });
 const strictFilter = ref(false);
 const temperatureValue = ref(0.8);
 const temperaturePercentage = ref(40);
@@ -29,6 +29,7 @@ const presPenValue = ref(0);
 const presPenPercentage = ref(50);
 const freqPenValue = ref(0);
 const freqPenPercentage = ref(50);
+const maxTokens = ref(200);
 const modelsAvailable = ref([
     { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
     { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
@@ -406,7 +407,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                     <div class="field">
                         <label for="ai-model">AI Model</label>
                         <Dropdown v-model="selectedModel" :options="modelsAvailable" optionLabel="label" />
-                        <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.name">AI model is required.</small>
+                        <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
                         <div class="col-12 md:col-4">
                             <div class="field-checkbox mb-0">
                                 <Checkbox id="strict-filter" name="option" value="Strict filtering" v-model="strictFilter" />
@@ -439,7 +440,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <label for="name">Max tokens</label>
-                                <InputNumber :max="selectedModel?.maxTokens == null ? 5 : selectedModel?.maxTokens" />
+                                <InputNumber v-model.number="maxTokens" :min="100" :max="selectedModel.maxTokens" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <label for="name">Message history number</label>
