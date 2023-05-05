@@ -23,17 +23,20 @@ const channelConfigSearchFilters = ref({});
 const channelConfigSubmitted = ref(false);
 const selectedModel = ref(null);
 const strictFilter = ref(false);
-const temperatureValue = ref(40);
-const presPenValue = ref(1.2);
-const freqPenValue = ref(1.2);
+const temperatureValue = ref(0.8);
+const temperaturePercentage = ref(40);
+const presPenValue = ref(0);
+const presPenPercentage = ref(50);
+const freqPenValue = ref(0);
+const freqPenPercentage = ref(50);
 const modelsAvailable = ref([
-    { label: 'GPT-4 (32K)', value: 'gpt432k' },
-    { label: 'GPT-4 (8K)', value: 'gpt4' },
-    { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt' },
-    { label: 'GPT-3 (Davinci)', value: 'davinci' },
-    { label: 'GPT-3 (Babbage)', value: 'babbage' },
-    { label: 'GPT-3 (Curie)', value: 'curie' },
-    { label: 'GPT-3 (Ada)', value: 'ada' }
+    { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
+    { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
+    { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 },
+    { label: 'GPT-3 (Davinci)', value: 'davinci', maxTokens: 4096 },
+    { label: 'GPT-3 (Babbage)', value: 'babbage', maxTokens: 2048 },
+    { label: 'GPT-3 (Curie)', value: 'curie', maxTokens: 2048 },
+    { label: 'GPT-3 (Ada)', value: 'ada', maxTokens: 2048 }
 ]);
 
 onBeforeMount(() => {
@@ -173,6 +176,32 @@ const initChannelConfigSearchFilters = () => {
     channelConfigSearchFilters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
+};
+
+const getTemperaturePercentage = (temperatureValue) => {
+    temperaturePercentage.value = (temperatureValue * 100) / 2;
+};
+
+const getTemperatureValue = (temperaturePercentage) => {
+    temperatureValue.value = (temperaturePercentage / 100) * 2;
+};
+
+const getPresPenPercentage = (presPenValue) => {
+    presPenValue = presPenValue + 2;
+    presPenPercentage.value = (presPenValue * 100) / 4 - 2;
+};
+
+const getPresPenValue = (presPenPercentage) => {
+    presPenValue.value = (presPenPercentage / 100) * 4 - 2;
+};
+
+const getFreqPenPercentage = (freqPenValue) => {
+    freqPenValue = freqPenValue + 2;
+    freqPenPercentage.value = (freqPenValue * 100) / 4 - 2;
+};
+
+const getFreqPenValue = (freqPenPercentage) => {
+    freqPenValue.value = (freqPenPercentage / 100) * 4 - 2;
 };
 </script>
 
@@ -376,7 +405,7 @@ const initChannelConfigSearchFilters = () => {
 
                     <div class="field">
                         <label for="ai-model">AI Model</label>
-                        <Dropdown v-model="selectedModel" :options="modelsAvailable" optionLabel="label" placeholder="AI Model" />
+                        <Dropdown v-model="selectedModel" :options="modelsAvailable" optionLabel="label" />
                         <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.name">AI model is required.</small>
                         <div class="col-12 md:col-4">
                             <div class="field-checkbox mb-0">
@@ -390,18 +419,18 @@ const initChannelConfigSearchFilters = () => {
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-4 lg:mb-0">
                                 <label for="name">Randomness</label>
-                                <InputNumber v-model.number="temperatureValue" />
-                                <Slider v-model.number="temperatureValue" />
+                                <InputNumber :allowEmpty="false" :maxFractionDigits="1" :min="0.1" :max="2" v-model.number="temperatureValue" @update:modelValue="getTemperaturePercentage(temperatureValue)" />
+                                <Slider v-model="temperaturePercentage" @update:modelValue="getTemperatureValue(temperaturePercentage)" />
                             </div>
                             <div class="col-12 mb-2 lg:col-4 lg:mb-0">
                                 <label for="name">Presence penalty</label>
-                                <InputNumber v-model.number="presPenValue" />
-                                <Slider v-model="presPenValue" />
+                                <InputNumber :maxFractionDigits="1" :min="-2" :max="2" v-model.number="presPenValue" @update:modelValue="getPresPenPercentage(presPenValue)" />
+                                <Slider v-model="presPenPercentage" @update:modelValue="getPresPenValue(presPenPercentage)" />
                             </div>
                             <div class="col-12 mb-2 lg:col-4 lg:mb-0">
                                 <label for="name">Frequency penalty</label>
-                                <InputNumber v-model.number="freqPenValue" />
-                                <Slider v-model="freqPenValue" />
+                                <InputNumber :maxFractionDigits="1" :min="-2" :max="2" v-model.number="freqPenValue" @update:modelValue="getFreqPenPercentage(freqPenValue)" />
+                                <Slider v-model="freqPenPercentage" @update:modelValue="getFreqPenValue(freqPenPercentage)" />
                             </div>
                         </div>
                     </div>
@@ -410,7 +439,7 @@ const initChannelConfigSearchFilters = () => {
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <label for="name">Max tokens</label>
-                                <InputNumber />
+                                <InputNumber :max="selectedModel?.maxTokens == null ? 5 : selectedModel?.maxTokens" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <label for="name">Message history number</label>
