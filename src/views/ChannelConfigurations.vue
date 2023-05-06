@@ -21,7 +21,7 @@ const deleteChannelConfigDialog = ref(false);
 const deleteChannelConfigsDialog = ref(false);
 const channelConfigSearchFilters = ref({});
 const channelConfigSubmitted = ref(false);
-const selectedModel = ref({ maxTokens: 200 });
+const selectedModel = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
 const strictFilter = ref(false);
 const temperatureValue = ref(0.8);
 const temperaturePercentage = ref(40);
@@ -399,7 +399,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                     </template>
                 </Dialog>
 
-                <Dialog v-model:visible="channelConfigDialog" header="World" :modal="true" class="p-fluid">
+                <Dialog v-model:visible="channelConfigDialog" header="Channel config" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Configuration name</label>
                         <InputText id="name" v-model.trim="channelConfig.name" required="true" autofocus :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.name }" />
