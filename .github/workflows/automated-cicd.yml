@@ -48,5 +48,6 @@ jobs:
               --name=chatrpg-fe \
               --hostname=chatrpg-fe \
               --network=deployuser_dockerlan \
+              --volume /etc/chatrpg/certs:/opt/chatrpg/cert \
               -p 80:80 \
               registry.gitlab.com/thaalesalves/chatrpg:front-end
