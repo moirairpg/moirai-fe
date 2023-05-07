@@ -160,6 +160,22 @@ const saveChannelConfig = async () => {
     if (channelConfig.value.name.trim()) {
         if (channelConfig.value.id) {
             try {
+                channelConfig.value.owner = loggedUser.id;
+                channelConfig.value.model_settings = {
+                    model_name: selectedModel.value.value,
+                    temperature: temperatureValue,
+                    frequency_penalty: freqPenValue,
+                    presence_penalty: presPenValue,
+                    max_tokens: maxTokens,
+                    chat_history_memory: maxHistoryMessageNumber,
+                    stop_sequence: stopSequences,
+                    owner: loggedUser.id
+                };
+
+                channelConfig.value.moderation_settings = {
+                    id: strictFilter.value ? 'STRICT' : 'PERMISSIVE'
+                };
+
                 await channelConfigService.updateChannelConfig(channelConfig.value, loggedUser.id);
 
                 channelConfigs.value[findChannelConfigIndexById(channelConfig.value.id)] = channelConfig.value;
