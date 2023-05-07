@@ -471,7 +471,7 @@ const initLorebookSearchFilters = () => {
                                         </div>
                                     </template>
 
-                                    <template #empty>No personas found.</template>
+                                    <template #empty>No lorebooks found.</template>
 
                                     <template #grid="slotProps">
                                         <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
@@ -520,6 +520,8 @@ const initLorebookSearchFilters = () => {
                                             </span>
                                         </div>
                                     </template>
+
+                                    <template #empty>No lorebooks found.</template>
 
                                     <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                                         <template #body="slotProps">
