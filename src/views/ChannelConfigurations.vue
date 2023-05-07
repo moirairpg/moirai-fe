@@ -67,9 +67,13 @@ onMounted(async () => {
         if (data?.[0] !== undefined) {
             for (let cf of data) {
                 const ownerData = await discordService.retrieveUserData(cf.owner);
+                let canEdit = false;
+                if (cf.owner === loggedUser.id || cf.writePermissions?.contains(loggedUser.id)) {
+                    canEdit = true;
+                }
 
                 cf.ownerData = ownerData;
-                cf.model_settings.stop_sequence = cf.model_settings.stop_sequence[0] === '' ? [] : cf.model_settings.stop_sequence[0];
+                cf.canEdit = canEdit;
                 cfs.push(cf);
             }
         }
@@ -364,6 +368,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                                                 <i class="pi pi-user"></i>
                                                 <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
                                             </div>
+                                            <Tag :value="slotProps.data.persona.intent" :class="'intent-badge intent-' + (slotProps.data.persona.intent ? slotProps.data.persona.intent.toLowerCase() : '')"></Tag>
                                         </div>
                                         <div class="flex flex-column align-items-center gap-3 py-5">
                                             <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
