@@ -26,7 +26,20 @@ export default class ChannelConfigService {
         try {
             const response = await webclient(`${baseUrl}/channel-config`, {
                 method: 'POST',
-                data: channelConfig,
+                data: {
+                    name: channelConfig.name,
+                    owner: channelConfig.owner,
+                    persona: {
+                        id: channelConfig.persona.id
+                    },
+                    world: {
+                        id: channelConfig.world.id
+                    },
+                    moderation_settings: {
+                        id: channelConfig.moderation_settings.id
+                    },
+                    model_settings: channelConfig.model_settings
+                },
                 headers: {
                     requester: requesterUserId,
                     Authorization: `Bearer ${authData.access_token}`

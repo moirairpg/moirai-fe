@@ -3,9 +3,13 @@ import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import ChannelConfigService from '@/service/ChannelConfigService';
+import PersonaService from '@/service/PersonaService';
+import WorldService from '@/service/WorldService';
 import DiscordService from '@/service/DiscordService';
 import store from '../resources/store';
 
+const personaService = new PersonaService();
+const worldService = new WorldService();
 const channelConfigService = new ChannelConfigService();
 const discordService = new DiscordService();
 const loggedUser = store.getters.loggedUser;
@@ -20,6 +24,8 @@ const viewChannelConfigDialog = ref(false);
 const deleteChannelConfigDialog = ref(false);
 const deleteChannelConfigsDialog = ref(false);
 const channelConfigSearchFilters = ref({});
+const worldSearchFilters = ref({});
+const personaSearchFilters = ref({});
 const channelConfigSubmitted = ref(false);
 const selectedModel = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
 const strictFilter = ref(false);
@@ -32,6 +38,12 @@ const freqPenPercentage = ref(50);
 const maxTokens = ref(200);
 const maxHistoryMessageNumber = ref(10);
 const stopSequences = ref(null);
+const world = ref({});
+const worlds = ref(null);
+const worldDialog = ref(false);
+const personaDialog = ref(false);
+const persona = ref({});
+const personas = ref(null);
 const modelsAvailable = ref([
     { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
     { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
@@ -44,6 +56,8 @@ const modelsAvailable = ref([
 
 onBeforeMount(() => {
     initChannelConfigSearchFilters();
+    initWorldSearchFilters();
+    initPersonaSearchFilters();
 });
 
 onMounted(async () => {
@@ -55,16 +69,55 @@ onMounted(async () => {
                 const ownerData = await discordService.retrieveUserData(cf.owner);
 
                 cf.ownerData = ownerData;
+                cf.model_settings.stop_sequence = cf.model_settings.stop_sequence[0] === '' ? [] : cf.model_settings.stop_sequence[0];
                 cfs.push(cf);
             }
         }
 
         channelConfigs.value = cfs;
     });
+
+    await worldService.getAllWorlds(loggedUser.id).then(async (data) => {
+        const ws = [];
+        if (data?.[0] !== undefined) {
+            for (let w of data) {
+                let canEdit = false;
+                if (w.owner === loggedUser.id || w.writePermissions?.contains(loggedUser.id)) {
+                    canEdit = true;
+                }
+
+                const ownerData = await discordService.retrieveUserData(w.owner);
+                w.ownerData = ownerData;
+                w.canEdit = canEdit;
+                ws.push(w);
+            }
+        }
+
+        worlds.value = ws;
+    });
+
+    personaService.getAllPersonas(loggedUser.id).then(async (data) => {
+        const ps = [];
+        if (data?.[0] !== undefined) {
+            for (let p of data) {
+                let canEdit = false;
+                const ownerData = await discordService.retrieveUserData(p.owner);
+                if (p.owner === loggedUser.id || p.writePermissions?.contains(loggedUser.id)) {
+                    canEdit = true;
+                }
+
+                p.ownerData = ownerData;
+                p.canEdit = canEdit;
+                ps.push(p);
+            }
+        }
+
+        personas.value = ps;
+    });
 });
 
 const createNewChannelConfig = () => {
-    channelConfig.value = { channelConfig: { id: '0' } };
+    channelConfig.value = {};
     channelConfigSubmitted.value = false;
     channelConfigDialog.value = true;
 };
@@ -78,30 +131,63 @@ const hideViewChannelConfigDialog = () => {
     viewChannelConfigDialog.value = false;
 };
 
+const hideWorldDialog = () => {
+    worldDialog.value = false;
+};
+
+const hidePersonaDialog = () => {
+    personaDialog.value = false;
+};
+
+const selectWorld = () => {
+    channelConfig.value.world = world.value;
+    worldDialog.value = false;
+    world.value = {};
+};
+
+const selectPersona = () => {
+    channelConfig.value.persona = persona.value;
+    personaDialog.value = false;
+    persona.value = {};
+};
+
 const saveChannelConfig = async () => {
     channelConfigSubmitted.value = true;
-    if (channelConfig.value.name.trim() && channelConfig.value.description.trim() && channelConfig.value.visibility) {
+    if (channelConfig.value.name.trim()) {
         if (channelConfig.value.id) {
             try {
-                channelConfig.value.visibility = channelConfig.value.visibility.value ? channelConfig.value.visibility.value : channelConfig.value.visibility;
-                await channelConfigService.updateWorld(channelConfig.value, loggedUser.id);
+                await channelConfigService.updateChannelConfig(channelConfig.value, loggedUser.id);
 
                 channelConfigs.value[findChannelConfigIndexById(channelConfig.value.id)] = channelConfig.value;
-                toast.add({ severity: 'success', summary: 'Success!', detail: 'World updated', life: 3000 });
+                toast.add({ severity: 'success', summary: 'Success!', detail: 'Channel configuration updated', life: 3000 });
             } catch (error) {
                 console.error(`An error ocurred while updating the channel config -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error updating channel config', life: 3000 });
             }
         } else {
             try {
-                channelConfig.value.visibility = channelConfig.value.visibility.value ? channelConfig.value.visibility.value : channelConfig.value.visibility;
                 channelConfig.value.owner = loggedUser.id;
-                const createdWorld = await channelConfigService.createWorld(channelConfig.value, loggedUser.id);
+                channelConfig.value.model_settings = {
+                    model_name: selectedModel.value.value,
+                    temperature: temperatureValue,
+                    frequency_penalty: freqPenValue,
+                    presence_penalty: presPenValue,
+                    max_tokens: maxTokens,
+                    chat_history_memory: maxHistoryMessageNumber,
+                    stop_sequence: stopSequences,
+                    owner: loggedUser.id
+                };
 
-                createdWorld.canEdit = true;
-                createdWorld.ownerData = loggedUser;
-                channelConfigs.value.push(createdWorld);
-                toast.add({ severity: 'success', summary: 'Success!', detail: 'World created', life: 3000 });
+                channelConfig.value.moderation_settings = {
+                    id: strictFilter.value ? 'STRICT' : 'PERMISSIVE'
+                };
+
+                const createdChannelConfig = await channelConfigService.createChannelConfig(channelConfig.value, loggedUser.id);
+
+                createdChannelConfig.canEdit = true;
+                createdChannelConfig.ownerData = loggedUser;
+                channelConfigs.value.push(createdChannelConfig);
+                toast.add({ severity: 'success', summary: 'Success!', detail: 'Channel configuration created', life: 3000 });
             } catch (error) {
                 console.error(`An error ocurred while saving the channel config -> ${error}`);
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving channel config', life: 3000 });
@@ -110,6 +196,16 @@ const saveChannelConfig = async () => {
         channelConfigDialog.value = false;
         channelConfig.value = {};
     }
+};
+
+const viewWorld = (selectedWorld) => {
+    world.value = { ...selectedWorld };
+    worldDialog.value = true;
+};
+
+const viewPersona = (selectedPersona) => {
+    persona.value = { ...selectedPersona };
+    personaDialog.value = true;
 };
 
 const viewChannelConfig = (editChannelConfig) => {
@@ -133,7 +229,7 @@ const deleteChannelConfig = async () => {
         channelConfigs.value = channelConfigs.value.filter((val) => val.id !== channelConfig.value.id);
         deleteChannelConfigDialog.value = false;
         channelConfig.value = {};
-        toast.add({ severity: 'success', summary: 'Success!', detail: 'World deleted', life: 3000 });
+        toast.add({ severity: 'success', summary: 'Success!', detail: 'Channel configuration deleted', life: 3000 });
     } catch (error) {
         console.error(`An error ocurred while deleting the channel config -> ${error}`);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error deleting channel config', life: 3000 });
@@ -177,6 +273,18 @@ const deleteSelectedChannelConfigs = () => {
 
 const initChannelConfigSearchFilters = () => {
     channelConfigSearchFilters.value = {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    };
+};
+
+const initWorldSearchFilters = () => {
+    worldSearchFilters.value = {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    };
+};
+
+const initPersonaSearchFilters = () => {
+    personaSearchFilters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
@@ -256,7 +364,6 @@ const getFreqPenValue = (freqPenPercentage) => {
                                                 <i class="pi pi-user"></i>
                                                 <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
                                             </div>
-                                            <Tag :value="slotProps.data.visibility" :class="'visibility-badge visibility-' + (slotProps.data.visibility ? slotProps.data.visibility.toLowerCase() : '')"></Tag>
                                         </div>
                                         <div class="flex flex-column align-items-center gap-3 py-5">
                                             <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
@@ -340,8 +447,141 @@ const getFreqPenValue = (freqPenPercentage) => {
 
                 <Dialog v-model:visible="viewChannelConfigDialog" header="Channel configuration" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name">Name</label>
-                        <InputText disabled id="name" v-model.trim="channelConfig.name" />
+                        <label for="config-name">Configuration name</label>
+                        <InputText id="config-name" v-model.trim="channelConfig.name" disabled />
+                    </div>
+
+                    <div class="field">
+                        <label
+                            for="ai-model"
+                            v-tooltip="
+                                `Models available to be used.
+            Different models have different behaviors and react differently to how personas and worlds and general content is written. Bear this in mind when writing content.`
+                            "
+                        >
+                            AI Model <i class="pi pi-info-circle" />
+                        </label>
+                        <Dropdown disabled id="ai-model" v-model="channelConfig.model_settings.model_name" optionValue="value" :options="modelsAvailable" optionLabel="label" />
+                    </div>
+
+                    <div class="field">
+                        <label
+                            for="strict-filter"
+                            v-tooltip="
+                                `This applies stricter filters to both inputs and outputs.
+                    Content will be flagged when any topic of OpenAI's moderation filters is triggered. Optimal for settings where safer content is required.`
+                            "
+                        >
+                            Filtering <i class="pi pi-info-circle" />
+                        </label>
+                        <InputText disabled v-model="channelConfig.moderation_settings.id" />
+                    </div>
+
+                    <div class="field">
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-4 lg:mb-0">
+                                <label
+                                    for="temperature"
+                                    v-tooltip="
+                                        `This value is required. Defaults to 0.8.
+                                        Randomness of the outputs generated by the AI. The closer to 0, the closer to the AI's training dataset.
+                                        We do not recommend going over 1.2, as the AI might spit nonsensical gibberish.`
+                                    "
+                                >
+                                    Randomness <i class="pi pi-info-circle" />
+                                </label>
+                                <InputNumber disabled id="temperature" :allowEmpty="false" :maxFractionDigits="1" :min="0.1" :max="2" v-model.number="channelConfig.model_settings.temperature" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-4 lg:mb-0">
+                                <label
+                                    for="name"
+                                    v-tooltip="
+                                        `This value is required. Defaults to 100. The amount of tokens (considering both input and output) to be processed by the AI.
+                                        Maximum number depends on model selected. We do not recommend providing a value higher than half of what the model supports, especially for smaller models.
+                                        Maximum allowed for the selected model: ${selectedModel.maxTokens}`
+                                    "
+                                >
+                                    Max tokens <i class="pi pi-info-circle" />
+                                </label>
+                                <InputNumber disabled v-model.number="channelConfig.model_settings.max_tokens" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-4 lg:mb-0">
+                                <label
+                                    for="name"
+                                    v-tooltip="
+                                        `This value is required.
+                                        Amount of messages in the channel that will be used as the AI's memory. Defaults to 10. Can't be lower than 5 or higher than 20.`
+                                    "
+                                >
+                                    Message history number <i class="pi pi-info-circle" />
+                                </label>
+                                <InputNumber disabled v-model.number="channelConfig.model_settings.chat_history_memory" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="grid formgrid"></div>
+                    </div>
+
+                    <div class="card" v-if="channelConfigs">
+                        <Panel header="Advanced options" :toggleable="true" :collapsed="true">
+                            <div class="field">
+                                <div class="grid formgrid">
+                                    <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                        <label
+                                            for="pres-pen"
+                                            v-tooltip="
+                                                `This value is optional. Defaults to 0.
+                                        This defines how much the presence of tokens in the input will influence the AI's output.
+                                        The higher the value, the higher the chance of tokens that have not appeared yet to be generated in the outputs.`
+                                            "
+                                        >
+                                            Presence penalty <i class="pi pi-info-circle" />
+                                        </label>
+                                        <InputNumber disabled id="pres-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="channelConfig.model_settings.presence_penalty" />
+                                    </div>
+                                    <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                        <label for="freq-pen" v-tooltip="'This value is optional. Defaults to 0. This penalizes the AI for repeating the same tokens too many times. The higher the value, the less the AI will repeat the same tokens.'">
+                                            Frequency penalty <i class="pi pi-info-circle" />
+                                        </label>
+                                        <InputNumber disabled id="freq-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="channelConfig.model_settings.frequency_penalty" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="grid formgrid">
+                                    <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                        <label
+                                            for="stop-sequences"
+                                            v-tooltip="
+                                                `This value is optional. Up to 4 sequences.
+                                        Once these values appear in an output, the AI will stop generating more text.`
+                                            "
+                                        >
+                                            Stop sequences <i class="pi pi-info-circle" />
+                                        </label>
+                                        <Chips disabled id="stop-sequences" v-model="channelConfig.model_settings.stop_sequence" :max="4" />
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="field">
+                                <div class="grid formgrid">
+                                    <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                        <label
+                                            for="logit-bias"
+                                            v-tooltip="
+                                                `This value is optional.
+                                        Likelihood of a token appearing in outputs. Ranges from -100 to 100. -100 means an exclusive ban of the supplied token, and 100 means it will always appear.`
+                                            "
+                                        >
+                                            Logit bias <i class="pi pi-info-circle" />
+                                        </label>
+                                        <InputText disabled id="logit-bias" />
+                                    </div>
+                                </div>
+                            </div> -->
+                        </Panel>
                     </div>
 
                     <Card>
@@ -361,7 +601,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                                             </div>
                                         </div>
                                         <div class="flex sm:flex-column align-items-center sm:align-items-end gap-3 sm:gap-2">
-                                            <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(channelConfig)" />
+                                            <Button icon="pi pi-eye" class="p-button-rounded p-button-success mr-2" @click="viewWorld(channelConfig.world)" />
                                         </div>
                                     </div>
                                 </div>
@@ -386,7 +626,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                                             </div>
                                         </div>
                                         <div class="flex sm:flex-column align-items-center sm:align-items-end gap-3 sm:gap-2">
-                                            <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(channelConfig)" />
+                                            <Button icon="pi pi-eye" class="p-button-rounded p-button-success mr-2" @click="viewPersona(channelConfig.persona)" />
                                         </div>
                                     </div>
                                 </div>
@@ -420,7 +660,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                         <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
                         <div class="col-12 md:col-4">
                             <div class="field-checkbox mb-0">
-                                <Checkbox id="strict-filter" name="option" value="Strict filtering" v-model="strictFilter" />
+                                <Checkbox id="strict-filter" name="strict-filter" value="Strict filtering" v-model="strictFilter" />
                                 <label
                                     for="strict-filter"
                                     v-tooltip="
@@ -452,32 +692,6 @@ const getFreqPenValue = (freqPenPercentage) => {
                             </div>
                             <div class="col-12 mb-2 lg:col-4 lg:mb-0">
                                 <label
-                                    for="pres-pen"
-                                    v-tooltip="
-                                        `This value is optional. Defaults to 0.
-                                        This defines how much the presence of tokens in the input will influence the AI's output.
-                                        The higher the value, the higher the chance of tokens that have not appeared yet to be generated in the outputs.`
-                                    "
-                                >
-                                    Presence penalty <i class="pi pi-info-circle" />
-                                </label>
-                                <InputNumber id="pres-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="presPenValue" @update:modelValue="getPresPenPercentage(presPenValue)" />
-                                <Slider v-model="presPenPercentage" @update:modelValue="getPresPenValue(presPenPercentage)" />
-                            </div>
-                            <div class="col-12 mb-2 lg:col-4 lg:mb-0">
-                                <label for="freq-pen" v-tooltip="'This value is optional. Defaults to 0. This penalizes the AI for repeating the same tokens too many times. The higher the value, the less the AI will repeat the same tokens.'">
-                                    Frequency penalty <i class="pi pi-info-circle" />
-                                </label>
-                                <InputNumber id="freq-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="freqPenValue" @update:modelValue="getFreqPenPercentage(freqPenValue)" />
-                                <Slider v-model="freqPenPercentage" @update:modelValue="getFreqPenValue(freqPenPercentage)" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <div class="grid formgrid">
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <label
                                     for="name"
                                     v-tooltip="
                                         `This value is required. Defaults to 100. The amount of tokens (considering both input and output) to be processed by the AI.
@@ -490,7 +704,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                                 <InputNumber v-model.number="maxTokens" :min="100" :max="selectedModel.maxTokens" :class="{ 'p-invalid': channelConfigSubmitted && !maxTokens }" />
                                 <small class="p-invalid" v-if="channelConfigSubmitted && !maxTokens">Max token count is required.</small>
                             </div>
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                            <div class="col-12 mb-2 lg:col-4 lg:mb-0">
                                 <label
                                     for="name"
                                     v-tooltip="
@@ -507,44 +721,282 @@ const getFreqPenValue = (freqPenPercentage) => {
                     </div>
 
                     <div class="field">
-                        <div class="grid formgrid">
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <label
-                                    for="stop-sequences"
-                                    v-tooltip="
-                                        `This value is optional. Up to 4 sequences.
-                                        Once these values appear in an output, the AI will stop generating more text.`
-                                    "
-                                >
-                                    Stop sequences <i class="pi pi-info-circle" />
-                                </label>
-                                <Chips id="stop-sequences" v-model="stopSequences" :max="4" />
-                            </div>
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <label
-                                    for="logit-bias"
-                                    v-tooltip="
-                                        `This value is optional.
-                                        Likelihood of a token appearing in outputs. Ranges from -100 to 100. -100 means an exclusive ban of the supplied token, and 100 means it will always appear.`
-                                    "
-                                >
-                                    Logit bias <i class="pi pi-info-circle" />
-                                </label>
-                                <InputText id="logit-bias" />
-                            </div>
-                        </div>
+                        <div class="grid formgrid"></div>
                     </div>
 
                     <div class="card" v-if="channelConfigs">
-                        <TabView>
-                            <TabPanel header="Card view"> </TabPanel>
-                            <TabPanel header="Table view"> </TabPanel>
-                        </TabView>
+                        <Panel header="Advanced options" :toggleable="true" :collapsed="true">
+                            <div class="field">
+                                <div class="grid formgrid">
+                                    <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                        <label
+                                            for="pres-pen"
+                                            v-tooltip="
+                                                `This value is optional. Defaults to 0.
+                                        This defines how much the presence of tokens in the input will influence the AI's output.
+                                        The higher the value, the higher the chance of tokens that have not appeared yet to be generated in the outputs.`
+                                            "
+                                        >
+                                            Presence penalty <i class="pi pi-info-circle" />
+                                        </label>
+                                        <InputNumber id="pres-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="presPenValue" @update:modelValue="getPresPenPercentage(presPenValue)" />
+                                        <Slider v-model="presPenPercentage" @update:modelValue="getPresPenValue(presPenPercentage)" />
+                                    </div>
+                                    <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                        <label for="freq-pen" v-tooltip="'This value is optional. Defaults to 0. This penalizes the AI for repeating the same tokens too many times. The higher the value, the less the AI will repeat the same tokens.'">
+                                            Frequency penalty <i class="pi pi-info-circle" />
+                                        </label>
+                                        <InputNumber id="freq-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="freqPenValue" @update:modelValue="getFreqPenPercentage(freqPenValue)" />
+                                        <Slider v-model="freqPenPercentage" @update:modelValue="getFreqPenValue(freqPenPercentage)" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="grid formgrid">
+                                    <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                        <label
+                                            for="stop-sequences"
+                                            v-tooltip="
+                                                `This value is optional. Up to 4 sequences.
+                                        Once these values appear in an output, the AI will stop generating more text.`
+                                            "
+                                        >
+                                            Stop sequences <i class="pi pi-info-circle" />
+                                        </label>
+                                        <Chips id="stop-sequences" v-model="stopSequences" :max="4" />
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="field">
+                                <div class="grid formgrid">
+                                    <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                        <label
+                                            for="logit-bias"
+                                            v-tooltip="
+                                                `This value is optional.
+                                        Likelihood of a token appearing in outputs. Ranges from -100 to 100. -100 means an exclusive ban of the supplied token, and 100 means it will always appear.`
+                                            "
+                                        >
+                                            Logit bias <i class="pi pi-info-circle" />
+                                        </label>
+                                        <InputText id="logit-bias" />
+                                    </div>
+                                </div>
+                            </div> -->
+                        </Panel>
+                    </div>
+
+                    <div class="card" v-if="channelConfigs">
+                        <Panel header="Persona" :toggleable="true" :collapsed="true">
+                            <TabView>
+                                <TabPanel header="Card view">
+                                    <DataView
+                                        layout="grid"
+                                        ref="dt"
+                                        :value="personas"
+                                        dataKey="id"
+                                        :paginator="true"
+                                        :rows="6"
+                                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                        :rowsPerPageOptions="[6, 12, 18]"
+                                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
+                                        responsiveLayout="scroll"
+                                        maxLength
+                                    >
+                                        <template #header>
+                                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                                <h5 class="m-0">Personas</h5>
+                                            </div>
+                                        </template>
+
+                                        <template #empty>No personas found.</template>
+
+                                        <template #grid="slotProps">
+                                            <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
+                                                <div class="p-4 border-1 surface-border surface-card border-round">
+                                                    <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+                                                        <div class="flex align-items-center gap-2">
+                                                            <i class="pi pi-user"></i>
+                                                            <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
+                                                        </div>
+                                                        <Tag :value="slotProps.data.intent" :class="'intent-badge intent-' + (slotProps.data.intent ? slotProps.data.intent.toLowerCase() : '')"></Tag>
+                                                    </div>
+                                                    <div class="flex flex-column align-items-center gap-3 py-5">
+                                                        <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
+                                                    </div>
+                                                    <p align="center" class="card-overflow">
+                                                        {{ slotProps.data.personality }}
+                                                    </p>
+                                                    <div class="flex align-items-center justify-content-between">
+                                                        <Button icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </DataView>
+                                </TabPanel>
+                                <TabPanel header="Table view">
+                                    <DataTable
+                                        ref="dt"
+                                        :value="personas"
+                                        dataKey="id"
+                                        :paginator="true"
+                                        :rows="10"
+                                        :filters="personaSearchFilters"
+                                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                        :rowsPerPageOptions="[5, 10, 25]"
+                                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
+                                        responsiveLayout="scroll"
+                                        maxLength
+                                    >
+                                        <template #header>
+                                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                                <h5 class="m-0">Personas</h5>
+                                                <span class="block mt-2 md:mt-0 p-input-icon-left">
+                                                    <i class="pi pi-search" />
+                                                    <InputText v-model="personaSearchFilters['global'].value" placeholder="Search..." />
+                                                </span>
+                                            </div>
+                                        </template>
+
+                                        <template #empty>No personas found.</template>
+
+                                        <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                            <template #body="slotProps">
+                                                <span class="p-column-title">Name</span>
+                                                <div class="table-column-overflow">{{ slotProps.data.name }}</div>
+                                            </template>
+                                        </Column>
+                                        <Column field="personality" header="Personality" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                                            <template #body="slotProps">
+                                                <span class="p-column-title">Personality</span>
+                                                <div class="table-column-overflow">{{ slotProps.data.personality }}</div>
+                                            </template>
+                                        </Column>
+                                        <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                            <template #body="slotProps">
+                                                <span class="p-column-title">Owner</span>
+                                                {{ slotProps.data.ownerData.username }}
+                                            </template>
+                                        </Column>
+                                        <Column field="intent" header="Intent" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                            <template #body="slotProps">
+                                                <span class="p-column-title">Intent</span>
+                                                <span :class="'intent-badge intent-' + (slotProps.data.intent ? slotProps.data.intent.toLowerCase() : '')">{{ slotProps.data.intent }}</span>
+                                            </template>
+                                        </Column>
+                                        <Column headerStyle="min-width:10rem;">
+                                            <template #body="slotProps">
+                                                <Button icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
+                                            </template>
+                                        </Column>
+                                    </DataTable>
+                                </TabPanel>
+                            </TabView>
+                        </Panel>
+                    </div>
+
+                    <div class="card" v-if="channelConfigs">
+                        <Panel header="World" :toggleable="true" :collapsed="true">
+                            <TabView>
+                                <TabPanel header="Card view">
+                                    <DataView
+                                        layout="grid"
+                                        ref="dt"
+                                        :value="worlds"
+                                        dataKey="id"
+                                        :paginator="true"
+                                        :rows="6"
+                                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                        :rowsPerPageOptions="[6, 12, 18]"
+                                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
+                                        responsiveLayout="scroll"
+                                        maxLength
+                                        :gridStyle="({ id }) => (id === channelConfig.world.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
+                                    >
+                                        <template #empty>No worlds found.</template>
+
+                                        <template #grid="slotProps">
+                                            <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
+                                                <div class="p-4 border-1 surface-border surface-card border-round">
+                                                    <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+                                                        <div class="flex align-items-center gap-2">
+                                                            <i class="pi pi-user"></i>
+                                                            <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
+                                                        </div>
+                                                        <Tag :value="`${channelConfig?.world?.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`" :class="'visibility-badge'" />
+                                                    </div>
+                                                    <div class="flex flex-column align-items-center gap-3 py-5">
+                                                        <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
+                                                    </div>
+                                                    <p align="center" class="card-overflow">
+                                                        {{ slotProps.data.description }}
+                                                    </p>
+                                                    <div class="flex align-items-center justify-content-between">
+                                                        <Button icon="pi pi-eye" class="p-button-rounded p-button-success mr-2" @click="viewWorld(slotProps.data)" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </DataView>
+                                </TabPanel>
+                                <TabPanel header="Table view">
+                                    <DataTable
+                                        ref="dt"
+                                        :value="worlds"
+                                        dataKey="id"
+                                        :paginator="true"
+                                        :rows="10"
+                                        :filters="worldSearchFilters"
+                                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                                        :rowsPerPageOptions="[5, 10, 25]"
+                                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
+                                        responsiveLayout="scroll"
+                                        :rowStyle="({ id }) => (id === channelConfig?.world?.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
+                                    >
+                                        <template #header>
+                                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                                                <span class="block mt-2 md:mt-0 p-input-icon-left">
+                                                    <i class="pi pi-search" />
+                                                    <InputText v-model="worldSearchFilters['global'].value" placeholder="Search..." />
+                                                </span>
+                                            </div>
+                                        </template>
+
+                                        <template #empty>No worlds found.</template>
+
+                                        <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                            <template #body="slotProps">
+                                                <span class="p-column-title">Name</span>
+                                                <div class="table-column-overflow">{{ slotProps.data.name }}</div>
+                                            </template>
+                                        </Column>
+                                        <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                                            <template #body="slotProps">
+                                                <span class="p-column-title">Description</span>
+                                                <div class="table-column-overflow">{{ slotProps.data.description }}</div>
+                                            </template>
+                                        </Column>
+                                        <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                            <template #body="slotProps">
+                                                <span class="p-column-title">Owner</span>
+                                                {{ slotProps.data.ownerData.username }}
+                                            </template>
+                                        </Column>
+                                        <Column headerStyle="min-width:10rem;">
+                                            <template #body="slotProps">
+                                                <Button icon="pi pi-eye" class="p-button-rounded p-button-success mr-2" @click="viewWorld(slotProps.data)" />
+                                            </template>
+                                        </Column>
+                                    </DataTable>
+                                </TabPanel>
+                            </TabView>
+                        </Panel>
                     </div>
 
                     <template #footer>
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideChannelConfigDialog" />
-                        <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveChannelConfig" />
+                        <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveChannelConfig" />
                     </template>
                 </Dialog>
 
@@ -570,6 +1022,73 @@ const getFreqPenValue = (freqPenPercentage) => {
                     <template #footer>
                         <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteChannelConfigsDialog = false" />
                         <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteSelectedChannelConfigs" />
+                    </template>
+                </Dialog>
+
+                <Dialog v-model:visible="worldDialog" header="World" :modal="true" class="p-fluid">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <InputText id="name" v-model.trim="world.name" disabled />
+                    </div>
+                    <div class="field">
+                        <label for="description">Description</label>
+                        <Textarea id="description" v-model.trim="world.description" rows="3" cols="20" disabled />
+                    </div>
+                    <template #footer>
+                        <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideWorldDialog" />
+                        <Button v-if="worldDialog" label="Select" icon="pi pi-check" class="p-button-primary" @click="selectWorld" />
+                    </template>
+                </Dialog>
+
+                <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <InputText disabled id="name" v-model.trim="persona.name" required="true" />
+                    </div>
+
+                    <div class="field">
+                        <label for="intent" class="mb-3">Intent</label>
+                        <Textarea disabled id="intent" v-model="persona.intent" placeholder="Persona intent" />
+                    </div>
+
+                    <div class="field">
+                        <label for="nudge" class="mb-3">Nudge</label>
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <InputText disabled id="nudge-role" v-model="persona.nudge.role" placeholder="Nudge role" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <Textarea disabled rows="1" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="bump" class="mb-3">Bump</label>
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <InputText disabled id="bump-role" v-model="persona.bump.role" placeholder="Bump role" />
+                            </div>
+                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                <InputNumber disabled mode="decimal" v-model.trim="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="grid formgrid">
+                            <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                <Textarea disabled rows="1" v-model.trim="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="personality">Personality</label>
+                        <Textarea disabled id="personality" v-model.trim="persona.personality" required="true" rows="10" cols="20" />
+                    </div>
+                    <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
+                        <Button label="Select" icon="pi pi-check" class="p-button-primary" @click="selectPersona" />
                     </template>
                 </Dialog>
             </div>
