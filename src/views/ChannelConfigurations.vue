@@ -443,6 +443,12 @@ const getFreqPenValue = (freqPenPercentage) => {
                             <template #empty>No configurations found.</template>
 
                             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                            <Column field="id" header="ID" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                                <template #body="slotProps">
+                                    <span class="p-column-title">ID</span>
+                                    <div class="table-column-overflow">{{ slotProps.data.id }}</div>
+                                </template>
+                            </Column>
                             <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                                 <template #body="slotProps">
                                     <span class="p-column-title">Name</span>
@@ -467,6 +473,11 @@ const getFreqPenValue = (freqPenPercentage) => {
                 </TabView>
 
                 <Dialog v-model:visible="viewChannelConfigDialog" header="Channel configuration" :modal="true" class="p-fluid">
+                    <div class="field">
+                        <label for="config-id">ID</label>
+                        <InputText id="config-id" v-model.trim="channelConfig.id" disabled />
+                    </div>
+
                     <div class="field">
                         <label for="config-name">Configuration name</label>
                         <InputText id="config-name" v-model.trim="channelConfig.name" disabled />
@@ -661,6 +672,11 @@ const getFreqPenValue = (freqPenPercentage) => {
                 </Dialog>
 
                 <Dialog v-model:visible="channelConfigDialog" header="Channel config" :modal="true" class="p-fluid">
+                    <div class="field">
+                        <label for="config-id">ID</label>
+                        <InputText id="config-id" v-model.trim="channelConfig.id" disabled />
+                    </div>
+
                     <div class="field">
                         <label for="config-name">Configuration name</label>
                         <InputText id="config-name" v-model.trim="channelConfig.name" required="true" autofocus :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.name }" />
