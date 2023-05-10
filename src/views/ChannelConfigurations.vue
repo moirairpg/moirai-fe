@@ -71,7 +71,7 @@ onMounted(async () => {
                 if (cf.owner === loggedUser.id || cf.writePermissions?.contains(loggedUser.id)) {
                     canEdit = true;
                 }
-
+                cf.moderation_settings.isStrict = cf.moderation_settings.id === 'STRICT';
                 cf.ownerData = ownerData;
                 cf.canEdit = canEdit;
                 cfs.push(cf);
@@ -172,10 +172,6 @@ const saveChannelConfig = async () => {
                     owner: loggedUser.id
                 };
 
-                channelConfig.value.moderation_settings = {
-                    id: strictFilter.value ? 'STRICT' : 'PERMISSIVE'
-                };
-
                 await channelConfigService.updateChannelConfig(channelConfig.value, loggedUser.id);
 
                 channelConfigs.value[findChannelConfigIndexById(channelConfig.value.id)] = channelConfig.value;
@@ -196,10 +192,6 @@ const saveChannelConfig = async () => {
                     chat_history_memory: maxHistoryMessageNumber,
                     stop_sequence: stopSequences,
                     owner: loggedUser.id
-                };
-
-                channelConfig.value.moderation_settings = {
-                    id: strictFilter.value ? 'STRICT' : 'PERMISSIVE'
                 };
 
                 const createdChannelConfig = await channelConfigService.createChannelConfig(channelConfig.value, loggedUser.id);
@@ -333,6 +325,10 @@ const getFreqPenPercentage = (freqPenValue) => {
 
 const getFreqPenValue = (freqPenPercentage) => {
     freqPenValue.value = (freqPenPercentage / 100) * 4 - 2;
+};
+
+const onStrictFilterChange = (event) => {
+    channelConfig.value.moderation_settings.id = event ? 'STRICT' : 'PERMISSIVE';
 };
 </script>
 
@@ -494,19 +490,20 @@ const getFreqPenValue = (freqPenPercentage) => {
                             AI Model <i class="pi pi-info-circle" />
                         </label>
                         <Dropdown disabled id="ai-model" v-model="channelConfig.model_settings.model_name" optionValue="value" :options="modelsAvailable" optionLabel="label" />
-                    </div>
-
-                    <div class="field">
-                        <label
-                            for="strict-filter"
-                            v-tooltip="
-                                `This applies stricter filters to both inputs and outputs.
-                    Content will be flagged when any topic of OpenAI's moderation filters is triggered. Optimal for settings where safer content is required.`
-                            "
-                        >
-                            Filtering <i class="pi pi-info-circle" />
-                        </label>
-                        <InputText disabled v-model="channelConfig.moderation_settings.id" />
+                        <div class="col-12 md:col-4">
+                            <div class="field-checkbox mb-0">
+                                <Checkbox disabled binary id="strict-filter" name="strict-filter" :model-value="channelConfig.moderation_settings.id === 'STRICT'" @input="onStrictFilterChange" />
+                                <label
+                                    for="strict-filter"
+                                    v-tooltip="
+                                        `This applies stricter filters to both inputs and outputs.
+                                        Content will be flagged when any topic of OpenAI's moderation filters is triggered. Optimal for settings where safer content is required.`
+                                    "
+                                >
+                                    Strict filtering <i class="pi pi-info-circle" />
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="field">
@@ -697,7 +694,7 @@ const getFreqPenValue = (freqPenPercentage) => {
                         <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
                         <div class="col-12 md:col-4">
                             <div class="field-checkbox mb-0">
-                                <Checkbox id="strict-filter" name="strict-filter" value="Strict filtering" v-model="strictFilter" />
+                                <Checkbox binary id="strict-filter" name="strict-filter" :model-value="channelConfig.moderation_settings.id === 'STRICT'" @input="onStrictFilterChange" />
                                 <label
                                     for="strict-filter"
                                     v-tooltip="
