@@ -7,7 +7,7 @@ const discordApiBaseUrl = import.meta.env.VITE_CHATRPG_DISCORD_API_BASE_URL;
 const discordLoginUrl = import.meta.env.VITE_CHATRPG_DISCORD_LOGIN_URL;
 
 const logoUrl = computed(() => {
-    return `layout/images/${layoutConfig.darkTheme.value ? 'logo-white' : 'logo-dark'}.svg`;
+    return `layout/images/logo.png`;
 });
 </script>
 
