@@ -53,6 +53,15 @@ const router = createRouter({
                         title: 'ChatRPG | Channel Configuration',
                         requiresLogin: true
                     }
+                },
+                {
+                    path: '/tokenizer',
+                    name: 'tokenizer',
+                    component: () => import('@/views/Tokenizer.vue'),
+                    meta: {
+                        title: 'ChatRPG | Tokenizer',
+                        requiresLogin: true
+                    }
                 }
             ]
         },

@@ -16,6 +16,12 @@ const model = ref([
             { label: 'Persona', icon: 'pi pi-fw pi-user', to: '/personas' },
             { label: 'Channel configurations', icon: 'pi pi-fw pi-wrench', to: '/channel-configs' },
         ]
+    },
+    {
+        label: 'Tools',
+        items: [
+            { label: 'Tokenizer', icon: 'pi pi-fw pi-mobile', to: '/tokenizer' },
+        ]
     }
 ]);
 </script>
