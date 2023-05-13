@@ -162,6 +162,7 @@ const saveChannelConfig = async () => {
             try {
                 channelConfig.value.owner = loggedUser.id;
                 channelConfig.value.model_settings = {
+                    name: channelConfig.name,
                     model_name: selectedModel.value.value,
                     temperature: temperatureValue,
                     frequency_penalty: freqPenValue,
