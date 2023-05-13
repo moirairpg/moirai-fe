@@ -426,15 +426,15 @@ const initFilters = () => {
                     <div class="field">
                         <label for="nudge" class="mb-3">Nudge</label>
                         <div class="grid formgrid">
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                            <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                                 <Dropdown id="nudge-role" v-model="persona.nudge.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" />
                             </div>
                         </div>
                     </div>
                     <div class="field">
                         <div class="grid formgrid">
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <Textarea rows="1" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                            <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                <Textarea rows="3" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
                             </div>
                         </div>
                     </div>
@@ -453,7 +453,7 @@ const initFilters = () => {
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea rows="1" v-model.trim="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                                <Textarea rows="3" v-model.trim="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
                             </div>
                         </div>
                     </div>
