@@ -1,9 +1,9 @@
-import { encode, decodeGenerator } from 'gpt-tokenizer';
+import { encode, decodeGenerator, decodeToken } from 'gpt-tokenizer';
 
 let encodedTokens = null;
 let decodedTokens = [];
 
-const decodeTokens = (text) => {
+export function decodeTokens(text) {
     decodedTokens = [];
     encodedTokens = encode(text);
 
@@ -26,4 +26,7 @@ const decodeTokens = (text) => {
     }
 };
 
-export default decodeTokens;
+export function decodeSingleToken(tokenId) {
+    return decodeToken(tokenId);
+}
+
