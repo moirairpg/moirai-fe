@@ -7,7 +7,7 @@ const colors = ref(null);
 const text = ref(null);
 const processedTokens = ref(null);
 const processTokens = (event) => {
-    processedTokens.value = decodeTokens(event);
+    processedTokens.value = decodeTokens(event.target.value);
     colors.value = processedTokens.value.trueColors;
 };
 

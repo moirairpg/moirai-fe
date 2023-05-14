@@ -3,9 +3,8 @@ import { encode, decodeGenerator } from 'gpt-tokenizer';
 let encodedTokens = null;
 let decodedTokens = [];
 
-const decodeTokens = (event) => {
+const decodeTokens = (text) => {
     decodedTokens = [];
-    let text = event.target.value;
     encodedTokens = encode(text);
 
     for (const token of decodeGenerator(encodedTokens)) {
