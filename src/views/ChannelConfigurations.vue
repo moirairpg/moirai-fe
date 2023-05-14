@@ -28,15 +28,12 @@ const worldSearchFilters = ref({});
 const personaSearchFilters = ref({});
 const channelConfigSubmitted = ref(false);
 const selectedModel = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
-const strictFilter = ref(false);
 const temperatureValue = ref(0.8);
 const temperaturePercentage = ref(40);
 const presPenValue = ref(0);
 const presPenPercentage = ref(50);
 const freqPenValue = ref(0);
 const freqPenPercentage = ref(50);
-const maxTokens = ref(200);
-const maxHistoryMessageNumber = ref(10);
 const stopSequences = ref(null);
 const world = ref({});
 const worlds = ref(null);
@@ -44,6 +41,8 @@ const worldDialog = ref(false);
 const personaDialog = ref(false);
 const persona = ref({});
 const personas = ref(null);
+const maxTokens = ref(200);
+const maxHistoryMessageNumber = ref(10);
 const modelsAvailable = ref([
     { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
     { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
@@ -121,7 +120,19 @@ onMounted(async () => {
 });
 
 const createNewChannelConfig = () => {
-    channelConfig.value = {};
+    maxTokens.value = 100;
+    maxHistoryMessageNumber.value = 10;
+    channelConfig.value = {
+        model_settings: {
+            max_tokens: maxTokens.value,
+            chat_history_memory: maxHistoryMessageNumber.value
+        },
+        moderation_settings: {
+            id: 'PERMISSIVE'
+        }
+    };
+
+    selectedModel.value = { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 };
     channelConfigSubmitted.value = false;
     channelConfigDialog.value = true;
 };
@@ -167,8 +178,6 @@ const saveChannelConfig = async () => {
                     temperature: temperatureValue,
                     frequency_penalty: freqPenValue,
                     presence_penalty: presPenValue,
-                    max_tokens: maxTokens,
-                    chat_history_memory: maxHistoryMessageNumber,
                     stop_sequence: stopSequences,
                     owner: loggedUser.id
                 };
@@ -189,8 +198,6 @@ const saveChannelConfig = async () => {
                     temperature: temperatureValue,
                     frequency_penalty: freqPenValue,
                     presence_penalty: presPenValue,
-                    max_tokens: maxTokens,
-                    chat_history_memory: maxHistoryMessageNumber,
                     stop_sequence: stopSequences,
                     owner: loggedUser.id
                 };
@@ -228,6 +235,11 @@ const viewChannelConfig = (editChannelConfig) => {
 
 const editChannelConfig = (editChannelConfig) => {
     channelConfig.value = { ...editChannelConfig };
+    selectedModel.value = modelsAvailable.value.find((model) => model.value === editChannelConfig.model_settings.model_name);
+    temperatureValue.value = editChannelConfig.model_settings.temperature;
+    getTemperaturePercentage(temperatureValue.value);
+    maxTokens.value = editChannelConfig.model_settings.max_tokens;
+    maxHistoryMessageNumber.value = editChannelConfig.model_settings.chat_history_memory;
     channelConfigDialog.value = true;
 };
 
@@ -470,7 +482,7 @@ const onStrictFilterChange = (event) => {
                 </TabView>
 
                 <Dialog v-model:visible="viewChannelConfigDialog" header="Channel configuration" :modal="true" class="p-fluid">
-                    <div class="field">
+                    <div v-if="channelConfig.id" class="field">
                         <label for="config-id">ID</label>
                         <InputText id="config-id" v-model.trim="channelConfig.id" disabled />
                     </div>
@@ -670,7 +682,7 @@ const onStrictFilterChange = (event) => {
                 </Dialog>
 
                 <Dialog v-model:visible="channelConfigDialog" header="Channel config" :modal="true" class="p-fluid">
-                    <div class="field">
+                    <div v-if="channelConfig.id" class="field">
                         <label for="config-id">ID</label>
                         <InputText id="config-id" v-model.trim="channelConfig.id" disabled />
                     </div>
@@ -695,7 +707,7 @@ const onStrictFilterChange = (event) => {
                         <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
                         <div class="col-12 md:col-4">
                             <div class="field-checkbox mb-0">
-                                <Checkbox binary id="strict-filter" name="strict-filter" :model-value="channelConfig.moderation_settings.id === 'STRICT'" @input="onStrictFilterChange" />
+                                <Checkbox binary id="strict-filter" name="strict-filter" :model-value="channelConfig.moderation_settings?.id === 'STRICT'" @input="onStrictFilterChange" />
                                 <label
                                     for="strict-filter"
                                     v-tooltip="
