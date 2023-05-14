@@ -438,11 +438,11 @@ const initEntryFilters = () => {
                 <Dialog v-model:visible="viewLorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText id="name" v-model.trim="lorebook.name" disabled />
+                        <InputText id="name" v-model="lorebook.name" disabled />
                     </div>
                     <div class="field">
                         <label for="description">Description</label>
-                        <Textarea id="description" v-model.trim="lorebook.description" rows="3" cols="20" disabled />
+                        <Textarea id="description" v-model="lorebook.description" rows="3" cols="20" disabled />
                     </div>
                     <div class="card" v-if="lorebook.entries !== null">
                         <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
@@ -534,16 +534,16 @@ const initEntryFilters = () => {
                     <Dialog v-model:visible="viewEntryDialog" header="Lorebook entry" :modal="true" class="p-fluid">
                         <div class="field">
                             <label for="name">Name</label>
-                            <InputText id="name" v-model.trim="entry.name" disabled autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
+                            <InputText id="name" v-model="entry.name" disabled autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
                             <small class="p-invalid" v-if="entrySubmitted && !entry.name">Name is required.</small>
                         </div>
                         <div class="field">
                             <label for="regex">Regex</label>
-                            <InputText disabled id="regex" v-model.trim="entry.regex" />
+                            <InputText disabled id="regex" v-model="entry.regex" />
                         </div>
                         <div class="field">
                             <label for="description">Description</label>
-                            <Textarea id="description" v-model.trim="entry.description" disabled rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
+                            <Textarea id="description" v-model="entry.description" disabled rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
                             <small class="p-invalid" v-if="entrySubmitted && !entry.description">Description is required.</small>
                         </div>
                         <template #footer>
@@ -555,12 +555,12 @@ const initEntryFilters = () => {
                 <Dialog v-model:visible="lorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText id="name" v-model.trim="lorebook.name" required="true" autofocus :class="{ 'p-invalid': lorebookSubmitted && !lorebook.name }" />
+                        <InputText id="name" v-model="lorebook.name" required="true" autofocus :class="{ 'p-invalid': lorebookSubmitted && !lorebook.name }" />
                         <small class="p-invalid" v-if="lorebookSubmitted && !lorebook.name">Name is required.</small>
                     </div>
                     <div class="field">
                         <label for="description">Description</label>
-                        <Textarea id="description" v-model.trim="lorebook.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': lorebookSubmitted && !lorebook.description }" />
+                        <Textarea id="description" v-model="lorebook.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': lorebookSubmitted && !lorebook.description }" />
                         <small class="p-invalid" v-if="lorebookSubmitted && !lorebook.description">Description is required.</small>
                     </div>
                     <div class="field">
@@ -700,16 +700,16 @@ const initEntryFilters = () => {
                         <Dialog v-model:visible="entryDialog" header="Lorebook entry" :modal="true" class="p-fluid">
                             <div class="field">
                                 <label for="name">Name</label>
-                                <InputText id="name" v-model.trim="entry.name" required="true" autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
+                                <InputText id="name" v-model="entry.name" required="true" autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
                                 <small class="p-invalid" v-if="entrySubmitted && !entry.name">Name is required.</small>
                             </div>
                             <div class="field">
                                 <label for="regex">Regex</label>
-                                <InputText id="regex" v-model.trim="entry.regex" />
+                                <InputText id="regex" v-model="entry.regex" />
                             </div>
                             <div class="field">
                                 <label for="description">Description</label>
-                                <Textarea id="description" v-model.trim="entry.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
+                                <Textarea id="description" v-model="entry.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
                                 <small class="p-invalid" v-if="entrySubmitted && !entry.description">Description is required.</small>
                             </div>
                             <template #footer>

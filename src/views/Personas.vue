@@ -328,7 +328,7 @@ const initFilters = () => {
                 <Dialog v-model:visible="viewPersonaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText disabled id="name" v-model.trim="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
+                        <InputText disabled id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
                     </div>
 
                     <div class="field">
@@ -347,7 +347,7 @@ const initFilters = () => {
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea disabled rows="3" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                                <Textarea disabled rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
                             </div>
                         </div>
                     </div>
@@ -359,21 +359,21 @@ const initFilters = () => {
                                 <InputText disabled id="bump-role" v-model="persona.bump.role" placeholder="Bump role" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <InputNumber disabled mode="decimal" v-model.trim="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
+                                <InputNumber disabled mode="decimal" v-model="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
                             </div>
                         </div>
                     </div>
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea disabled rows="3" v-model.trim="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                                <Textarea disabled rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
                             </div>
                         </div>
                     </div>
 
                     <div class="field">
                         <label for="personality">Personality</label>
-                        <Textarea disabled id="personality" v-model.trim="persona.personality" required="true" rows="10" cols="20" />
+                        <Textarea disabled id="personality" v-model="persona.personality" required="true" rows="10" cols="20" />
                     </div>
                     <template #footer>
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewPersonaDialog" />
@@ -383,7 +383,7 @@ const initFilters = () => {
                 <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText id="name" v-model.trim="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
+                        <InputText id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
                         <small class="p-invalid" v-if="personaSubmitted && !persona.name">Name is required.</small>
                     </div>
 
@@ -434,7 +434,7 @@ const initFilters = () => {
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea rows="3" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                                <Textarea rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
                             </div>
                         </div>
                     </div>
@@ -446,21 +446,21 @@ const initFilters = () => {
                                 <Dropdown id="bump-role" v-model="persona.bump.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <InputNumber showButtons mode="decimal" v-model.trim="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
+                                <InputNumber showButtons mode="decimal" v-model="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
                             </div>
                         </div>
                     </div>
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea rows="3" v-model.trim="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                                <Textarea rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
                             </div>
                         </div>
                     </div>
 
                     <div class="field">
                         <label for="personality">Personality</label>
-                        <Textarea id="personality" v-model.trim="persona.personality" required="true" rows="10" cols="20" :class="{ 'p-invalid': personaSubmitted && !persona.personality }" />
+                        <Textarea id="personality" v-model="persona.personality" required="true" rows="10" cols="20" :class="{ 'p-invalid': personaSubmitted && !persona.personality }" />
                         <small class="p-invalid" v-if="personaSubmitted && !persona.personality">Personality is required.</small>
                     </div>
                     <template #footer>
