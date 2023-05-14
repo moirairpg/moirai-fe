@@ -251,6 +251,14 @@ const viewPersona = (selectedPersona) => {
 
 const viewChannelConfig = (editChannelConfig) => {
     channelConfig.value = { ...editChannelConfig };
+    logitBiases.value = [];
+    for (var key in channelConfig.value.model_settings.logit_bias) {
+        const value = channelConfig.value.model_settings.logit_bias[key];
+        const token = decodeSingleToken(key);
+        logitBiases.value.push(`${token}:${value}`);
+    }
+
+    console.log(`biases -> ${JSON.stringify(logitBiases.value, null, 2)}`)
     viewChannelConfigDialog.value = true;
 };
 
@@ -690,7 +698,7 @@ const onStrictFilterChange = (event) => {
                                     </div>
                                 </div>
                             </div>
-                            <!-- <div class="field">
+                            <div class="field">
                                 <div class="grid formgrid">
                                     <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                                         <label
@@ -702,10 +710,10 @@ const onStrictFilterChange = (event) => {
                                         >
                                             Logit bias <i class="pi pi-info-circle" />
                                         </label>
-                                        <InputText disabled id="logit-bias" />
+                                        <Chips disabled id="logit-bias-chips" v-model="logitBiases" />
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
                         </Panel>
                     </div>
 
