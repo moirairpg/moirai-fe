@@ -363,17 +363,17 @@ const initLorebookSearchFilters = () => {
                 <Dialog v-model:visible="viewWorldDialog" header="World" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText disabled id="name" v-model.trim="world.name" />
+                        <InputText disabled id="name" v-model="world.name" />
                     </div>
 
                     <div class="field">
                         <label for="description">Description</label>
-                        <Textarea disabled id="description" v-model.trim="world.description" rows="5" cols="20" />
+                        <Textarea disabled id="description" v-model="world.description" rows="5" cols="20" />
                     </div>
 
                     <div class="field">
                         <label for="initial_prompt">Prompt</label>
-                        <Textarea disabled id="initial_prompt" v-model.trim="world.initial_prompt" rows="5" cols="20" />
+                        <Textarea disabled id="initial_prompt" v-model="world.initial_prompt" rows="5" cols="20" />
                     </div>
 
                     <div class="field">
@@ -413,19 +413,19 @@ const initLorebookSearchFilters = () => {
                 <Dialog v-model:visible="worldDialog" header="World" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText id="name" v-model.trim="world.name" required="true" autofocus :class="{ 'p-invalid': worldSubmitted && !world.name }" />
+                        <InputText id="name" v-model="world.name" required="true" autofocus :class="{ 'p-invalid': worldSubmitted && !world.name }" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.name">Name is required.</small>
                     </div>
 
                     <div class="field">
                         <label for="description">Description</label>
-                        <Textarea id="description" v-model.trim="world.description" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.description }" />
+                        <Textarea id="description" v-model="world.description" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.description }" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.description">Description is required.</small>
                     </div>
 
                     <div class="field">
                         <label for="initial_prompt">Prompt</label>
-                        <Textarea id="initial_prompt" v-model.trim="world.initial_prompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initial_prompt }" />
+                        <Textarea id="initial_prompt" v-model="world.initial_prompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initial_prompt }" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.initial_prompt">Prompt is required.</small>
                     </div>
 
@@ -560,11 +560,11 @@ const initLorebookSearchFilters = () => {
                 <Dialog v-model:visible="lorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText id="name" v-model.trim="lorebook.name" disabled />
+                        <InputText id="name" v-model="lorebook.name" disabled />
                     </div>
                     <div class="field">
                         <label for="description">Description</label>
-                        <Textarea id="description" v-model.trim="lorebook.description" rows="3" cols="20" disabled />
+                        <Textarea id="description" v-model="lorebook.description" rows="3" cols="20" disabled />
                     </div>
                     <template #footer>
                         <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
