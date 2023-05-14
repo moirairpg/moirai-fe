@@ -122,10 +122,13 @@ onMounted(async () => {
 const createNewChannelConfig = () => {
     maxTokens.value = 100;
     maxHistoryMessageNumber.value = 10;
+    temperatureValue.value = 0.8;
+    getTemperaturePercentage(temperatureValue.value);
     channelConfig.value = {
         model_settings: {
             max_tokens: maxTokens.value,
-            chat_history_memory: maxHistoryMessageNumber.value
+            chat_history_memory: maxHistoryMessageNumber.value,
+            temperature: temperatureValue.value
         },
         moderation_settings: {
             id: 'PERMISSIVE'
@@ -179,6 +182,8 @@ const saveChannelConfig = async () => {
                     frequency_penalty: freqPenValue,
                     presence_penalty: presPenValue,
                     stop_sequence: stopSequences,
+                    max_tokens: maxTokens.value,
+                    chat_history_memory: maxHistoryMessageNumber.value,
                     owner: loggedUser.id
                 };
 
@@ -199,6 +204,8 @@ const saveChannelConfig = async () => {
                     frequency_penalty: freqPenValue,
                     presence_penalty: presPenValue,
                     stop_sequence: stopSequences,
+                    max_tokens: maxTokens.value,
+                    chat_history_memory: maxHistoryMessageNumber.value,
                     owner: loggedUser.id
                 };
 
