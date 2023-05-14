@@ -146,6 +146,7 @@ const createNewChannelConfig = () => {
         }
     };
 
+    logitBiases.value = [];
     selectedModel.value = { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 };
     channelConfigSubmitted.value = false;
     channelConfigDialog.value = true;
@@ -273,7 +274,6 @@ const editChannelConfig = (editChannelConfig) => {
         });
     }
 
-    console.log(`Tokens from the object -> ${JSON.stringify(logitBiases.value, null, 2)}`);
     channelConfigDialog.value = true;
 };
 
