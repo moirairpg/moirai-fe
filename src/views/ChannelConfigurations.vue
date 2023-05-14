@@ -258,7 +258,7 @@ const viewChannelConfig = (editChannelConfig) => {
         logitBiases.value.push(`${token}:${value}`);
     }
 
-    console.log(`biases -> ${JSON.stringify(logitBiases.value, null, 2)}`)
+    console.log(`biases -> ${JSON.stringify(logitBiases.value, null, 2)}`);
     viewChannelConfigDialog.value = true;
 };
 
@@ -922,9 +922,15 @@ const onStrictFilterChange = (event) => {
                                         <Slider v-model="logitBiasPercentage" @update:modelValue="getLogitBiasValue(logitBiasPercentage)" />
                                         <InputNumber id="logit-bias-bias" :maxFractionDigits="0" :min="-100" :max="100" v-model.number="logitBiasValue" @update:modelValue="getLogitBiasPercentage(logitBiasValue)" />
                                     </div>
-                                    <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                        <Button class="p-button-primary" label="Add logit bias" @click="addLogitBias" />
-                                        <Button class="p-button-danger" label="Remove logit bias" @click="removeLogitBias" />
+                                </div>
+                                <div class="field">
+                                    <div class="grid formgrid">
+                                        <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                            <Button class="p-button-primary" label="Add/update logit bias" @click="addLogitBias" />
+                                        </div>
+                                        <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                                            <Button class="p-button-danger" label="Remove logit bias" @click="removeLogitBias" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
