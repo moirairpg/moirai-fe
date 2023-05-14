@@ -7,7 +7,7 @@ import PersonaService from '@/service/PersonaService';
 import WorldService from '@/service/WorldService';
 import DiscordService from '@/service/DiscordService';
 import store from '../resources/store';
-import decodeTokens from '../resources/tokenizer';
+import { decodeTokens, decodeSingleToken } from '../resources/tokenizer';
 
 const personaService = new PersonaService();
 const worldService = new WorldService();
@@ -80,6 +80,7 @@ onMounted(async () => {
                 if (cf.owner === loggedUser.id || cf.writePermissions?.contains(loggedUser.id)) {
                     canEdit = true;
                 }
+
                 cf.moderation_settings.isStrict = cf.moderation_settings.id === 'STRICT';
                 cf.ownerData = ownerData;
                 cf.canEdit = canEdit;
@@ -256,9 +257,23 @@ const editChannelConfig = (editChannelConfig) => {
     channelConfig.value = { ...editChannelConfig };
     selectedModel.value = modelsAvailable.value.find((model) => model.value === editChannelConfig.model_settings.model_name);
     temperatureValue.value = editChannelConfig.model_settings.temperature;
-    getTemperaturePercentage(temperatureValue.value);
     maxTokens.value = editChannelConfig.model_settings.max_tokens;
     maxHistoryMessageNumber.value = editChannelConfig.model_settings.chat_history_memory;
+    getTemperaturePercentage(temperatureValue.value);
+
+    logitBiases.value = [];
+    for (var key in channelConfig.value.model_settings.logit_bias) {
+        const value = channelConfig.value.model_settings.logit_bias[key];
+        const token = decodeSingleToken(key);
+        logitBiases.value.push({
+            text: `${token}:${value}`,
+            decodedToken: token,
+            encodedToken: key,
+            bias: value
+        });
+    }
+
+    console.log(`Tokens from the object -> ${JSON.stringify(logitBiases.value, null, 2)}`);
     channelConfigDialog.value = true;
 };
 

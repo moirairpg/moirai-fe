@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import decodeTokens from '../resources/tokenizer';
+import { decodeTokens } from '../resources/tokenizer';
 
 const pipe = ref(false);
 const colors = ref(null);
