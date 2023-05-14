@@ -7,6 +7,7 @@ import PersonaService from '@/service/PersonaService';
 import WorldService from '@/service/WorldService';
 import DiscordService from '@/service/DiscordService';
 import store from '../resources/store';
+import decodeTokens from '../resources/tokenizer';
 
 const personaService = new PersonaService();
 const worldService = new WorldService();
@@ -16,6 +17,7 @@ const loggedUser = store.getters.loggedUser;
 
 const dt = ref(null);
 const toast = useToast();
+
 const channelConfig = ref({});
 const channelConfigs = ref(null);
 const channelConfigDialog = ref(false);
@@ -24,10 +26,18 @@ const viewChannelConfigDialog = ref(false);
 const deleteChannelConfigDialog = ref(false);
 const deleteChannelConfigsDialog = ref(false);
 const channelConfigSearchFilters = ref({});
-const worldSearchFilters = ref({});
-const personaSearchFilters = ref({});
 const channelConfigSubmitted = ref(false);
-const selectedModel = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
+
+const world = ref({});
+const worlds = ref(null);
+const worldDialog = ref(false);
+const worldSearchFilters = ref({});
+
+const personaDialog = ref(false);
+const persona = ref({});
+const personas = ref(null);
+const personaSearchFilters = ref({});
+
 const temperatureValue = ref(0.8);
 const temperaturePercentage = ref(40);
 const presPenValue = ref(0);
@@ -35,14 +45,14 @@ const presPenPercentage = ref(50);
 const freqPenValue = ref(0);
 const freqPenPercentage = ref(50);
 const stopSequences = ref(null);
-const world = ref({});
-const worlds = ref(null);
-const worldDialog = ref(false);
-const personaDialog = ref(false);
-const persona = ref({});
-const personas = ref(null);
 const maxTokens = ref(200);
 const maxHistoryMessageNumber = ref(10);
+const logitBiases = ref([]);
+const selectedLogitBias = ref({});
+const logitBiasToken = ref(null);
+const logitBiasValue = ref(0);
+const logitBiasPercentage = ref(50);
+const selectedModel = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
 const modelsAvailable = ref([
     { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
     { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
@@ -184,7 +194,8 @@ const saveChannelConfig = async () => {
                     stop_sequence: stopSequences,
                     max_tokens: maxTokens.value,
                     chat_history_memory: maxHistoryMessageNumber.value,
-                    owner: loggedUser.id
+                    owner: loggedUser.id,
+                    logit_bias: logitBiases.value.reduce((dict, b, index) => ((dict[b.encodedToken] = b.bias), dict), {})
                 };
 
                 await channelConfigService.updateChannelConfig(channelConfig.value, loggedUser.id);
@@ -206,7 +217,8 @@ const saveChannelConfig = async () => {
                     stop_sequence: stopSequences,
                     max_tokens: maxTokens.value,
                     chat_history_memory: maxHistoryMessageNumber.value,
-                    owner: loggedUser.id
+                    owner: loggedUser.id,
+                    logit_bias: logitBiases.value.reduce((dict, b, index) => ((dict[b.encodedToken] = b.bias), dict), {})
                 };
 
                 const createdChannelConfig = await channelConfigService.createChannelConfig(channelConfig.value, loggedUser.id);
@@ -345,6 +357,55 @@ const getFreqPenPercentage = (freqPenValue) => {
 
 const getFreqPenValue = (freqPenPercentage) => {
     freqPenValue.value = (freqPenPercentage / 100) * 4 - 2;
+};
+
+const getLogitBiasPercentage = (logitBiasValue) => {
+    logitBiasPercentage.value = (logitBiasValue + 100) * 0.5;
+};
+
+const getLogitBiasValue = (logitBiasPercentage) => {
+    logitBiasValue.value = logitBiasPercentage / 0.5 - 100;
+};
+
+const addLogitBias = () => {
+    let existingBiasIndex = logitBiases.value.findIndex((bias) => bias.decodedToken === logitBiasToken.value);
+    if (existingBiasIndex > -1) {
+        logitBiases.value[existingBiasIndex].bias = logitBiasValue.value;
+        logitBiases.value[existingBiasIndex].text = `${logitBiasToken.value}:${logitBiasValue.value}`;
+    } else {
+        const tokenized = decodeTokens(logitBiasToken.value);
+        tokenized.encodedTokens.forEach((tokenId, index) => {
+            logitBiases.value.push({
+                text: `${tokenized.decodedTokens[index]}:${logitBiasValue.value}`,
+                decodedToken: tokenized.decodedTokens[index],
+                encodedToken: tokenId,
+                bias: logitBiasValue.value
+            });
+        });
+    }
+
+    selectedLogitBias.value = {};
+    logitBiasToken.value = null;
+    logitBiasValue.value = 0;
+    logitBiasPercentage.value = 50;
+};
+
+const removeLogitBias = () => {
+    const logitBiasToRemove = logitBiases.value.findIndex((bias) => bias.encodedToken === selectedLogitBias.value.encodedToken);
+    if (logitBiasToRemove > -1) {
+        logitBiases.value.splice(logitBiasToRemove, 1);
+    }
+
+    selectedLogitBias.value = {};
+    logitBiasValue.value = 0;
+    logitBiasToken.value = null;
+    logitBiasPercentage.value = 50;
+};
+
+const selectLogitBias = () => {
+    logitBiasToken.value = selectedLogitBias.value.decodedToken;
+    logitBiasValue.value = selectedLogitBias.value.bias;
+    getLogitBiasPercentage(logitBiasValue.value);
 };
 
 const onStrictFilterChange = (event) => {
@@ -491,12 +552,12 @@ const onStrictFilterChange = (event) => {
                 <Dialog v-model:visible="viewChannelConfigDialog" header="Channel configuration" :modal="true" class="p-fluid">
                     <div v-if="channelConfig.id" class="field">
                         <label for="config-id">ID</label>
-                        <InputText id="config-id" v-model.trim="channelConfig.id" disabled />
+                        <InputText id="config-id" v-model="channelConfig.id" disabled />
                     </div>
 
                     <div class="field">
                         <label for="config-name">Configuration name</label>
-                        <InputText id="config-name" v-model.trim="channelConfig.name" disabled />
+                        <InputText id="config-name" v-model="channelConfig.name" disabled />
                     </div>
 
                     <div class="field">
@@ -691,12 +752,12 @@ const onStrictFilterChange = (event) => {
                 <Dialog v-model:visible="channelConfigDialog" header="Channel config" :modal="true" class="p-fluid">
                     <div v-if="channelConfig.id" class="field">
                         <label for="config-id">ID</label>
-                        <InputText id="config-id" v-model.trim="channelConfig.id" disabled />
+                        <InputText id="config-id" v-model="channelConfig.id" disabled />
                     </div>
 
                     <div class="field">
                         <label for="config-name">Configuration name</label>
-                        <InputText id="config-name" v-model.trim="channelConfig.name" required="true" autofocus :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.name }" />
+                        <InputText id="config-name" v-model="channelConfig.name" required="true" autofocus :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.name }" />
                         <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.name">Configuration name is required.</small>
                     </div>
 
@@ -821,7 +882,7 @@ const onStrictFilterChange = (event) => {
                                     </div>
                                 </div>
                             </div>
-                            <!-- <div class="field">
+                            <div class="field">
                                 <div class="grid formgrid">
                                     <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                                         <label
@@ -833,10 +894,17 @@ const onStrictFilterChange = (event) => {
                                         >
                                             Logit bias <i class="pi pi-info-circle" />
                                         </label>
-                                        <InputText id="logit-bias" />
+                                        <Dropdown id="logit-bias" v-model="selectedLogitBias" :options="logitBiases" optionLabel="text" placeholder="Existing logit biases" @update:modelValue="selectLogitBias" />
+                                        <InputText id="logit-bias-token" v-model="logitBiasToken" placeholder="Logit bias token" />
+                                        <Slider v-model="logitBiasPercentage" @update:modelValue="getLogitBiasValue(logitBiasPercentage)" />
+                                        <InputNumber id="logit-bias-bias" :maxFractionDigits="0" :min="-100" :max="100" v-model.number="logitBiasValue" @update:modelValue="getLogitBiasPercentage(logitBiasValue)" />
+                                    </div>
+                                    <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                                        <Button class="p-button-primary" label="Add logit bias" @click="addLogitBias" />
+                                        <Button class="p-button-danger" label="Remove logit bias" @click="removeLogitBias" />
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
                         </Panel>
                     </div>
 
@@ -1082,11 +1150,11 @@ const onStrictFilterChange = (event) => {
                 <Dialog v-model:visible="worldDialog" header="World" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText id="name" v-model.trim="world.name" disabled />
+                        <InputText id="name" v-model="world.name" disabled />
                     </div>
                     <div class="field">
                         <label for="description">Description</label>
-                        <Textarea id="description" v-model.trim="world.description" rows="3" cols="20" disabled />
+                        <Textarea id="description" v-model="world.description" rows="3" cols="20" disabled />
                     </div>
                     <template #footer>
                         <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideWorldDialog" />
@@ -1097,7 +1165,7 @@ const onStrictFilterChange = (event) => {
                 <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
                         <label for="name">Name</label>
-                        <InputText disabled id="name" v-model.trim="persona.name" required="true" />
+                        <InputText disabled id="name" v-model="persona.name" required="true" />
                     </div>
 
                     <div class="field">
@@ -1112,7 +1180,7 @@ const onStrictFilterChange = (event) => {
                                 <InputText disabled id="nudge-role" v-model="persona.nudge.role" placeholder="Nudge role" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <Textarea disabled rows="1" v-model.trim="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                                <Textarea disabled rows="1" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
                             </div>
                         </div>
                     </div>
@@ -1124,21 +1192,21 @@ const onStrictFilterChange = (event) => {
                                 <InputText disabled id="bump-role" v-model="persona.bump.role" placeholder="Bump role" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <InputNumber disabled mode="decimal" v-model.trim="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
+                                <InputNumber disabled mode="decimal" v-model="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
                             </div>
                         </div>
                     </div>
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea disabled rows="1" v-model.trim="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                                <Textarea disabled rows="1" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
                             </div>
                         </div>
                     </div>
 
                     <div class="field">
                         <label for="personality">Personality</label>
-                        <Textarea disabled id="personality" v-model.trim="persona.personality" required="true" rows="10" cols="20" />
+                        <Textarea disabled id="personality" v-model="persona.personality" required="true" rows="10" cols="20" />
                     </div>
                     <template #footer>
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
