@@ -65,7 +65,7 @@ const pipeSeparator = () => {
                     </div>
                     <div v-if="!pipe" class="col-12 mb-2 lg:col-12 lg:mb-0 field">
                         <label for="tokenized-text">Tokenized text</label>
-                        <div
+                        <div class="card"
                             :style="{
                                 display: 'flex',
                                 flexWrap: 'wrap',
@@ -75,6 +75,7 @@ const pipeSeparator = () => {
                                 overflowY: 'auto',
                                 padding: '8px',
                                 border: '1px solid #ccc',
+                                borderColor: '#3c3c3c',
                                 lineHeight: '1.5',
                                 alignContent: 'flex-start'
                             }"
@@ -97,7 +98,7 @@ const pipeSeparator = () => {
                     </div>
                     <div v-if="pipe" class="col-12 mb-2 lg:col-12 lg:mb-0 field">
                         <label for="tokenized-text">Tokenized text</label>
-                        <div
+                        <div class="card"
                             :style="{
                                 display: 'flex',
                                 flexWrap: 'wrap',
@@ -107,6 +108,7 @@ const pipeSeparator = () => {
                                 overflowY: 'auto',
                                 padding: '8px',
                                 border: '1px solid #ccc',
+                                borderColor: '#3c3c3c',
                                 lineHeight: '1.5',
                                 alignContent: 'flex-start'
                             }"
@@ -121,7 +123,7 @@ const pipeSeparator = () => {
                     </div>
                     <div class="col-12 mb-2 lg:col-12 lg:mb-0 field">
                         <label for="tokenized-text">Token IDs</label>
-                        <div
+                        <div class="card"
                             :style="{
                                 display: 'flex',
                                 flexWrap: 'wrap',
@@ -131,6 +133,7 @@ const pipeSeparator = () => {
                                 overflowY: 'auto',
                                 padding: '8px',
                                 border: '1px solid #ccc',
+                                borderColor: '#3c3c3c',
                                 lineHeight: '1.5',
                                 alignContent: 'flex-start'
                             }"
