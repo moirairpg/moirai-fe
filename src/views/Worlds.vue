@@ -354,7 +354,7 @@ const initLorebookSearchFilters = () => {
                             <Column field="lorebook" header="Lorebook" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                                 <template #body="slotProps">
                                     <span class="p-column-title">Lorebook</span>
-                                    {{ slotProps.data.lorebook.name }}
+                                    {{ slotProps.data.name }}
                                 </template>
                             </Column>
                             <Column headerStyle="min-width:10rem;">
@@ -392,18 +392,18 @@ const initLorebookSearchFilters = () => {
                         <InputText disabled id="visibility" v-model="world.visibility" placeholder="World visibility" />
                     </div>
 
-                    <Card>
+                    <Card v-if="world.lorebook">
                         <template #title>Lorebook</template>
                         <template #content>
                             <div class="col-12">
                                 <div class="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4">
                                     <div class="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
                                         <div class="flex flex-column align-items-center sm:align-items-start gap-3">
-                                            <div class="text-2xl font-bold text-900">{{ world.lorebook.name }}</div>
+                                            <div class="text-2xl font-bold text-900">{{ world.lorebook?.name }}</div>
                                             <div class="flex align-items-center gap-3">
                                                 <span class="flex align-items-center gap-2">
                                                     <i class="pi pi-user"></i>
-                                                    <span class="font-semibold">{{ world.lorebook.ownerData.username }}</span>
+                                                    <span class="font-semibold">{{ world.lorebook?.ownerData?.username }}</span>
                                                 </span>
                                             </div>
                                         </div>
