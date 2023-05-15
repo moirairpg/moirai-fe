@@ -1,7 +1,9 @@
 <script setup>
 import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
+import { decodeTokens } from '../resources/tokenizer';
 import { useToast } from 'primevue/usetoast';
+
 import LorebookService from '@/service/LorebookService';
 import DiscordService from '@/service/DiscordService';
 import store from '../resources/store';
@@ -65,6 +67,16 @@ onMounted(async () => {
         lorebooks.value = lbs;
     });
 });
+
+const lorebookEntryNameTokens = ref(null);
+const lorebookEntryDescriptionTokens = ref(null);
+const processLorebookEntryNameTokens = (event) => {
+    lorebookEntryNameTokens.value = decodeTokens(event.target.value);
+};
+
+const processLorebookEntryDescriptionTokens = (event) => {
+    lorebookEntryDescriptionTokens.value = decodeTokens(event.target.value);
+};
 
 const createNewLorebook = () => {
     lorebook.value = {};
@@ -160,6 +172,10 @@ const saveEntry = async () => {
 
 const viewLorebookEntry = (editEntry) => {
     entry.value = { ...editEntry };
+
+    lorebookEntryNameTokens.value = decodeTokens(entry.value.name);
+    lorebookEntryDescriptionTokens.value = decodeTokens(entry.value.description);
+
     viewEntryDialog.value = true;
 };
 
@@ -176,6 +192,10 @@ const editLorebook = (editLorebook) => {
 const editEntry = (editEntry) => {
     editEntry.entries = [];
     entry.value = { ...editEntry };
+
+    lorebookEntryNameTokens.value = decodeTokens(entry.value.name);
+    lorebookEntryDescriptionTokens.value = decodeTokens(entry.value.description);
+
     entryDialog.value = true;
 };
 
@@ -534,8 +554,10 @@ const initEntryFilters = () => {
                     <Dialog v-model:visible="viewEntryDialog" header="Lorebook entry" :modal="true" class="p-fluid">
                         <div class="field">
                             <label for="name">Name</label>
-                            <InputText id="name" v-model="entry.name" disabled autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
-                            <small class="p-invalid" v-if="entrySubmitted && !entry.name">Name is required.</small>
+                            <InputText id="name" v-model="entry.name" disabled/>
+                            <div>
+                                <small>Tokens: {{ lorebookEntryNameTokens?.tokens && entry.name ? lorebookEntryNameTokens?.tokens : 0 }}</small>
+                            </div>
                         </div>
                         <div class="field">
                             <label for="regex">Regex</label>
@@ -543,8 +565,10 @@ const initEntryFilters = () => {
                         </div>
                         <div class="field">
                             <label for="description">Description</label>
-                            <Textarea id="description" v-model="entry.description" disabled rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
-                            <small class="p-invalid" v-if="entrySubmitted && !entry.description">Description is required.</small>
+                            <Textarea id="description" v-model="entry.description" disabled rows="3" cols="20" />
+                            <div>
+                                <small>Tokens: {{ lorebookEntryDescriptionTokens?.tokens && entry.description ? lorebookEntryDescriptionTokens?.tokens : 0 }}</small>
+                            </div>
                         </div>
                         <template #footer>
                             <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewLorebookEntryDialog" />
@@ -702,6 +726,9 @@ const initEntryFilters = () => {
                                 <label for="name">Name</label>
                                 <InputText id="name" v-model="entry.name" required="true" autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
                                 <small class="p-invalid" v-if="entrySubmitted && !entry.name">Name is required.</small>
+                                <div>
+                                    <small>Tokens: {{ lorebookEntryNameTokens?.tokens && entry.name ? lorebookEntryNameTokens?.tokens : 0 }}</small>
+                                </div>
                             </div>
                             <div class="field">
                                 <label for="regex">Regex</label>
@@ -711,6 +738,9 @@ const initEntryFilters = () => {
                                 <label for="description">Description</label>
                                 <Textarea id="description" v-model="entry.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
                                 <small class="p-invalid" v-if="entrySubmitted && !entry.description">Description is required.</small>
+                                <div>
+                                    <small>Tokens: {{ lorebookEntryDescriptionTokens?.tokens && entry.description ? lorebookEntryDescriptionTokens?.tokens : 0 }}</small>
+                                </div>
                             </div>
                             <template #footer>
                                 <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideEntryDialog" />
