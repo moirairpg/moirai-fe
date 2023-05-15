@@ -5,6 +5,7 @@ import { useToast } from 'primevue/usetoast';
 import PersonaService from '@/service/PersonaService';
 import DiscordService from '@/service/DiscordService';
 import store from '../resources/store';
+import { decodeTokens } from '../resources/tokenizer';
 
 const personaService = new PersonaService();
 const discordService = new DiscordService();
@@ -34,6 +35,26 @@ const visibilities = ref([
     { label: 'PRIVATE', value: 'private' },
     { label: 'PUBLIC', value: 'public' }
 ]);
+
+const personaNameTokens = ref(null);
+const personalityTokens = ref(null);
+const personaNudgeTokens = ref(null);
+const personaBumpTokens = ref(null);
+const processPersonaNameTokens = (event) => {
+    personaNameTokens.value = decodeTokens(event.target.value);
+};
+
+const processPersonalityTokens = (event) => {
+    personalityTokens.value = decodeTokens(event.target.value);
+};
+
+const processPersonaNudgeTokens = (event) => {
+    personaNudgeTokens.value = decodeTokens(event.target.value);
+};
+
+const processPersonaBumpTokens = (event) => {
+    personaBumpTokens.value = decodeTokens(event.target.value);
+};
 
 onBeforeMount(() => {
     initFilters();
@@ -113,6 +134,12 @@ const savePersona = async () => {
 
 const viewPersona = (editPersona) => {
     persona.value = { ...editPersona };
+
+    personaNameTokens.value = decodeTokens(persona.value.name);
+    personalityTokens.value = decodeTokens(persona.value.personality);
+    personaNudgeTokens.value = decodeTokens(persona.value.nudge?.content ?? '');
+    personaBumpTokens.value = decodeTokens(persona.value.bump?.content ?? '');
+
     viewPersonaDialog.value = true;
 };
 
@@ -327,17 +354,32 @@ const initFilters = () => {
 
                 <Dialog v-model:visible="viewPersonaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name">Name</label>
+                        <label for="name" v-tooltip="`Name of the persona. The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`">
+                            Name <i class="pi pi-info-circle" />
+                        </label>
                         <InputText disabled id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
+                        <div>
+                            <small>Tokens: {{ personaNameTokens?.tokens && persona.name ? personaNameTokens?.tokens : 0 }}</small>
+                        </div>
                     </div>
 
                     <div class="field">
-                        <label for="intent" class="mb-3">Intent</label>
+                        <label for="intent" class="mb-3" v-tooltip="`Optimize this persona for either RPG dungeon mastering or for simple chatbot functions. If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`">
+                            Intent <i class="pi pi-info-circle" />
+                        </label>
                         <Textarea disabled id="intent" v-model="persona.intent" placeholder="Persona intent" />
                     </div>
 
                     <div class="field">
-                        <label for="nudge" class="mb-3">Nudge</label>
+                        <label
+                            for="nudge"
+                            class="mb-3"
+                            v-tooltip="
+                                `Instruction applied after the last message in context. A reminder to the AI of what it should be, act or speak like. The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                            "
+                        >
+                            Nudge <i class="pi pi-info-circle" />
+                        </label>
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                                 <InputText disabled id="nudge-role" v-model="persona.nudge.role" placeholder="Nudge role" />
@@ -348,12 +390,23 @@ const initFilters = () => {
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                                 <Textarea disabled rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                                <div>
+                                    <small>Tokens: {{ personaNudgeTokens?.tokens && persona.nudge.content ? personaNudgeTokens?.tokens : 0 }}</small>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="field">
-                        <label for="bump" class="mb-3">Bump</label>
+                        <label
+                            for="bump"
+                            class="mb-3"
+                            v-tooltip="
+                                `A reminder of the behavior the AI's should have that gets added in between messages. The frequency defines how many times the instruction is repeated in context. The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                            "
+                        >
+                            Bump <i class="pi pi-info-circle" />
+                        </label>
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <InputText disabled id="bump-role" v-model="persona.bump.role" placeholder="Bump role" />
@@ -367,13 +420,32 @@ const initFilters = () => {
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                                 <Textarea disabled rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                                <div>
+                                    <small>Tokens: {{ personaBumpTokens?.tokens && persona.bump.content ? personaBumpTokens?.tokens : 0 }}</small>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="field">
-                        <label for="personality">Personality</label>
+                        <label
+                            for="personality"
+                            v-tooltip="
+                                `The bot's actual personality. For the name field to be used here, add {0} to the text. This value is replaced with the bot's name. We recommend that the persona starts with 'I am {0}. My name is {0}' so the AI always knows its name.`
+                            "
+                        >
+                            Personality <i class="pi pi-info-circle" />
+                        </label>
                         <Textarea disabled id="personality" v-model="persona.personality" required="true" rows="10" cols="20" />
+                        <div>
+                            <small>Tokens: {{ personalityTokens?.tokens && persona.personality ? personalityTokens?.tokens : 0 }}</small>
+                        </div>
+                    </div>
+                    <div>
+                        <small>
+                            Total tokens in persona (sum of all fields):
+                            {{ personalityTokens?.tokens && personaNameTokens?.tokens ? personalityTokens?.tokens + personaNameTokens?.tokens + (personaNudgeTokens?.tokens ?? 0) + (personaBumpTokens?.tokens ?? 0) : 0 }}
+                        </small>
                     </div>
                     <template #footer>
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewPersonaDialog" />
@@ -382,9 +454,14 @@ const initFilters = () => {
 
                 <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name">Name</label>
-                        <InputText id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
+                        <label for="name" v-tooltip="`Name of the persona. The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`">
+                            Name <i class="pi pi-info-circle" />
+                        </label>
+                        <InputText id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" @input="processPersonaNameTokens" />
                         <small class="p-invalid" v-if="personaSubmitted && !persona.name">Name is required.</small>
+                        <div>
+                            <small>Tokens: {{ personaNameTokens?.tokens && persona.name ? personaNameTokens?.tokens : 0 }}</small>
+                        </div>
                     </div>
 
                     <div class="field">
@@ -406,7 +483,9 @@ const initFilters = () => {
                     </div>
 
                     <div class="field">
-                        <label for="intent" class="mb-3">Intent</label>
+                        <label for="intent" class="mb-3" v-tooltip="`Optimize this persona for either RPG dungeon mastering or for simple chatbot functions. If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`">
+                            Intent <i class="pi pi-info-circle" />
+                        </label>
                         <Dropdown id="intent" v-model="persona.intent" :options="intents" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value && slotProps.value.value">
@@ -424,7 +503,15 @@ const initFilters = () => {
                     </div>
 
                     <div class="field">
-                        <label for="nudge" class="mb-3">Nudge</label>
+                        <label
+                            for="nudge"
+                            class="mb-3"
+                            v-tooltip="
+                                `Instruction applied after the last message in context. A reminder to the AI of what it should be, act or speak like. The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                            "
+                        >
+                            Nudge <i class="pi pi-info-circle" />
+                        </label>
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                                 <Dropdown id="nudge-role" v-model="persona.nudge.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" />
@@ -434,13 +521,24 @@ const initFilters = () => {
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" />
+                                <Textarea rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" @input="processPersonaNudgeTokens" />
+                                <div>
+                                    <small>Tokens: {{ personaNudgeTokens?.tokens && persona.nudge.content ? personaNudgeTokens?.tokens : 0 }}</small>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="field">
-                        <label for="bump" class="mb-3">Bump</label>
+                        <label
+                            for="bump"
+                            class="mb-3"
+                            v-tooltip="
+                                `A reminder of the behavior the AI's should have that gets added in between messages. The frequency defines how many times the instruction is repeated in context. The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                            "
+                        >
+                            Bump <i class="pi pi-info-circle" />
+                        </label>
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                                 <Dropdown id="bump-role" v-model="persona.bump.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" />
@@ -453,15 +551,39 @@ const initFilters = () => {
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" />
+                                <Textarea rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" @input="processPersonaBumpTokens" />
+                                <div>
+                                    <small>Tokens: {{ personaBumpTokens?.tokens && persona.bump.content ? personaBumpTokens?.tokens : 0 }}</small>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="field">
-                        <label for="personality">Personality</label>
-                        <Textarea id="personality" v-model="persona.personality" required="true" rows="10" cols="20" :class="{ 'p-invalid': personaSubmitted && !persona.personality }" />
+                        <label
+                            for="personality"
+                            v-tooltip="
+                                `The bot's actual personality. For the name field to be used here, add {0} to the text. This value is replaced with the bot's name. We recommend that the persona starts with 'I am {0}. My name is {0}' so the AI always knows its name.`
+                            "
+                        >
+                            Personality <i class="pi pi-info-circle" />
+                        </label>
+                        <Textarea id="personality" v-model="persona.personality" required="true" rows="10" cols="20" :class="{ 'p-invalid': personaSubmitted && !persona.personality }" @input="processPersonalityTokens" />
                         <small class="p-invalid" v-if="personaSubmitted && !persona.personality">Personality is required.</small>
+                        <div>
+                            <small>Tokens: {{ personalityTokens?.tokens && persona.personality ? personalityTokens?.tokens : 0 }}</small>
+                        </div>
+                    </div>
+                    <div>
+                        <small>
+                            Total tokens in persona (sum of all fields):
+                            {{
+                                (personalityTokens?.tokens && persona.personality ? personalityTokens?.tokens : 0) +
+                                    (personaBumpTokens?.tokens && persona.bump.content ? personaBumpTokens?.tokens : 0) +
+                                    (personaNudgeTokens?.tokens && persona.nudge.content ? personaNudgeTokens?.tokens : 0) +
+                                    (personaNameTokens?.tokens && persona.name ? personaNameTokens?.tokens : 0) ?? 0
+                            }}
+                        </small>
                     </div>
                     <template #footer>
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
