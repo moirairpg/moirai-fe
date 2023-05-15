@@ -1,11 +1,12 @@
 <script setup>
 import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
+import { decodeTokens } from '../resources/tokenizer';
 import { useToast } from 'primevue/usetoast';
+
 import PersonaService from '@/service/PersonaService';
 import DiscordService from '@/service/DiscordService';
 import store from '../resources/store';
-import { decodeTokens } from '../resources/tokenizer';
 
 const personaService = new PersonaService();
 const discordService = new DiscordService();

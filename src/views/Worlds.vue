@@ -1,7 +1,9 @@
 <script setup>
 import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
+import { decodeTokens } from '../resources/tokenizer';
 import { useToast } from 'primevue/usetoast';
+
 import WorldService from '@/service/WorldService';
 import LorebookService from '@/service/LorebookService';
 import DiscordService from '@/service/DiscordService';
@@ -31,6 +33,11 @@ const visibilities = ref([
     { label: 'PRIVATE', value: 'private' },
     { label: 'PUBLIC', value: 'public' }
 ]);
+
+const worldPromptTokens = ref(null);
+const processWorldPromptTokens = (event) => {
+    worldPromptTokens.value = decodeTokens(event.target.value);
+};
 
 onBeforeMount(() => {
     initWorldSearchFilters();
@@ -133,6 +140,7 @@ const saveWorld = async () => {
 
 const viewWorld = (editWorld) => {
     world.value = { ...editWorld };
+    worldPromptTokens.value = decodeTokens(world.value.initial_prompt ?? '');
     viewWorldDialog.value = true;
 };
 
@@ -374,6 +382,9 @@ const initLorebookSearchFilters = () => {
                     <div class="field">
                         <label for="initial_prompt">Prompt</label>
                         <Textarea disabled id="initial_prompt" v-model="world.initial_prompt" rows="5" cols="20" />
+                        <div>
+                            <small>Tokens: {{ worldPromptTokens?.tokens && world.initial_prompt ? worldPromptTokens?.tokens : 0 }}</small>
+                        </div>
                     </div>
 
                     <div class="field">
@@ -425,8 +436,11 @@ const initLorebookSearchFilters = () => {
 
                     <div class="field">
                         <label for="initial_prompt">Prompt</label>
-                        <Textarea id="initial_prompt" v-model="world.initial_prompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initial_prompt }" />
+                        <Textarea id="initial_prompt" v-model="world.initial_prompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initial_prompt }" @input="processWorldPromptTokens" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.initial_prompt">Prompt is required.</small>
+                        <div>
+                            <small>Tokens: {{ worldPromptTokens?.tokens && world.initial_prompt ? worldPromptTokens?.tokens : 0 }}</small>
+                        </div>
                     </div>
 
                     <div class="field">
