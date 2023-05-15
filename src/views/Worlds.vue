@@ -146,6 +146,7 @@ const viewWorld = (editWorld) => {
 
 const editWorld = (editWorld) => {
     world.value = { ...editWorld };
+    worldPromptTokens.value = decodeTokens(world.value.initial_prompt ?? '');
     worldDialog.value = true;
 };
 

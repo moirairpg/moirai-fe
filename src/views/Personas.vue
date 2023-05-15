@@ -146,6 +146,12 @@ const viewPersona = (editPersona) => {
 
 const editPersona = (editPersona) => {
     persona.value = { ...editPersona };
+
+    personaNameTokens.value = decodeTokens(persona.value.name);
+    personalityTokens.value = decodeTokens(persona.value.personality);
+    personaNudgeTokens.value = decodeTokens(persona.value.nudge?.content ?? '');
+    personaBumpTokens.value = decodeTokens(persona.value.bump?.content ?? '');
+
     personaDialog.value = true;
 };
 
@@ -355,8 +361,13 @@ const initFilters = () => {
 
                 <Dialog v-model:visible="viewPersonaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name" v-tooltip="`Name of the persona.
-                        The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`">
+                        <label
+                            for="name"
+                            v-tooltip="
+                                `Name of the persona.
+                        The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`
+                            "
+                        >
                             Name <i class="pi pi-info-circle" />
                         </label>
                         <InputText disabled id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
@@ -366,8 +377,14 @@ const initFilters = () => {
                     </div>
 
                     <div class="field">
-                        <label for="intent" class="mb-3" v-tooltip="`Optimize this persona for either RPG dungeon mastering or for simple chatbot functions.
-                        If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`">
+                        <label
+                            for="intent"
+                            class="mb-3"
+                            v-tooltip="
+                                `Optimize this persona for either RPG dungeon mastering or for simple chatbot functions.
+                        If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`
+                            "
+                        >
                             Intent <i class="pi pi-info-circle" />
                         </label>
                         <Textarea disabled id="intent" v-model="persona.intent" placeholder="Persona intent" />
@@ -461,8 +478,13 @@ const initFilters = () => {
 
                 <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name" v-tooltip="`Name of the persona.
-                        The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`">
+                        <label
+                            for="name"
+                            v-tooltip="
+                                `Name of the persona.
+                        The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`
+                            "
+                        >
                             Name <i class="pi pi-info-circle" />
                         </label>
                         <InputText id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" @input="processPersonaNameTokens" />
@@ -491,8 +513,14 @@ const initFilters = () => {
                     </div>
 
                     <div class="field">
-                        <label for="intent" class="mb-3" v-tooltip="`Optimize this persona for either RPG dungeon mastering or for simple chatbot functions.
-                        If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`">
+                        <label
+                            for="intent"
+                            class="mb-3"
+                            v-tooltip="
+                                `Optimize this persona for either RPG dungeon mastering or for simple chatbot functions.
+                        If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`
+                            "
+                        >
                             Intent <i class="pi pi-info-circle" />
                         </label>
                         <Dropdown id="intent" v-model="persona.intent" :options="intents" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">
