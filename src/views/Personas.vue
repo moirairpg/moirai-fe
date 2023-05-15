@@ -354,7 +354,8 @@ const initFilters = () => {
 
                 <Dialog v-model:visible="viewPersonaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name" v-tooltip="`Name of the persona. The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`">
+                        <label for="name" v-tooltip="`Name of the persona.
+                        The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`">
                             Name <i class="pi pi-info-circle" />
                         </label>
                         <InputText disabled id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" />
@@ -364,7 +365,8 @@ const initFilters = () => {
                     </div>
 
                     <div class="field">
-                        <label for="intent" class="mb-3" v-tooltip="`Optimize this persona for either RPG dungeon mastering or for simple chatbot functions. If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`">
+                        <label for="intent" class="mb-3" v-tooltip="`Optimize this persona for either RPG dungeon mastering or for simple chatbot functions.
+                        If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`">
                             Intent <i class="pi pi-info-circle" />
                         </label>
                         <Textarea disabled id="intent" v-model="persona.intent" placeholder="Persona intent" />
@@ -375,7 +377,8 @@ const initFilters = () => {
                             for="nudge"
                             class="mb-3"
                             v-tooltip="
-                                `Instruction applied after the last message in context. A reminder to the AI of what it should be, act or speak like. The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                                `Instruction applied after the last message in context. A reminder to the AI of what it should be, act or speak like.
+                                The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
                             "
                         >
                             Nudge <i class="pi pi-info-circle" />
@@ -402,7 +405,9 @@ const initFilters = () => {
                             for="bump"
                             class="mb-3"
                             v-tooltip="
-                                `A reminder of the behavior the AI's should have that gets added in between messages. The frequency defines how many times the instruction is repeated in context. The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                                `A reminder of the behavior the AI's should have that gets added in between messages.
+                                The frequency defines how many times the instruction is repeated in context.
+                                The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
                             "
                         >
                             Bump <i class="pi pi-info-circle" />
@@ -431,7 +436,8 @@ const initFilters = () => {
                         <label
                             for="personality"
                             v-tooltip="
-                                `The bot's actual personality. For the name field to be used here, add {0} to the text. This value is replaced with the bot's name. We recommend that the persona starts with 'I am {0}. My name is {0}' so the AI always knows its name.`
+                                `The bot's actual personality. For the name field to be used here, add {0} to the text. This value is replaced with the bot's name.
+                                We recommend that the persona starts with 'I am {0}. My name is {0}' so the AI always knows its name.`
                             "
                         >
                             Personality <i class="pi pi-info-circle" />
@@ -454,7 +460,8 @@ const initFilters = () => {
 
                 <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name" v-tooltip="`Name of the persona. The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`">
+                        <label for="name" v-tooltip="`Name of the persona.
+                        The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`">
                             Name <i class="pi pi-info-circle" />
                         </label>
                         <InputText id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" @input="processPersonaNameTokens" />
@@ -483,7 +490,8 @@ const initFilters = () => {
                     </div>
 
                     <div class="field">
-                        <label for="intent" class="mb-3" v-tooltip="`Optimize this persona for either RPG dungeon mastering or for simple chatbot functions. If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`">
+                        <label for="intent" class="mb-3" v-tooltip="`Optimize this persona for either RPG dungeon mastering or for simple chatbot functions.
+                        If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`">
                             Intent <i class="pi pi-info-circle" />
                         </label>
                         <Dropdown id="intent" v-model="persona.intent" :options="intents" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">
@@ -507,7 +515,8 @@ const initFilters = () => {
                             for="nudge"
                             class="mb-3"
                             v-tooltip="
-                                `Instruction applied after the last message in context. A reminder to the AI of what it should be, act or speak like. The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                                `Instruction applied after the last message in context. A reminder to the AI of what it should be, act or speak like.
+                                The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
                             "
                         >
                             Nudge <i class="pi pi-info-circle" />
@@ -534,7 +543,9 @@ const initFilters = () => {
                             for="bump"
                             class="mb-3"
                             v-tooltip="
-                                `A reminder of the behavior the AI's should have that gets added in between messages. The frequency defines how many times the instruction is repeated in context. The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                                `A reminder of the behavior the AI's should have that gets added in between messages.
+                                The frequency defines how many times the instruction is repeated in context.
+                                The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
                             "
                         >
                             Bump <i class="pi pi-info-circle" />
@@ -563,7 +574,8 @@ const initFilters = () => {
                         <label
                             for="personality"
                             v-tooltip="
-                                `The bot's actual personality. For the name field to be used here, add {0} to the text. This value is replaced with the bot's name. We recommend that the persona starts with 'I am {0}. My name is {0}' so the AI always knows its name.`
+                                `The bot's actual personality. For the name field to be used here, add {0} to the text. This value is replaced with the bot's name.
+                                We recommend that the persona starts with 'I am {0}. My name is {0}' so the AI always knows its name.`
                             "
                         >
                             Personality <i class="pi pi-info-circle" />
