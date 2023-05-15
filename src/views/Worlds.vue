@@ -380,7 +380,9 @@ const initLorebookSearchFilters = () => {
                     </div>
 
                     <div class="field">
-                        <label for="initial_prompt">Prompt</label>
+                        <label for="initial_prompt" v-tooltip="`Text used to begin the adventure instanced from this world. Upon using the /start command on Discord, this text will be shown and reacted upon by the AI.`">
+                            Adventure start text <i class="pi pi-info-circle" />
+                        </label>
                         <Textarea disabled id="initial_prompt" v-model="world.initial_prompt" rows="5" cols="20" />
                         <div>
                             <small>Tokens: {{ worldPromptTokens?.tokens && world.initial_prompt ? worldPromptTokens?.tokens : 0 }}</small>
@@ -435,7 +437,9 @@ const initLorebookSearchFilters = () => {
                     </div>
 
                     <div class="field">
-                        <label for="initial_prompt">Prompt</label>
+                        <label for="initial_prompt" v-tooltip="`Text used to begin the adventure instanced from this world. Upon using the /start command on Discord, this text will be shown and reacted upon by the AI.`">
+                            Adventure start text <i class="pi pi-info-circle" />
+                        </label>
                         <Textarea id="initial_prompt" v-model="world.initial_prompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initial_prompt }" @input="processWorldPromptTokens" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.initial_prompt">Prompt is required.</small>
                         <div>
