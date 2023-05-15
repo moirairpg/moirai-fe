@@ -553,22 +553,52 @@ const initEntryFilters = () => {
 
                     <Dialog v-model:visible="viewEntryDialog" header="Lorebook entry" :modal="true" class="p-fluid">
                         <div class="field">
-                            <label for="name">Name</label>
-                            <InputText id="name" v-model="entry.name" disabled/>
+                            <label
+                                for="name"
+                                v-tooltip="
+                                    `Required field. Name of the entry that will be sent to the AI.
+                                If this is a character, this should be their name. The AI will use this as the idenfier to the entry.`
+                                "
+                            >
+                                Name <i class="pi pi-info-circle" />
+                            </label>
+                            <InputText id="name" v-model="entry.name" disabled />
                             <div>
                                 <small>Tokens: {{ lorebookEntryNameTokens?.tokens && entry.name ? lorebookEntryNameTokens?.tokens : 0 }}</small>
                             </div>
                         </div>
                         <div class="field">
-                            <label for="regex">Regex</label>
+                            <label
+                                for="regex"
+                                v-tooltip="
+                                    `Optional field. If left empty, will be filled with the entry's name.
+                                Regular expresion that when matched will insert the entry into context. Case sensitive. Does not accept regex flags, only the expression itself. Do not wrap the expression in slashes.`
+                                "
+                            >
+                                Regex <i class="pi pi-info-circle" />
+                            </label>
                             <InputText disabled id="regex" v-model="entry.regex" />
                         </div>
                         <div class="field">
-                            <label for="description">Description</label>
+                            <label
+                                for="description"
+                                v-tooltip="
+                                    `Required field. Description of the entry.
+                                If this is a character, their description (physical and mental) should go here. The AI will base their interactions with the entry based on the values in this field.`
+                                "
+                            >
+                                Description <i class="pi pi-info-circle" />
+                            </label>
                             <Textarea id="description" v-model="entry.description" disabled rows="3" cols="20" />
                             <div>
                                 <small>Tokens: {{ lorebookEntryDescriptionTokens?.tokens && entry.description ? lorebookEntryDescriptionTokens?.tokens : 0 }}</small>
                             </div>
+                        </div>
+                        <div>
+                            <small>
+                                Total tokens in entry (sum of all fields):
+                                {{ (lorebookEntryNameTokens?.tokens && entry.name ? lorebookEntryNameTokens?.tokens : 0) + (lorebookEntryDescriptionTokens?.tokens && entry.description ? lorebookEntryDescriptionTokens?.tokens : 0) ?? 0 }}
+                            </small>
                         </div>
                         <template #footer>
                             <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewLorebookEntryDialog" />
@@ -723,24 +753,54 @@ const initEntryFilters = () => {
 
                         <Dialog v-model:visible="entryDialog" header="Lorebook entry" :modal="true" class="p-fluid">
                             <div class="field">
-                                <label for="name">Name</label>
-                                <InputText id="name" v-model="entry.name" required="true" autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" />
+                                <label
+                                    for="name"
+                                    v-tooltip="
+                                        `Required field. Name of the entry that will be sent to the AI.
+                                If this is a character, this should be their name. The AI will use this as the idenfier to the entry.`
+                                    "
+                                >
+                                    Name <i class="pi pi-info-circle" />
+                                </label>
+                                <InputText id="name" v-model="entry.name" required="true" autofocus :class="{ 'p-invalid': entrySubmitted && !entry.name }" @input="processLorebookEntryNameTokens" />
                                 <small class="p-invalid" v-if="entrySubmitted && !entry.name">Name is required.</small>
                                 <div>
                                     <small>Tokens: {{ lorebookEntryNameTokens?.tokens && entry.name ? lorebookEntryNameTokens?.tokens : 0 }}</small>
                                 </div>
                             </div>
                             <div class="field">
-                                <label for="regex">Regex</label>
+                                <label
+                                    for="regex"
+                                    v-tooltip="
+                                        `Optional field. If left empty, will be filled with the entry's name.
+                                Regular expresion that when matched will insert the entry into context. Case sensitive. Does not accept regex flags, only the expression itself. Do not wrap the expression in slashes.`
+                                    "
+                                >
+                                    Regex <i class="pi pi-info-circle" />
+                                </label>
                                 <InputText id="regex" v-model="entry.regex" />
                             </div>
                             <div class="field">
-                                <label for="description">Description</label>
-                                <Textarea id="description" v-model="entry.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" />
+                                <label
+                                    for="description"
+                                    v-tooltip="
+                                        `Required field. Description of the entry.
+                                If this is a character, their description (physical and mental) should go here. The AI will base their interactions with the entry based on the values in this field.`
+                                    "
+                                >
+                                    Description <i class="pi pi-info-circle" />
+                                </label>
+                                <Textarea id="description" v-model="entry.description" required="true" rows="3" cols="20" :class="{ 'p-invalid': entrySubmitted && !entry.description }" @input="processLorebookEntryDescriptionTokens" />
                                 <small class="p-invalid" v-if="entrySubmitted && !entry.description">Description is required.</small>
                                 <div>
                                     <small>Tokens: {{ lorebookEntryDescriptionTokens?.tokens && entry.description ? lorebookEntryDescriptionTokens?.tokens : 0 }}</small>
                                 </div>
+                            </div>
+                            <div>
+                                <small>
+                                    Total tokens in entry (sum of all fields):
+                                    {{ (lorebookEntryNameTokens?.tokens && entry.name ? lorebookEntryNameTokens?.tokens : 0) + (lorebookEntryDescriptionTokens?.tokens && entry.description ? lorebookEntryDescriptionTokens?.tokens : 0) ?? 0 }}
+                                </small>
                             </div>
                             <template #footer>
                                 <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideEntryDialog" />
