@@ -17,6 +17,7 @@
         "primeicons": "^6.0.1",
         "primevue": "3.26.1",
         "qs": "^6.11.1",
+        "query-string": "^8.1.0",
         "secure-ls": "^1.2.6",
         "vue": "^3.2.41",
         "vue-router": "^4.1.5",

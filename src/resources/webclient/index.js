@@ -12,18 +12,6 @@ const webclient = async (url, opts) => {
             console.trace(`Received response from ${response.config.url}`, JSON.stringify(response, null, 2));
             return response;
         });
-
-        axios.defaults.headers.get['Content-Type'] = 'application/json;charset=utf-8';
-        axios.defaults.headers.get['Access-Control-Allow-Origin'] = '*';
-
-        axios.defaults.headers.post['Content-Type'] = 'application/json;charset=utf-8';
-        axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
-
-        axios.defaults.headers.patch['Content-Type'] = 'application/json;charset=utf-8';
-        axios.defaults.headers.patch['Access-Control-Allow-Origin'] = '*';
-
-        axios.defaults.headers.delete['Content-Type'] = 'application/json;charset=utf-8';
-        axios.defaults.headers.delete['Access-Control-Allow-Origin'] = '*';
     }
 
     const response = await axios(url, opts);
