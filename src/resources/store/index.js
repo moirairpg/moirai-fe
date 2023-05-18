@@ -1,6 +1,4 @@
 import { createStore } from 'vuex';
-import VuexPersistence from 'vuex-persist';
-import Cookies from 'js-cookie';
 import SecureLS from "secure-ls";
 
 const encryptionKey = import.meta.env.VITE_CHATRPG_COOKIE_ENCRYPTION_KEY;
@@ -10,13 +8,6 @@ const ls = new SecureLS({
     encryptionSecret: encryptionKey
 })
 
-const vuexCookie = new VuexPersistence({
-    restoreState: (key, storage) => Cookies.get(key),
-    saveState: (key, state, storage) => Cookies.set(key, state, { expires: 3 }),
-    filter: mutation => (badMutations.indexOf(mutation.type) === -1)
-});
-
-const badMutations = [];
 const store = createStore({
     state: {
         loggedIn: false,
@@ -67,8 +58,7 @@ const store = createStore({
             const authData = ls.get('authData')
             return authData !== undefined ? authData : state.authData;
         }
-    },
-    plugins: [vuexCookie.plugin]
+    }
 });
 
 export default store;
