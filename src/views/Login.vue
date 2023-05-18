@@ -1,8 +1,6 @@
 <script setup>
-import { useLayout } from '@/layout/composables/layout';
 import { computed } from 'vue';
 
-const { layoutConfig } = useLayout();
 const discordApiBaseUrl = import.meta.env.VITE_CHATRPG_DISCORD_API_BASE_URL;
 const discordLoginUrl = import.meta.env.VITE_CHATRPG_DISCORD_LOGIN_URL;
 
@@ -18,7 +16,7 @@ const logoUrl = computed(() => {
             <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
                 <div class="w-full surface-card py-8 px-5 sm:px-8" style="border-radius: 53px">
                     <div class="text-center mb-5">
-                        <i class="pi pi-discord" height="50" style="font-size: 4rem; padding-bottom: 1rem;"></i>
+                        <i class="pi pi-discord" height="50" style="font-size: 4rem; padding-bottom: 1rem"></i>
                         <div class="text-900 text-3xl font-medium mb-3">
                             <a :href="`${discordApiBaseUrl}${discordLoginUrl}`" class="w-full p-3 text-xl">Login with Discord</a>
                         </div>
