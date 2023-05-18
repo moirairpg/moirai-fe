@@ -25,7 +25,7 @@ export default class DiscordService {
             },
             url: `${baseUrl}/oauth2/token`
         }).catch((error) => {
-            console.log(`Error calling Discord API -> ${error.response}`);
+            console.log(`Error calling Discord API -> ${JSON.stringify(error.response, null, 2)}`);
         });
 
         store.dispatch('setAuthData', response);
