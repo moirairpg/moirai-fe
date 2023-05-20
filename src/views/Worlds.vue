@@ -230,6 +230,7 @@ const initLorebookSearchFilters = () => {
 const downloadWorld = () => {
     const worldToDownload = world.value;
     delete worldToDownload.ownerData;
+    delete worldToDownload.lorebook.ownerData;
     delete worldToDownload.canEdit;
 
     const fileName = `world-${worldToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${worldToDownload.name}.json`;
