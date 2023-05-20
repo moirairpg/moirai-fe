@@ -3,6 +3,7 @@ import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { decodeTokens } from '../resources/tokenizer';
 import { useToast } from 'primevue/usetoast';
+import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
 import LorebookService from '@/service/LorebookService';
 import DiscordService from '@/service/DiscordService';
@@ -312,6 +313,20 @@ const initEntryFilters = () => {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
+
+const downloadLorebook = () => {
+    const lorebookToDownload = lorebook.value;
+    delete lorebookToDownload.ownerData;
+    delete lorebookToDownload.canEdit;
+
+    const fileName = `lorebook-${lorebookToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${lorebookToDownload.name}.json`;
+    const url = window.URL.createObjectURL(new Blob([JSON.stringify(lorebookToDownload, null, 2)]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+};
 </script>
 
 <template>
@@ -548,6 +563,7 @@ const initEntryFilters = () => {
                         </TabView>
                     </div>
                     <template #footer>
+                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
                         <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideViewLorebookDialog" />
                     </template>
 
@@ -635,8 +651,9 @@ const initEntryFilters = () => {
                         <small class="p-invalid" v-if="lorebookSubmitted && !lorebook.description">Visibility is required.</small>
                     </div>
                     <template #footer>
+                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
-                        <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveLorebook" />
+                        <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveLorebook" />
                     </template>
 
                     <div class="card" v-if="lorebook.entries !== null">
@@ -803,8 +820,7 @@ const initEntryFilters = () => {
                                 </small>
                             </div>
                             <template #footer>
-                                <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideEntryDialog" />
-                                <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveEntry" />
+                                <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveEntry" />
                             </template>
                         </Dialog>
                     </div>
