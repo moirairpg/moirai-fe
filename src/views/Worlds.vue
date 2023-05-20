@@ -191,10 +191,6 @@ const findWorldIndexById = (id) => {
     return index;
 };
 
-const exportCSV = () => {
-    dt.value.exportCSV();
-};
-
 const confirmDeleteSelectedWorlds = () => {
     deleteWorldsDialog.value = true;
 };
@@ -228,7 +224,7 @@ const initLorebookSearchFilters = () => {
 };
 
 const downloadWorld = () => {
-    const worldToDownload = world.value;
+    const worldToDownload =  Object.assign({}, world.value);
     delete worldToDownload.ownerData;
     delete worldToDownload.lorebook.ownerData;
     delete worldToDownload.canEdit;

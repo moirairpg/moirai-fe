@@ -185,10 +185,6 @@ const findPersonaIndexById = (id) => {
     return index;
 };
 
-const exportCSV = () => {
-    dt.value.exportCSV();
-};
-
 const confirmDeleteSelectedPersonas = () => {
     deletePersonasDialog.value = true;
 };
@@ -216,7 +212,7 @@ const initFilters = () => {
 };
 
 const downloadPersona = () => {
-    const personaToDownload = persona.value;
+    const personaToDownload =  Object.assign({}, persona.value);
     delete personaToDownload.ownerData;
     delete personaToDownload.canEdit;
 
