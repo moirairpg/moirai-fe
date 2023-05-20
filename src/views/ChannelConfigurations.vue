@@ -782,7 +782,7 @@ const downloadChannelConfig = () => {
                     </Card>
 
                     <template #footer>
-                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
+                        <Button v-if="channelConfig.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewChannelConfigDialog" />
                     </template>
                 </Dialog>
@@ -1161,7 +1161,7 @@ const downloadChannelConfig = () => {
                     </div>
 
                     <template #footer>
-                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
+                        <Button v-if="channelConfig.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideChannelConfigDialog" />
                         <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveChannelConfig" />
                     </template>

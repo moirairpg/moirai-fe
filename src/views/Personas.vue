@@ -485,7 +485,7 @@ const downloadPersona = () => {
                         </small>
                     </div>
                     <template #footer>
-                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
+                        <Button v-if="persona.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewPersonaDialog" />
                     </template>
                 </Dialog>
@@ -641,7 +641,7 @@ const downloadPersona = () => {
                         </small>
                     </div>
                     <template #footer>
-                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
+                        <Button v-if="persona.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
                         <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="savePersona" />
                     </template>
