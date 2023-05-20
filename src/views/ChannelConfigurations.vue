@@ -315,10 +315,6 @@ const findChannelConfigIndexById = (id) => {
     return index;
 };
 
-const exportCSV = () => {
-    dt.value.exportCSV();
-};
-
 const confirmDeleteSelectedChannelConfigs = () => {
     deleteChannelConfigsDialog.value = true;
 };
@@ -437,7 +433,7 @@ const onStrictFilterChange = (event) => {
 };
 
 const downloadChannelConfig = () => {
-    const channelConfigToDownload = channelConfig.value;
+    const channelConfigToDownload = Object.assign({}, channelConfig.value);
     delete channelConfigToDownload.ownerData;
     delete channelConfigToDownload.canEdit;
     delete channelConfigToDownload.isStrict;

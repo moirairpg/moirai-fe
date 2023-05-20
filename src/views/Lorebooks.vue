@@ -258,10 +258,6 @@ const findEntryIndexById = (id) => {
     return index;
 };
 
-const exportCSV = () => {
-    dt.value.exportCSV();
-};
-
 const confirmDeleteSelectedLorebooks = () => {
     deleteLorebooksDialog.value = true;
 };
@@ -315,7 +311,7 @@ const initEntryFilters = () => {
 };
 
 const downloadLorebook = () => {
-    const lorebookToDownload = lorebook.value;
+    const lorebookToDownload = Object.assign({}, lorebook.value);
     delete lorebookToDownload.ownerData;
     delete lorebookToDownload.canEdit;
 
