@@ -436,9 +436,9 @@ const downloadChannelConfig = () => {
     const channelConfigToDownload = Object.assign({}, channelConfig.value);
     delete channelConfigToDownload.ownerData;
     delete channelConfigToDownload.canEdit;
-    delete channelConfigToDownload.isStrict;
     delete channelConfigToDownload.persona;
     delete channelConfigToDownload.world;
+    delete channelConfigToDownload.moderation_settings.isStrict;
 
     channelConfigToDownload.world = {
         id: channelConfig.value.world.id
