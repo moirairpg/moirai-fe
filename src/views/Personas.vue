@@ -220,7 +220,7 @@ const downloadPersona = () => {
     const url = window.URL.createObjectURL(new Blob([JSON.stringify(personaToDownload, null, 2)]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', fileName);
+    link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
     document.body.appendChild(link);
     link.click();
 };

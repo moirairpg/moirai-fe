@@ -229,11 +229,11 @@ const downloadWorld = () => {
     delete worldToDownload.lorebook.ownerData;
     delete worldToDownload.canEdit;
 
-    const fileName = `world-${worldToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${worldToDownload.name}.json`;
+    const fileName = `world-${worldToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${worldToDownload.name}`;
     const url = window.URL.createObjectURL(new Blob([JSON.stringify(worldToDownload, null, 2)]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', fileName);
+    link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
     document.body.appendChild(link);
     link.click();
 };
