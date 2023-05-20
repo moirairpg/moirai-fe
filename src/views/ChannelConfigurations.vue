@@ -441,6 +441,16 @@ const downloadChannelConfig = () => {
     delete channelConfigToDownload.ownerData;
     delete channelConfigToDownload.canEdit;
     delete channelConfigToDownload.isStrict;
+    delete channelConfigToDownload.persona;
+    delete channelConfigToDownload.world;
+
+    channelConfigToDownload.world = {
+        id: channelConfig.value.world.id
+    };
+
+    channelConfigToDownload.persona = {
+        id: channelConfig.value.persona.id
+    };
 
     const fileName = `chconf-${channelConfigToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${channelConfigToDownload.name}.json`;
     const url = window.URL.createObjectURL(new Blob([JSON.stringify(channelConfigToDownload, null, 2)]));
