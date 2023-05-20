@@ -433,7 +433,7 @@ const downloadWorld = () => {
                     </Card>
 
                     <template #footer>
-                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
+                        <Button v-if="world.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewWorldDialog" />
                     </template>
                 </Dialog>
@@ -585,7 +585,7 @@ const downloadWorld = () => {
                     </div>
 
                     <template #footer>
-                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
+                        <Button v-if="world.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideWorldDialog" />
                         <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveWorld" />
                     </template>

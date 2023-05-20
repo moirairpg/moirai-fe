@@ -561,7 +561,7 @@ const downloadLorebook = () => {
                         </TabView>
                     </div>
                     <template #footer>
-                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
+                        <Button v-if="lorebook.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
                         <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideViewLorebookDialog" />
                     </template>
 
@@ -649,7 +649,7 @@ const downloadLorebook = () => {
                         <small class="p-invalid" v-if="lorebookSubmitted && !lorebook.description">Visibility is required.</small>
                     </div>
                     <template #footer>
-                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
+                        <Button v-if="lorebook.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
                         <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveLorebook" />
                     </template>
