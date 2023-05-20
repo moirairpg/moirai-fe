@@ -3,6 +3,7 @@ import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { decodeTokens } from '../resources/tokenizer';
 import { useToast } from 'primevue/usetoast';
+import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
 import PersonaService from '@/service/PersonaService';
 import DiscordService from '@/service/DiscordService';
@@ -212,6 +213,20 @@ const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
+};
+
+const downloadPersona = () => {
+    const personaToDownload = persona.value;
+    delete personaToDownload.ownerData;
+    delete personaToDownload.canEdit;
+
+    const fileName = `persona-${personaToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${personaToDownload.name}.json`;
+    const url = window.URL.createObjectURL(new Blob([JSON.stringify(personaToDownload, null, 2)]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
 };
 </script>
 
@@ -472,6 +487,7 @@ const initFilters = () => {
                         </small>
                     </div>
                     <template #footer>
+                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewPersonaDialog" />
                     </template>
                 </Dialog>
@@ -627,8 +643,9 @@ const initFilters = () => {
                         </small>
                     </div>
                     <template #footer>
+                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
-                        <Button label="Save" icon="pi pi-check" class="p-button-text" @click="savePersona" />
+                        <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="savePersona" />
                     </template>
                 </Dialog>
 

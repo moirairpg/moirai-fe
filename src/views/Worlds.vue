@@ -3,6 +3,7 @@ import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { decodeTokens } from '../resources/tokenizer';
 import { useToast } from 'primevue/usetoast';
+import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
 import WorldService from '@/service/WorldService';
 import LorebookService from '@/service/LorebookService';
@@ -225,6 +226,20 @@ const initLorebookSearchFilters = () => {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
+
+const downloadWorld = () => {
+    const worldToDownload = world.value;
+    delete worldToDownload.ownerData;
+    delete worldToDownload.canEdit;
+
+    const fileName = `world-${worldToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${worldToDownload.name}.json`;
+    const url = window.URL.createObjectURL(new Blob([JSON.stringify(worldToDownload, null, 2)]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+};
 </script>
 
 <template>
@@ -420,6 +435,7 @@ const initLorebookSearchFilters = () => {
                     </Card>
 
                     <template #footer>
+                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewWorldDialog" />
                     </template>
                 </Dialog>
@@ -571,8 +587,9 @@ const initLorebookSearchFilters = () => {
                     </div>
 
                     <template #footer>
+                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideWorldDialog" />
-                        <Button label="Save" icon="pi pi-check" class="p-button-text" @click="saveWorld" />
+                        <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveWorld" />
                     </template>
                 </Dialog>
 

@@ -8,6 +8,7 @@ import WorldService from '@/service/WorldService';
 import DiscordService from '@/service/DiscordService';
 import store from '../resources/store';
 import { decodeTokens, decodeSingleToken } from '../resources/tokenizer';
+import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
 const personaService = new PersonaService();
 const worldService = new WorldService();
@@ -434,6 +435,21 @@ const selectLogitBias = () => {
 const onStrictFilterChange = (event) => {
     channelConfig.value.moderation_settings.id = event ? 'STRICT' : 'PERMISSIVE';
 };
+
+const downloadChannelConfig = () => {
+    const channelConfigToDownload = channelConfig.value;
+    delete channelConfigToDownload.ownerData;
+    delete channelConfigToDownload.canEdit;
+    delete channelConfigToDownload.isStrict;
+
+    const fileName = `chconf-${channelConfigToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${channelConfigToDownload.name}.json`;
+    const url = window.URL.createObjectURL(new Blob([JSON.stringify(channelConfigToDownload, null, 2)]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+};
 </script>
 
 <template>
@@ -768,6 +784,7 @@ const onStrictFilterChange = (event) => {
                     </Card>
 
                     <template #footer>
+                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewChannelConfigDialog" />
                     </template>
                 </Dialog>
@@ -1146,6 +1163,7 @@ const onStrictFilterChange = (event) => {
                     </div>
 
                     <template #footer>
+                        <Button label="Export" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
                         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideChannelConfigDialog" />
                         <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveChannelConfig" />
                     </template>
