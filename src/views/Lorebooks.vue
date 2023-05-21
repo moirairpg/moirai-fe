@@ -323,6 +323,38 @@ const downloadLorebook = () => {
     document.body.appendChild(link);
     link.click();
 };
+
+const cloneLorebook = async () => {
+    try {
+        const lorebookToClone = Object.assign({}, lorebook.value);
+        const entriesToClone = Object.assign([], lorebook.value.entries);
+        delete lorebookToClone.id;
+        delete lorebookToClone.owner;
+        delete lorebookToClone.ownerData;
+        delete lorebookToClone.canEdit;
+        delete lorebookToClone.entries;
+
+        lorebookToClone.owner = loggedUser.id;
+        const createdLorebook = await lorebookService.createLorebook(lorebookToClone, loggedUser.id);
+
+        createdLorebook.canEdit = true;
+        createdLorebook.ownerData = loggedUser;
+
+        createdLorebook.entries = await Promise.all(
+            entriesToClone.map(async (e) => {
+                delete e.id;
+                delete e.regex_id;
+                return await lorebookService.createLorebookEntry(e, createdLorebook, loggedUser.id);
+            })
+        );
+
+        lorebooks.value.push(createdLorebook);
+        toast.add({ severity: 'success', summary: 'Success!', detail: 'Lorebook cloned', life: 3000 });
+    } catch (error) {
+        console.error(`An error ocurred while cloning the lorebook -> ${error}`);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning lorebook', life: 3000 });
+    }
+};
 </script>
 
 <template>
@@ -471,7 +503,7 @@ const downloadLorebook = () => {
                     </div>
                     <div class="field">
                         <label for="description">Description</label>
-                        <Textarea id="description" v-model="lorebook.description" rows="3" cols="20" disabled />
+                        <Textarea id="description" v-model="lorebook.description" rows="5" cols="20" disabled />
                     </div>
                     <div class="card" v-if="lorebook.entries !== null">
                         <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
@@ -557,8 +589,18 @@ const downloadLorebook = () => {
                         </TabView>
                     </div>
                     <template #footer>
-                        <Button v-if="lorebook.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
-                        <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideViewLorebookDialog" />
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideLorebookDialog" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <Button v-if="lorebook.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="cloneLorebook" />
+                                <Button v-if="lorebook.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
+                                <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveLorebook" />
+                            </template>
+                        </Toolbar>
                     </template>
 
                     <Dialog v-model:visible="viewEntryDialog" header="Lorebook entry" :modal="true" class="p-fluid">
@@ -645,9 +687,18 @@ const downloadLorebook = () => {
                         <small class="p-invalid" v-if="lorebookSubmitted && !lorebook.description">Visibility is required.</small>
                     </div>
                     <template #footer>
-                        <Button v-if="lorebook.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
-                        <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveLorebook" />
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideLorebookDialog" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <Button v-if="lorebook.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="cloneLorebook" />
+                                <Button v-if="lorebook.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadLorebook" />
+                                <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveLorebook" />
+                            </template>
+                        </Toolbar>
                     </template>
 
                     <div class="card" v-if="lorebook.entries !== null">

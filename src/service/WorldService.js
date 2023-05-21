@@ -27,7 +27,6 @@ export default class WorldService {
             const response = await webclient(`${baseUrl}/world`, {
                 method: 'POST',
                 data: {
-                    id: world.id,
                     name: world.name,
                     description: world.description,
                     owner: world.owner,
