@@ -224,7 +224,7 @@ const initLorebookSearchFilters = () => {
 };
 
 const downloadWorld = () => {
-    const worldToDownload =  Object.assign({}, world.value);
+    const worldToDownload = Object.assign({}, world.value);
     delete worldToDownload.ownerData;
     delete worldToDownload.lorebook.ownerData;
     delete worldToDownload.canEdit;
@@ -236,6 +236,46 @@ const downloadWorld = () => {
     link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
     document.body.appendChild(link);
     link.click();
+};
+
+const cloneWorld = async () => {
+    try {
+        const worldToClone = Object.assign({}, world.value);
+        delete worldToClone.id;
+        delete worldToClone.owner;
+        delete worldToClone.ownerData;
+        delete worldToClone.canEdit;
+        delete worldToClone.entries;
+
+        if (worldToClone.lorebook === undefined) {
+            const createdLorebook = await lorebookService.createLorebook(
+                {
+                    name: worldToClone.name,
+                    description: worldToClone.description,
+                    visibility: 'private',
+                    owner: loggedUser.id,
+                    entries: []
+                },
+                loggedUser.id
+            );
+
+            createdLorebook.ownerData = loggedUser;
+            lorebooks.value.push(createdLorebook);
+            worldToClone.lorebook = createdLorebook;
+        }
+
+        worldToClone.owner = loggedUser.id;
+        const createdWorld = await worldService.createWorld(worldToClone, loggedUser.id);
+
+        createdWorld.canEdit = true;
+        createdWorld.ownerData = loggedUser;
+
+        worlds.value.push(createdWorld);
+        toast.add({ severity: 'success', summary: 'Success!', detail: 'World cloned', life: 3000 });
+    } catch (error) {
+        console.error(`An error ocurred while cloning the world -> ${error}`);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning world', life: 3000 });
+    }
 };
 </script>
 
@@ -430,8 +470,17 @@ const downloadWorld = () => {
                     </Card>
 
                     <template #footer>
-                        <Button v-if="world.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewWorldDialog" />
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideViewWorldDialog" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <Button v-if="world.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="cloneWorld" />
+                                <Button v-if="world.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
+                            </template>
+                        </Toolbar>
                     </template>
                 </Dialog>
 
@@ -582,9 +631,18 @@ const downloadWorld = () => {
                     </div>
 
                     <template #footer>
-                        <Button v-if="world.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideWorldDialog" />
-                        <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveWorld" />
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideWorldDialog" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <Button v-if="world.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="cloneWorld" />
+                                <Button v-if="world.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
+                                <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveWorld" />
+                            </template>
+                        </Toolbar>
                     </template>
                 </Dialog>
 

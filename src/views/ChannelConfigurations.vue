@@ -259,7 +259,6 @@ const viewChannelConfig = (editChannelConfig) => {
         logitBiases.value.push(`${token}:${value}`);
     }
 
-    console.log(`biases -> ${JSON.stringify(logitBiases.value, null, 2)}`);
     viewChannelConfigDialog.value = true;
 };
 
@@ -455,6 +454,38 @@ const downloadChannelConfig = () => {
     link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
     document.body.appendChild(link);
     link.click();
+};
+
+const cloneChannelConfig = async () => {
+    try {
+        const channelConfigToClone = Object.assign({}, channelConfig.value);
+        delete channelConfigToClone.ownerData;
+        delete channelConfigToClone.canEdit;
+        delete channelConfigToClone.persona;
+        delete channelConfigToClone.world;
+        delete channelConfigToClone.moderation_settings.isStrict;
+
+        channelConfigToClone.owner = loggedUser.id;
+        channelConfigToClone.persona = {
+            id: channelConfig.value.persona.id
+        };
+
+        channelConfigToClone.world = {
+            id: channelConfig.value.world.id
+        };
+
+        const createdChannelConfig = await channelConfigService.createChannelConfig(channelConfigToClone, loggedUser.id);
+
+        createdChannelConfig.canEdit = true;
+        createdChannelConfig.ownerData = loggedUser;
+        createdChannelConfig.moderation_settings.isStrict = createdChannelConfig.moderation_settings.id === 'STRICT';
+
+        channelConfigs.value.push(createdChannelConfig);
+        toast.add({ severity: 'success', summary: 'Success!', detail: 'Channel configuration cloned', life: 3000 });
+    } catch (error) {
+        console.error(`An error ocurred while cloning the channel configuration -> ${error}`);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning channel configuration', life: 3000 });
+    }
 };
 </script>
 
@@ -788,8 +819,15 @@ const downloadChannelConfig = () => {
                     </Card>
 
                     <template #footer>
-                        <Button v-if="channelConfig.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewChannelConfigDialog" />
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2"><Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideViewChannelConfigDialog" /></div>
+                            </template>
+                            <template v-slot:end>
+                                <Button v-if="channelConfig.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="cloneChannelConfig" />
+                                <Button v-if="channelConfig.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
+                            </template>
+                        </Toolbar>
                     </template>
                 </Dialog>
 
@@ -1167,9 +1205,18 @@ const downloadChannelConfig = () => {
                     </div>
 
                     <template #footer>
-                        <Button v-if="channelConfig.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideChannelConfigDialog" />
-                        <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveChannelConfig" />
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideChannelConfigDialog" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <Button v-if="channelConfig.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="cloneChannelConfig" />
+                                <Button v-if="channelConfig.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadChannelConfig" />
+                                <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveChannelConfig" />
+                            </template>
+                        </Toolbar>
                     </template>
                 </Dialog>
 

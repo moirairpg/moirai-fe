@@ -212,7 +212,7 @@ const initFilters = () => {
 };
 
 const downloadPersona = () => {
-    const personaToDownload =  Object.assign({}, persona.value);
+    const personaToDownload = Object.assign({}, persona.value);
     delete personaToDownload.ownerData;
     delete personaToDownload.canEdit;
 
@@ -223,6 +223,28 @@ const downloadPersona = () => {
     link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
     document.body.appendChild(link);
     link.click();
+};
+
+const clonePersona = async () => {
+    try {
+        const personaToClone = Object.assign({}, persona.value);
+        delete personaToClone.id;
+        delete personaToClone.owner;
+        delete personaToClone.ownerData;
+        delete personaToClone.canEdit;
+
+        personaToClone.owner = loggedUser.id;
+        const createdPersona = await personaService.createPersona(personaToClone, loggedUser.id);
+
+        createdPersona.canEdit = true;
+        createdPersona.ownerData = loggedUser;
+
+        personas.value.push(createdPersona);
+        toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona cloned', life: 3000 });
+    } catch (error) {
+        console.error(`An error ocurred while cloning the persona -> ${error}`);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning persona', life: 3000 });
+    }
 };
 </script>
 
@@ -481,8 +503,17 @@ const downloadPersona = () => {
                         </small>
                     </div>
                     <template #footer>
-                        <Button v-if="persona.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewPersonaDialog" />
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideViewPersonaDialog" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <Button v-if="persona.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="clonePersona" />
+                                <Button v-if="persona.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
+                            </template>
+                        </Toolbar>
                     </template>
                 </Dialog>
 
@@ -637,9 +668,18 @@ const downloadPersona = () => {
                         </small>
                     </div>
                     <template #footer>
-                        <Button v-if="persona.id" label="Export" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
-                        <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="savePersona" />
+                        <Toolbar class="mb-4">
+                            <template v-slot:start>
+                                <div class="my-2">
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
+                                </div>
+                            </template>
+                            <template v-slot:end>
+                                <Button v-if="persona.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="clonePersona" />
+                                <Button v-if="persona.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
+                                <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="savePersona" />
+                            </template>
+                        </Toolbar>
                     </template>
                 </Dialog>
 
