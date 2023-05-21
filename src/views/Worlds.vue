@@ -293,7 +293,7 @@ const cloneWorld = async () => {
                                 </div>
                             </template>
                             <template v-slot:end>
-                                <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -353,7 +353,7 @@ const cloneWorld = async () => {
                                 </div>
                             </template>
                             <template v-slot:end>
-                                <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
