@@ -234,8 +234,9 @@ const initLorebookSearchFilters = () => {
 
 const downloadWorld = () => {
     const worldToDownload = Object.assign({}, world.value);
+    worldToDownload.lorebook = Object.assign({}, world.value.lorebook);
     delete worldToDownload.ownerData;
-    delete worldToDownload.lorebook.ownerData;
+    delete worldToDownload.lorebook?.ownerData;
     delete worldToDownload.canEdit;
 
     const fileName = `world-${worldToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${worldToDownload.name}`;
