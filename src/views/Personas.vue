@@ -13,7 +13,9 @@ const personaService = new PersonaService();
 const discordService = new DiscordService();
 const loggedUser = store.getters.loggedUser;
 
+const dt = ref(null);
 const toast = useToast();
+
 const persona = ref({ nudge: { role: null }, bump: { role: null } });
 const personas = ref(null);
 const selectedPersonas = ref(null);
@@ -21,9 +23,9 @@ const personaDialog = ref(false);
 const viewPersonaDialog = ref(false);
 const deletePersonaDialog = ref(false);
 const deletePersonasDialog = ref(false);
-const dt = ref(null);
-const filters = ref({});
 const personaSubmitted = ref(false);
+const personaImportDialog = ref(false);
+const personaSearchFilters = ref({});
 const intents = ref([
     { label: 'CHAT', value: 'chat' },
     { label: 'RPG', value: 'rpg' }
@@ -82,6 +84,11 @@ onMounted(async () => {
         personas.value = ps;
     });
 });
+
+const importPersona = () => {
+    personaSubmitted.value = false;
+    personaImportDialog.value = true;
+};
 
 const createNewPersona = () => {
     persona.value = { nudge: { role: null }, bump: { role: null } };
@@ -206,7 +213,7 @@ const deleteSelectedPersonas = () => {
 };
 
 const initFilters = () => {
-    filters.value = {
+    personaSearchFilters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
@@ -246,6 +253,31 @@ const clonePersona = async () => {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning persona', life: 3000 });
     }
 };
+
+const onImport = async (event) => {
+    event.files.forEach(async (file) => {
+        const reader = new FileReader();
+        reader.onload = async (res) => {
+            const personaToImport = JSON.parse(res.target.result);
+            personaToImport.owner = loggedUser.id;
+
+            const createdPersona = await personaService.createPersona(personaToImport, loggedUser.id);
+            createdPersona.canEdit = true;
+            createdPersona.ownerData = loggedUser;
+
+            personas.value.push(createdPersona);
+            toast.add({ severity: 'success', summary: 'Success!', detail: `Persona imported (${file.name})`, life: 3000 });
+        };
+
+        reader.onerror = (err) => {
+            console.log(err);
+            toast.add({ severity: 'error', summary: 'Error', detail: `Error importing persona (${file.name})`, life: 3000 });
+        };
+        reader.readAsText(file);
+    });
+
+    personaImportDialog.value = false;
+};
 </script>
 
 <template>
@@ -260,10 +292,8 @@ const clonePersona = async () => {
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewPersona" />
+                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importPersona" />
                                 </div>
-                            </template>
-                            <template v-slot:end>
-                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -274,7 +304,6 @@ const clonePersona = async () => {
                             dataKey="id"
                             :paginator="true"
                             :rows="6"
-                            :filters="filters"
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             :rowsPerPageOptions="[6, 12, 18]"
                             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
@@ -307,7 +336,7 @@ const clonePersona = async () => {
                                         </p>
                                         <div class="flex align-items-center justify-content-between">
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeletePersona(slotProps.data)" />
                                             <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
                                         </div>
                                     </div>
@@ -320,11 +349,9 @@ const clonePersona = async () => {
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewPersona" />
+                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importPersona" />
                                     <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedPersonas" :disabled="!selectedPersonas || !selectedPersonas.length" />
                                 </div>
-                            </template>
-                            <template v-slot:end>
-                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -335,7 +362,7 @@ const clonePersona = async () => {
                             dataKey="id"
                             :paginator="true"
                             :rows="10"
-                            :filters="filters"
+                            :filters="personaSearchFilters"
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             :rowsPerPageOptions="[5, 10, 25]"
                             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
@@ -347,7 +374,7 @@ const clonePersona = async () => {
                                     <h5 class="m-0">Personas</h5>
                                     <span class="block mt-2 md:mt-0 p-input-icon-left">
                                         <i class="pi pi-search" />
-                                        <InputText v-model="filters['global'].value" placeholder="Search..." />
+                                        <InputText v-model="personaSearchFilters['global'].value" placeholder="Search..." />
                                     </span>
                                 </div>
                             </template>
@@ -382,7 +409,7 @@ const clonePersona = async () => {
                             <Column headerStyle="min-width:10rem;">
                                 <template #body="slotProps">
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeletePersona(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeletePersona(slotProps.data)" />
                                     <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
                                 </template>
                             </Column>
@@ -671,7 +698,7 @@ const clonePersona = async () => {
                         <Toolbar class="mb-4">
                             <template v-slot:start>
                                 <div class="my-2">
-                                    <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hidePersonaDialog" />
                                 </div>
                             </template>
                             <template v-slot:end>
@@ -680,6 +707,13 @@ const clonePersona = async () => {
                                 <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="savePersona" />
                             </template>
                         </Toolbar>
+                    </template>
+                </Dialog>
+
+                <Dialog v-model:visible="personaImportDialog" header="Import" :modal="true">
+                    <FileUpload name="import[]" :customUpload="true" @uploader="onImport" :multiple="true" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                    <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="personaImportDialog = false" />
                     </template>
                 </Dialog>
 
@@ -692,8 +726,8 @@ const clonePersona = async () => {
                         </span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deletePersonaDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deletePersona" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deletePersonaDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deletePersona" />
                     </template>
                 </Dialog>
 
@@ -703,8 +737,8 @@ const clonePersona = async () => {
                         <span v-if="persona">Are you sure you want to delete the selected personas?</span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deletePersonasDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteSelectedPersonas" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deletePersonasDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteSelectedPersonas" />
                     </template>
                 </Dialog>
             </div>

@@ -28,6 +28,7 @@ const deleteChannelConfigDialog = ref(false);
 const deleteChannelConfigsDialog = ref(false);
 const channelConfigSearchFilters = ref({});
 const channelConfigSubmitted = ref(false);
+const channelConfigImportDialog = ref(false);
 
 const world = ref({});
 const worlds = ref(null);
@@ -130,6 +131,11 @@ onMounted(async () => {
         personas.value = ps;
     });
 });
+
+const importChannelConfig = () => {
+    channelConfigSubmitted.value = false;
+    channelConfigImportDialog.value = true;
+};
 
 const createNewChannelConfig = () => {
     maxTokens.value = 100;
@@ -487,6 +493,32 @@ const cloneChannelConfig = async () => {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning channel configuration', life: 3000 });
     }
 };
+
+const onImport = async (event) => {
+    event.files.forEach(async (file) => {
+        const reader = new FileReader();
+        reader.onload = async (res) => {
+            const channelConfigToImport = JSON.parse(res.target.result);
+            channelConfigToImport.owner = loggedUser.id;
+
+            const createdChannelConfig = await channelConfigService.createChannelConfig(channelConfigToImport, loggedUser.id);
+            createdChannelConfig.canEdit = true;
+            createdChannelConfig.ownerData = loggedUser;
+            createdChannelConfig.moderation_settings.isStrict = createdChannelConfig.moderation_settings.id === 'STRICT';
+
+            channelConfigs.value.push(createdChannelConfig);
+            toast.add({ severity: 'success', summary: 'Success!', detail: `Channel configuration imported (${file.name})`, life: 3000 });
+        };
+
+        reader.onerror = (err) => {
+            console.log(err);
+            toast.add({ severity: 'error', summary: 'Error', detail: `Error importing channel configuration (${file.name})`, life: 3000 });
+        };
+        reader.readAsText(file);
+    });
+
+    channelConfigImportDialog.value = false;
+};
 </script>
 
 <template>
@@ -500,10 +532,8 @@ const cloneChannelConfig = async () => {
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewChannelConfig" />
+                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importChannelConfig" />
                                 </div>
-                            </template>
-                            <template v-slot:end>
-                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -546,7 +576,7 @@ const cloneChannelConfig = async () => {
                                         </p>
                                         <div class="flex align-items-center justify-content-between">
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editChannelConfig(slotProps.data)" />
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteChannelConfig(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteChannelConfig(slotProps.data)" />
                                             <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewChannelConfig(slotProps.data)" />
                                         </div>
                                     </div>
@@ -559,11 +589,9 @@ const cloneChannelConfig = async () => {
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewChannelConfig" />
+                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importChannelConfig" />
                                     <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedChannelConfigs" :disabled="!selectedChannelConfigs || !selectedChannelConfigs.length" />
                                 </div>
-                            </template>
-                            <template v-slot:end>
-                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -615,7 +643,7 @@ const cloneChannelConfig = async () => {
                             <Column headerStyle="min-width:10rem;">
                                 <template #body="slotProps">
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editChannelConfig(slotProps.data)" />
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteChannelConfig(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteChannelConfig(slotProps.data)" />
                                     <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewChannelConfig(slotProps.data)" />
                                 </template>
                             </Column>
@@ -1220,6 +1248,13 @@ const cloneChannelConfig = async () => {
                     </template>
                 </Dialog>
 
+                <Dialog v-model:visible="channelConfigImportDialog" header="Import" :modal="true">
+                    <FileUpload name="import[]" :customUpload="true" @uploader="onImport" :multiple="true" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                    <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="channelConfigImportDialog = false" />
+                    </template>
+                </Dialog>
+
                 <Dialog v-model:visible="deleteChannelConfigDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
@@ -1229,8 +1264,8 @@ const cloneChannelConfig = async () => {
                         </span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteChannelConfigDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteChannelConfig" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteChannelConfigDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteChannelConfig" />
                     </template>
                 </Dialog>
 
@@ -1240,8 +1275,8 @@ const cloneChannelConfig = async () => {
                         <span v-if="channelConfig">Are you sure you want to delete the selected channel configs?</span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteChannelConfigsDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteSelectedChannelConfigs" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteChannelConfigsDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteSelectedChannelConfigs" />
                     </template>
                 </Dialog>
 
@@ -1255,7 +1290,7 @@ const cloneChannelConfig = async () => {
                         <Textarea id="description" v-model="world.description" rows="3" cols="20" disabled />
                     </div>
                     <template #footer>
-                        <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideWorldDialog" />
+                        <Button label="Close" icon="pi pi-times" class="p-button-danger" @click="hideWorldDialog" />
                         <Button v-if="worldDialog" label="Select" icon="pi pi-check" class="p-button-primary" @click="selectWorld" />
                     </template>
                 </Dialog>
@@ -1307,7 +1342,7 @@ const cloneChannelConfig = async () => {
                         <Textarea disabled id="personality" v-model="persona.personality" required="true" rows="10" cols="20" />
                     </div>
                     <template #footer>
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hidePersonaDialog" />
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hidePersonaDialog" />
                         <Button label="Select" icon="pi pi-check" class="p-button-primary" @click="selectPersona" />
                     </template>
                 </Dialog>
