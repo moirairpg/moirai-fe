@@ -28,6 +28,7 @@ export default class LorebookService {
             const response = await webclient(`${baseUrl}/lore/book`, {
                 method: 'POST',
                 data: {
+                    id: lorebook.id,
                     name: lorebook.name,
                     description: lorebook.description,
                     owner: lorebook.owner,
