@@ -465,10 +465,12 @@ const downloadChannelConfig = () => {
 const cloneChannelConfig = async () => {
     try {
         const channelConfigToClone = Object.assign({}, channelConfig.value);
+        delete channelConfigToClone.id;
         delete channelConfigToClone.ownerData;
         delete channelConfigToClone.canEdit;
         delete channelConfigToClone.persona;
         delete channelConfigToClone.world;
+        delete channelConfigToClone.model_settings.id;
         delete channelConfigToClone.moderation_settings.isStrict;
 
         channelConfigToClone.owner = loggedUser.id;
