@@ -13,7 +13,9 @@ const lorebookService = new LorebookService();
 const discordService = new DiscordService();
 const loggedUser = store.getters.loggedUser;
 
+const dt = ref(null);
 const toast = useToast();
+
 const lorebook = ref({});
 const lorebooks = ref(null);
 const selectedLorebooks = ref(null);
@@ -21,21 +23,22 @@ const lorebookDialog = ref(false);
 const viewLorebookDialog = ref(false);
 const deleteLorebookDialog = ref(false);
 const deleteLorebooksDialog = ref(false);
+const lorebookFilters = ref({});
+const lorebookSubmitted = ref(false);
+const lorebookImportDialog = ref(false);
+const visibilities = ref([
+    { label: 'PRIVATE', value: 'private' },
+    { label: 'PUBLIC', value: 'public' }
+]);
+
 const entry = ref({});
 const selectedEntries = ref(null);
 const entryDialog = ref(false);
 const viewEntryDialog = ref(false);
 const deleteEntryDialog = ref(false);
 const deleteEntriesDialog = ref(false);
-const dt = ref(null);
-const lorebookFilters = ref({});
 const entryFilters = ref({});
-const lorebookSubmitted = ref(false);
 const entrySubmitted = ref(false);
-const visibilities = ref([
-    { label: 'PRIVATE', value: 'private' },
-    { label: 'PUBLIC', value: 'public' }
-]);
 
 onBeforeMount(() => {
     initLorebookFilters();
@@ -77,6 +80,11 @@ const processLorebookEntryNameTokens = (event) => {
 
 const processLorebookEntryDescriptionTokens = (event) => {
     lorebookEntryDescriptionTokens.value = decodeTokens(event.target.value);
+};
+
+const importLorebook = () => {
+    lorebookSubmitted.value = false;
+    lorebookImportDialog.value = true;
 };
 
 const createNewLorebook = () => {
@@ -355,6 +363,31 @@ const cloneLorebook = async () => {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning lorebook', life: 3000 });
     }
 };
+
+const onImport = async (event) => {
+    event.files.forEach(async (file) => {
+        const reader = new FileReader();
+        reader.onload = async (res) => {
+            const lorebookToImport = JSON.parse(res.target.result);
+            lorebookToImport.owner = loggedUser.id;
+
+            const createdLorebook = await lorebookService.createLorebook(lorebookToImport, loggedUser.id);
+            createdLorebook.canEdit = true;
+            createdLorebook.ownerData = loggedUser;
+
+            lorebooks.value.push(createdLorebook);
+            toast.add({ severity: 'success', summary: 'Success!', detail: `Lorebook imported (${file.name})`, life: 3000 });
+        };
+
+        reader.onerror = (err) => {
+            console.log(err);
+            toast.add({ severity: 'error', summary: 'Error', detail: `Error importing lorebook (${file.name})`, life: 3000 });
+        };
+        reader.readAsText(file);
+    });
+
+    lorebookImportDialog.value = false;
+};
 </script>
 
 <template>
@@ -368,10 +401,8 @@ const cloneLorebook = async () => {
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewLorebook" />
+                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importLorebook" />
                                 </div>
-                            </template>
-                            <template v-slot:end>
-                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -414,7 +445,7 @@ const cloneLorebook = async () => {
                                         </p>
                                         <div class="flex align-items-center justify-content-between">
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editLorebook(slotProps.data)" />
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteLorebook(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteLorebook(slotProps.data)" />
                                             <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewLorebook(slotProps.data)" />
                                         </div>
                                     </div>
@@ -427,11 +458,9 @@ const cloneLorebook = async () => {
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewLorebook" />
+                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importLorebook" />
                                     <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedLorebooks" :disabled="!selectedLorebooks || !selectedLorebooks.length" />
                                 </div>
-                            </template>
-                            <template v-slot:end>
-                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -488,7 +517,7 @@ const cloneLorebook = async () => {
                             <Column headerStyle="min-width:10rem;">
                                 <template #body="slotProps">
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editLorebook(slotProps.data)" />
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteLorebook(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteLorebook(slotProps.data)" />
                                     <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewLorebook(slotProps.data)" />
                                 </template>
                             </Column>
@@ -592,7 +621,7 @@ const cloneLorebook = async () => {
                         <Toolbar class="mb-4">
                             <template v-slot:start>
                                 <div class="my-2">
-                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideLorebookDialog" />
+                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideViewLorebookDialog" />
                                 </div>
                             </template>
                             <template v-slot:end>
@@ -653,7 +682,7 @@ const cloneLorebook = async () => {
                             </small>
                         </div>
                         <template #footer>
-                            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hideViewLorebookEntryDialog" />
+                            <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideViewLorebookEntryDialog" />
                         </template>
                     </Dialog>
                 </Dialog>
@@ -744,7 +773,7 @@ const cloneLorebook = async () => {
                                                 </p>
                                                 <div class="flex align-items-center justify-content-between">
                                                     <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editEntry(slotProps.data)" />
-                                                    <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteEntry(slotProps.data)" />
+                                                    <Button icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteEntry(slotProps.data)" />
                                                 </div>
                                             </div>
                                         </div>
@@ -806,7 +835,7 @@ const cloneLorebook = async () => {
                                     <Column headerStyle="min-width:10rem;">
                                         <template #body="slotProps">
                                             <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editEntry(slotProps.data)" />
-                                            <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteEntry(slotProps.data)" />
+                                            <Button icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteEntry(slotProps.data)" />
                                         </template>
                                     </Column>
                                 </DataTable>
@@ -865,10 +894,18 @@ const cloneLorebook = async () => {
                                 </small>
                             </div>
                             <template #footer>
+                                <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideEntryDialog" />
                                 <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveEntry" />
                             </template>
                         </Dialog>
                     </div>
+                </Dialog>
+
+                <Dialog v-model:visible="lorebookImportDialog" header="Import" :modal="true">
+                    <FileUpload name="import[]" :customUpload="true" @uploader="onImport" :multiple="true" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                    <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="lorebookImportDialog = false" />
+                    </template>
                 </Dialog>
 
                 <Dialog v-model:visible="deleteLorebookDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
@@ -880,8 +917,8 @@ const cloneLorebook = async () => {
                         </span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteLorebookDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteLorebook" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteLorebookDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteLorebook" />
                     </template>
                 </Dialog>
 
@@ -894,8 +931,8 @@ const cloneLorebook = async () => {
                         </span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteEntryDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteEntry" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteEntryDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteEntry" />
                     </template>
                 </Dialog>
 
@@ -905,8 +942,8 @@ const cloneLorebook = async () => {
                         <span v-if="lorebook">Are you sure you want to delete the selected lorebooks?</span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteLorebooksDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteSelectedLorebooks" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteLorebooksDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteSelectedLorebooks" />
                     </template>
                 </Dialog>
 
@@ -916,8 +953,8 @@ const cloneLorebook = async () => {
                         <span v-if="entry">Are you sure you want to delete the selected entries?</span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteEntriesDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteSelectedEntries" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteEntriesDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteSelectedEntries" />
                     </template>
                 </Dialog>
             </div>

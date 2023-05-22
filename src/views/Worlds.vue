@@ -15,27 +15,31 @@ const lorebookService = new LorebookService();
 const discordService = new DiscordService();
 const loggedUser = store.getters.loggedUser;
 
+const dt = ref(null);
 const toast = useToast();
+
 const world = ref({});
 const worlds = ref(null);
-const lorebook = ref({});
-const lorebooks = ref(null);
-const lorebookDialog = ref(false);
 const selectedWorlds = ref(null);
 const worldDialog = ref(false);
 const viewWorldDialog = ref(false);
 const deleteWorldDialog = ref(false);
 const deleteWorldsDialog = ref(false);
-const dt = ref(null);
 const worldSearchFilters = ref({});
-const lorebookSearchFilters = ref({});
 const worldSubmitted = ref(false);
+const worldPromptTokens = ref(null);
+const worldImportDialog = ref(false);
+
+const lorebook = ref({});
+const lorebooks = ref(null);
+const lorebookDialog = ref(false);
+const lorebookSearchFilters = ref({});
+
 const visibilities = ref([
     { label: 'PRIVATE', value: 'private' },
     { label: 'PUBLIC', value: 'public' }
 ]);
 
-const worldPromptTokens = ref(null);
 const processWorldPromptTokens = (event) => {
     worldPromptTokens.value = decodeTokens(event.target.value);
 };
@@ -84,6 +88,11 @@ onMounted(async () => {
         worlds.value = ws;
     });
 });
+
+const importWorld = () => {
+    worldSubmitted.value = false;
+    worldImportDialog.value = true;
+};
 
 const createNewWorld = () => {
     world.value = { lorebook: { id: '0' } };
@@ -277,6 +286,31 @@ const cloneWorld = async () => {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning world', life: 3000 });
     }
 };
+
+const onImport = async (event) => {
+    event.files.forEach(async (file) => {
+        const reader = new FileReader();
+        reader.onload = async (res) => {
+            const worldToImport = JSON.parse(res.target.result);
+            worldToImport.owner = loggedUser.id;
+
+            const createdWorld = await worldService.createWorld(worldToImport, loggedUser.id);
+            createdWorld.canEdit = true;
+            createdWorld.ownerData = loggedUser;
+
+            worlds.value.push(createdWorld);
+            toast.add({ severity: 'success', summary: 'Success!', detail: `World imported (${file.name})`, life: 3000 });
+        };
+
+        reader.onerror = (err) => {
+            console.log(err);
+            toast.add({ severity: 'error', summary: 'Error', detail: `Error importing world (${file.name})`, life: 3000 });
+        };
+        reader.readAsText(file);
+    });
+
+    worldImportDialog.value = false;
+};
 </script>
 
 <template>
@@ -290,10 +324,8 @@ const cloneWorld = async () => {
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
+                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importWorld" />
                                 </div>
-                            </template>
-                            <template v-slot:end>
-                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -336,7 +368,7 @@ const cloneWorld = async () => {
                                         </p>
                                         <div class="flex align-items-center justify-content-between">
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
+                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
                                             <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewWorld(slotProps.data)" />
                                         </div>
                                     </div>
@@ -349,11 +381,9 @@ const cloneWorld = async () => {
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
+                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importWorld" />
                                     <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedWorlds" :disabled="!selectedWorlds || !selectedWorlds.length" />
                                 </div>
-                            </template>
-                            <template v-slot:end>
-                                <FileUpload mode="basic" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                             </template>
                         </Toolbar>
 
@@ -411,7 +441,7 @@ const cloneWorld = async () => {
                             <Column headerStyle="min-width:10rem;">
                                 <template #body="slotProps">
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteWorld(slotProps.data)" />
+                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
                                     <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewWorld(slotProps.data)" />
                                 </template>
                             </Column>
@@ -656,8 +686,15 @@ const cloneWorld = async () => {
                         <Textarea id="description" v-model="lorebook.description" rows="3" cols="20" disabled />
                     </div>
                     <template #footer>
-                        <Button label="Close" icon="pi pi-times" class="p-button-text" @click="hideLorebookDialog" />
-                        <Button v-if="worldDialog" label="Select" icon="pi pi-check" class="p-button-text" @click="selectLorebook" />
+                        <Button label="Close" icon="pi pi-times" class="p-button-danger" @click="hideLorebookDialog" />
+                        <Button v-if="worldDialog" label="Select" icon="pi pi-check" class="p-button-primary" @click="selectLorebook" />
+                    </template>
+                </Dialog>
+
+                <Dialog v-model:visible="worldImportDialog" header="Import" :modal="true">
+                    <FileUpload name="import[]" :customUpload="true" @uploader="onImport" :multiple="true" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
+                    <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="worldImportDialog = false" />
                     </template>
                 </Dialog>
 
@@ -670,8 +707,8 @@ const cloneWorld = async () => {
                         </span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteWorldDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteWorld" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteWorldDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteWorld" />
                     </template>
                 </Dialog>
 
@@ -681,8 +718,8 @@ const cloneWorld = async () => {
                         <span v-if="world">Are you sure you want to delete the selected worlds?</span>
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteWorldsDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteSelectedWorlds" />
+                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteWorldsDialog = false" />
+                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteSelectedWorlds" />
                     </template>
                 </Dialog>
             </div>
