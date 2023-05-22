@@ -27,6 +27,7 @@ export default class ChannelConfigService {
             const response = await webclient(`${baseUrl}/channel-config`, {
                 method: 'POST',
                 data: {
+                    id: channelConfig.id,
                     name: channelConfig.name,
                     owner: channelConfig.owner,
                     persona: {

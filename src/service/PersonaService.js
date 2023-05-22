@@ -27,6 +27,7 @@ export default class PersonaService {
             const response = await webclient(`${baseUrl}/persona`, {
                 method: 'POST',
                 data: {
+                    id: persona.id,
                     name: persona.name,
                     intent: persona.intent,
                     personality: persona.personality,
