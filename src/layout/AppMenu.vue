@@ -11,7 +11,6 @@ const model = ref([
     {
         label: 'Navigation',
         items: [
-            { label: 'Lorebooks', icon: 'pi pi-fw pi-book', to: '/lorebooks' },
             { label: 'Worlds', icon: 'pi pi-fw pi-globe', to: '/worlds' },
             { label: 'Persona', icon: 'pi pi-fw pi-user', to: '/personas' },
             { label: 'Channel configurations', icon: 'pi pi-fw pi-wrench', to: '/channel-configs' },
