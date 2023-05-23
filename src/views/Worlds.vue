@@ -94,6 +94,7 @@ const importWorld = () => {
 };
 
 const createNewWorld = () => {
+    world.value = { lorebook: [] };
     worldSubmitted.value = false;
     worldDialog.value = true;
 };
