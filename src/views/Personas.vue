@@ -203,7 +203,7 @@ const deleteSelectedPersonas = () => {
                 return val;
             }
 
-            return personaService.deletePersona(val);
+            return personaService.deletePersona(val, loggedUser.id);
         })
         .filter((val) => Object.keys(val).length !== 0);
 
