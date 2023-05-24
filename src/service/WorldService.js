@@ -33,9 +33,7 @@ export default class WorldService {
                     owner: world.owner,
                     visibility: world.visibility,
                     initial_prompt: world.initial_prompt,
-                    lorebook: {
-                        id: world.lorebook.id
-                    }
+                    lorebook: world.lorebook,
                 },
                 headers: {
                     requester: requesterUserId,
@@ -61,9 +59,7 @@ export default class WorldService {
                     owner: world.owner,
                     visibility: world.visibility,
                     initial_prompt: world.initial_prompt,
-                    lorebook: {
-                        id: world.lorebook.id
-                    }
+                    lorebook: world.lorebook,
                 },
                 headers: {
                     requester: requesterUserId,
