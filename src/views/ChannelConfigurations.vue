@@ -331,7 +331,7 @@ const deleteSelectedChannelConfigs = () => {
                 return val;
             }
 
-            return channelConfigService.deleteChannelConfig(val);
+            return channelConfigService.deleteChannelConfig(val, loggedUser.id);
         })
         .filter((val) => Object.keys(val).length !== 0);
 
