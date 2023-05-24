@@ -19,15 +19,6 @@ const router = createRouter({
                     }
                 },
                 {
-                    path: '/lorebooks',
-                    name: 'lorebooks',
-                    component: () => import('@/views/Lorebooks.vue'),
-                    meta: {
-                        title: 'ChatRPG | Lorebooks',
-                        requiresLogin: true
-                    }
-                },
-                {
                     path: '/personas',
                     name: 'personas',
                     component: () => import('@/views/Personas.vue'),
