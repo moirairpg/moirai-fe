@@ -742,7 +742,7 @@ const onImport = async (event) => {
                         <small class="p-invalid" v-if="worldSubmitted && !world.visibility">Visibility is required.</small>
                     </div>
 
-                    <div class="card" v-if="world.lorebook !== null && world.lorebook.length > 0">
+                    <div class="card" v-if="world.lorebook !== null">
                         <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                             <h5 class="m-0">Lorebook</h5>
                         </div>
