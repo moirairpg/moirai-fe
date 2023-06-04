@@ -1072,7 +1072,7 @@ const onImport = async (event) => {
                                                         {{ slotProps.data.personality }}
                                                     </p>
                                                     <div class="flex align-items-center justify-content-between">
-                                                        <Button icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
+                                                        <Button icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewPersona(slotProps.data)" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -1131,7 +1131,7 @@ const onImport = async (event) => {
                                         </Column>
                                         <Column headerStyle="min-width:10rem;">
                                             <template #body="slotProps">
-                                                <Button icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
+                                                <Button icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewPersona(slotProps.data)" />
                                             </template>
                                         </Column>
                                     </DataTable>
