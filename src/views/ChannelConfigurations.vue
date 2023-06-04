@@ -190,7 +190,13 @@ const selectPersona = () => {
 
 const saveChannelConfig = async () => {
     channelConfigSubmitted.value = true;
-    if (channelConfig.value.name.trim()) {
+
+    if (!channelConfig.value.persona?.id || !channelConfig.value.world?.id) {
+        console.error(`Persona and world cannot be empty.`);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Persona and world cannot be empty. Please choose one for each before proceeding.', life: 3000 });
+        return;
+    }
+    if (channelConfig.value.name?.trim()) {
         if (channelConfig.value.id) {
             try {
                 channelConfig.value.owner = loggedUser.id;
