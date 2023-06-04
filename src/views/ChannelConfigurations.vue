@@ -746,7 +746,7 @@ const onImport = async (event) => {
                     </div>
 
                     <div class="card" v-if="channelConfigs">
-                        <Panel header="Advanced options" :toggleable="true" :collapsed="true">
+                        <Panel header="Advanced settings" :toggleable="true" :collapsed="true">
                             <div class="field">
                                 <div class="grid formgrid">
                                     <div class="col-12 mb-2 lg:col-6 lg:mb-0">
@@ -875,7 +875,7 @@ const onImport = async (event) => {
                     </div>
 
                     <div class="field">
-                        <label for="config-name">Configuration name</label>
+                        <label for="config-name">Configuration name <strong :style="{ color: 'red' }">*</strong></label>
                         <InputText id="config-name" v-model="channelConfig.name" required="true" autofocus :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.name }" />
                         <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.name">Configuration name is required.</small>
                     </div>
@@ -888,7 +888,7 @@ const onImport = async (event) => {
                                 Different models have different behaviors and react differently to how personas and worlds and general content is written. Bear this in mind when writing content.`
                             "
                         >
-                            AI Model <i class="pi pi-info-circle" />
+                            AI Model <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                         </label>
                         <Dropdown id="ai-model" v-model="selectedModel" :options="modelsAvailable" optionLabel="label" :class="{ 'p-invalid': channelConfigSubmitted && !selectedModel }" />
                         <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
@@ -919,7 +919,7 @@ const onImport = async (event) => {
                                         We do not recommend going over 1.2, as the AI might spit nonsensical gibberish.`
                                     "
                                 >
-                                    Randomness <i class="pi pi-info-circle" />
+                                    Randomness <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                                 </label>
                                 <InputNumber id="temperature" :allowEmpty="false" :maxFractionDigits="1" :min="0.1" :max="2" v-model.number="temperatureValue" @update:modelValue="getTemperaturePercentage(temperatureValue)" />
                                 <Slider v-model="temperaturePercentage" @update:modelValue="getTemperatureValue(temperaturePercentage)" />
@@ -933,7 +933,7 @@ const onImport = async (event) => {
                                         Maximum allowed for the selected model: ${selectedModel.maxTokens}`
                                     "
                                 >
-                                    Max tokens <i class="pi pi-info-circle" />
+                                    Max tokens <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                                 </label>
                                 <InputNumber v-model.number="maxTokens" :min="100" :max="selectedModel.maxTokens" :class="{ 'p-invalid': channelConfigSubmitted && !maxTokens }" />
                                 <small class="p-invalid" v-if="channelConfigSubmitted && !maxTokens">Max token count is required.</small>
@@ -946,7 +946,7 @@ const onImport = async (event) => {
                                         Amount of messages in the channel that will be used as the AI's memory. Defaults to 10. Can't be lower than 5 or higher than 20.`
                                     "
                                 >
-                                    Message history number <i class="pi pi-info-circle" />
+                                    Message history number <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                                 </label>
                                 <InputNumber v-model.number="maxHistoryMessageNumber" :min="5" :max="20" :class="{ 'p-invalid': channelConfigSubmitted && !maxHistoryMessageNumber }" />
                                 <small class="p-invalid" v-if="channelConfigSubmitted && !maxHistoryMessageNumber">Message history count is required.</small>
@@ -959,7 +959,7 @@ const onImport = async (event) => {
                     </div>
 
                     <div class="card" v-if="channelConfigs">
-                        <Panel header="Advanced options" :toggleable="true" :collapsed="true">
+                        <Panel header="Advanced settings (optional)" :toggleable="true" :collapsed="true">
                             <div class="field">
                                 <div class="grid formgrid">
                                     <div class="col-12 mb-2 lg:col-6 lg:mb-0">

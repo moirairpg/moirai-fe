@@ -709,20 +709,20 @@ const onImport = async (event) => {
 
                 <Dialog v-model:visible="worldDialog" header="World" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name">Name</label>
+                        <label for="name">Name <strong :style="{ color: 'red' }">*</strong></label>
                         <InputText id="name" v-model="world.name" required="true" autofocus :class="{ 'p-invalid': worldSubmitted && !world.name }" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.name">Name is required.</small>
                     </div>
 
                     <div class="field">
-                        <label for="description">Description</label>
+                        <label for="description">Description <strong :style="{ color: 'red' }">*</strong></label>
                         <Textarea id="description" v-model="world.description" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.description }" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.description">Description is required.</small>
                     </div>
 
                     <div class="field">
                         <label for="initial_prompt" v-tooltip="`Text used to begin the adventure instanced from this world. Upon using the /start command on Discord, this text will be shown and reacted upon by the AI.`">
-                            Adventure start text <i class="pi pi-info-circle" />
+                            Adventure start text <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                         </label>
                         <Textarea id="initial_prompt" v-model="world.initial_prompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initial_prompt }" @input="processWorldPromptTokens" />
                         <small class="p-invalid" v-if="worldSubmitted && !world.initial_prompt">Prompt is required.</small>
@@ -732,7 +732,7 @@ const onImport = async (event) => {
                     </div>
 
                     <div class="field">
-                        <label for="visibility" class="mb-3">Visibility</label>
+                        <label for="visibility" class="mb-3">Visibility <strong :style="{ color: 'red' }">*</strong></label>
                         <Dropdown id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value && slotProps.value.value">

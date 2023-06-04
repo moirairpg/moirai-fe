@@ -560,7 +560,7 @@ const onImport = async (event) => {
                         The bot will use this value as its personal name, so this field is preferrably with a proper name (e.g., John the Bot or Kaelin the Storyteller)`
                             "
                         >
-                            Name <i class="pi pi-info-circle" />
+                            Name <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                         </label>
                         <InputText id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" @input="processPersonaNameTokens" />
                         <small class="p-invalid" v-if="personaSubmitted && !persona.name">Name is required.</small>
@@ -570,7 +570,7 @@ const onImport = async (event) => {
                     </div>
 
                     <div class="field">
-                        <label for="visibility" class="mb-3">Visibility</label>
+                        <label for="visibility" class="mb-3">Visibility <strong :style="{ color: 'red' }">*</strong></label>
                         <Dropdown id="visibility" v-model="persona.visibility" :options="visibilities" optionLabel="label" placeholder="Persona visibility" :class="{ 'p-invalid': personaSubmitted && !persona.visibility }">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value && slotProps.value.value">
@@ -596,7 +596,7 @@ const onImport = async (event) => {
                         If RPG is selected, bot will need to be tagged on Discord in order for it to be triggered.`
                             "
                         >
-                            Intent <i class="pi pi-info-circle" />
+                            Intent <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                         </label>
                         <Dropdown id="intent" v-model="persona.intent" :options="intents" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">
                             <template #value="slotProps">
@@ -682,7 +682,7 @@ const onImport = async (event) => {
                                 We recommend that the persona starts with 'I am {0}. My name is {0}' so the AI always knows its name.`
                             "
                         >
-                            Personality <i class="pi pi-info-circle" />
+                            Personality <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                         </label>
                         <Textarea id="personality" v-model="persona.personality" required="true" rows="10" cols="20" :class="{ 'p-invalid': personaSubmitted && !persona.personality }" @input="processPersonalityTokens" />
                         <small class="p-invalid" v-if="personaSubmitted && !persona.personality">Personality is required.</small>
