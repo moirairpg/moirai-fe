@@ -1098,6 +1098,7 @@ const onImport = async (event) => {
                                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
                                         responsiveLayout="scroll"
                                         maxLength
+                                        :rowStyle="({ id }) => (id === channelConfig?.persona?.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
                                     >
                                         <template #header>
                                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
