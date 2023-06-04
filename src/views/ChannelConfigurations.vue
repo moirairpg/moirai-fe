@@ -474,6 +474,7 @@ const cloneChannelConfig = async () => {
         delete channelConfigToClone.moderation_settings.isStrict;
 
         channelConfigToClone.owner = loggedUser.id;
+        channelConfigToClone.name = `${channelConfigToClone.name} - Copy`;
         channelConfigToClone.persona = {
             id: channelConfig.value.persona.id
         };
@@ -488,6 +489,10 @@ const cloneChannelConfig = async () => {
         createdChannelConfig.ownerData = loggedUser;
         createdChannelConfig.moderation_settings.isStrict = createdChannelConfig.moderation_settings.id === 'STRICT';
 
+        viewChannelConfigDialog.value = false;
+        channelConfigDialog.value = true;
+
+        channelConfig.value = createdChannelConfig;
         channelConfigs.value.push(createdChannelConfig);
         toast.add({ severity: 'success', summary: 'Success!', detail: 'Channel configuration cloned', life: 3000 });
     } catch (error) {
