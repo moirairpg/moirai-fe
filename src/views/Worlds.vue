@@ -455,7 +455,7 @@ const onImport = async (event) => {
                                         <div class="flex align-items-center justify-content-between">
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
-                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewWorld(slotProps.data)" />
+                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewWorld(slotProps.data)" />
                                         </div>
                                     </div>
                                 </div>
@@ -522,7 +522,7 @@ const onImport = async (event) => {
                                 <template #body="slotProps">
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
-                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewWorld(slotProps.data)" />
+                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewWorld(slotProps.data)" />
                                 </template>
                             </Column>
                         </DataTable>
@@ -586,7 +586,7 @@ const onImport = async (event) => {
                                                     {{ slotProps.data.description }}
                                                 </p>
                                                 <div class="flex align-items-center justify-content-between">
-                                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewLorebookEntry(slotProps.data)" />
+                                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewLorebookEntry(slotProps.data)" />
                                                 </div>
                                             </div>
                                         </div>
@@ -630,7 +630,7 @@ const onImport = async (event) => {
                                     </Column>
                                     <Column headerStyle="min-width:10rem;">
                                         <template #body="slotProps">
-                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewLorebookEntry(slotProps.data)" />
+                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewLorebookEntry(slotProps.data)" />
                                         </template>
                                     </Column>
                                 </DataTable>

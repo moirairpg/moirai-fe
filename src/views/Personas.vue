@@ -344,7 +344,7 @@ const onImport = async (event) => {
                                         <div class="flex align-items-center justify-content-between">
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeletePersona(slotProps.data)" />
-                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
+                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewPersona(slotProps.data)" />
                                         </div>
                                     </div>
                                 </div>
@@ -417,7 +417,7 @@ const onImport = async (event) => {
                                 <template #body="slotProps">
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editPersona(slotProps.data)" />
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeletePersona(slotProps.data)" />
-                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewPersona(slotProps.data)" />
+                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewPersona(slotProps.data)" />
                                 </template>
                             </Column>
                         </DataTable>
