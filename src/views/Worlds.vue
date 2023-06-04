@@ -353,11 +353,16 @@ const cloneWorld = async () => {
         }
 
         worldToClone.owner = loggedUser.id;
+        worldToClone.name = `${worldToClone.name} - Copy`;
         const createdWorld = await worldService.createWorld(worldToClone, loggedUser.id);
 
         createdWorld.canEdit = true;
         createdWorld.ownerData = loggedUser;
 
+        viewWorldDialog.value = false;
+        worldDialog.value = true;
+
+        world.value = createdWorld;
         worlds.value.push(createdWorld);
         toast.add({ severity: 'success', summary: 'Success!', detail: 'World cloned', life: 3000 });
     } catch (error) {

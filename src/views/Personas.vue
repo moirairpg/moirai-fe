@@ -241,11 +241,16 @@ const clonePersona = async () => {
         delete personaToClone.canEdit;
 
         personaToClone.owner = loggedUser.id;
+        personaToClone.name = `${personaToClone.name} - Copy`;
         const createdPersona = await personaService.createPersona(personaToClone, loggedUser.id);
 
         createdPersona.canEdit = true;
         createdPersona.ownerData = loggedUser;
 
+        viewPersonaDialog.value = false;
+        personaDialog.value = true;
+
+        persona.value = createdPersona;
         personas.value.push(createdPersona);
         toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona cloned', life: 3000 });
     } catch (error) {
