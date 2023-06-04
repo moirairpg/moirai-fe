@@ -230,6 +230,8 @@ const downloadPersona = () => {
     link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
     document.body.appendChild(link);
     link.click();
+
+toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona downloaded', life: 3000 });
 };
 
 const clonePersona = async () => {
