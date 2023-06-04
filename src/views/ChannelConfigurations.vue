@@ -1066,7 +1066,10 @@ const onImport = async (event) => {
                                                             <i class="pi pi-user"></i>
                                                             <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
                                                         </div>
-                                                        <Tag :value="slotProps.data.intent" :class="'intent-badge intent-' + (slotProps.data.intent ? slotProps.data.intent.toLowerCase() : '')"></Tag>
+                                                        <Tag
+                                                            :value="`${slotProps.data.intent.toUpperCase()} - ${channelConfig?.persona?.id === slotProps.data.id ? `SELECTED` : `AVAILABLE`}`"
+                                                            :class="'selected-badge ' + (channelConfig?.persona?.id === slotProps.data.id ? 'selected' : 'available') + '-item'"
+                                                        />
                                                     </div>
                                                     <div class="flex flex-column align-items-center gap-3 py-5">
                                                         <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
@@ -1171,7 +1174,10 @@ const onImport = async (event) => {
                                                             <i class="pi pi-user"></i>
                                                             <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
                                                         </div>
-                                                        <Tag :value="`${channelConfig?.world?.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`" :class="'visibility-badge'" />
+                                                        <Tag
+                                                            :value="`${channelConfig?.world?.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`"
+                                                            :class="'selected-badge ' + (channelConfig?.world?.id === slotProps.data.id ? 'selected' : 'available') + '-item'"
+                                                        />
                                                     </div>
                                                     <div class="flex flex-column align-items-center gap-3 py-5">
                                                         <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
