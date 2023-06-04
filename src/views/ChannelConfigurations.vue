@@ -1050,12 +1050,6 @@ const onImport = async (event) => {
                                         responsiveLayout="scroll"
                                         maxLength
                                     >
-                                        <template #header>
-                                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                                <h5 class="m-0">Personas</h5>
-                                            </div>
-                                        </template>
-
                                         <template #empty>No personas found.</template>
 
                                         <template #grid="slotProps">
@@ -1102,7 +1096,6 @@ const onImport = async (event) => {
                                     >
                                         <template #header>
                                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                                <h5 class="m-0">Personas</h5>
                                                 <span class="block mt-2 md:mt-0 p-input-icon-left">
                                                     <i class="pi pi-search" />
                                                     <InputText v-model="personaSearchFilters['global'].value" placeholder="Search..." />
