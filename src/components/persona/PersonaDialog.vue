@@ -152,66 +152,6 @@ const processPersonaBumpTokens = (event: any) => {
 
         <div class="field">
             <label
-                for="nudge"
-                class="mb-3"
-                v-tooltip="
-                    `Instruction applied after the last message in context. A reminder to the AI of what it should be, act or speak like.
-                                The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
-                "
-            >
-                Nudge <i class="pi pi-info-circle" />
-            </label>
-            <div class="grid formgrid">
-                <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                    <Dropdown :disabled="!isOwner" id="nudge-role" v-model="persona.nudge.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" />
-                </div>
-            </div>
-        </div>
-        <div class="field">
-            <div class="grid formgrid">
-                <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                    <Textarea :disabled="!isOwner" rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" @input="processPersonaNudgeTokens" />
-                    <div>
-                        <small>Tokens: {{ personaNudgeTokens?.tokens && persona.nudge?.content ? personaNudgeTokens?.tokens : 0 }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="field">
-            <label
-                for="bump"
-                class="mb-3"
-                v-tooltip="
-                    `A reminder of the behavior the AI's should have that gets added in between messages.
-                                The frequency defines how many times the instruction is repeated in context.
-                                The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
-                "
-            >
-                Bump <i class="pi pi-info-circle" />
-            </label>
-            <div class="grid formgrid">
-                <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                    <Dropdown :disabled="!isOwner" id="bump-role" v-model="persona.bump.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" />
-                </div>
-                <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                    <InputNumber :disabled="!isOwner" showButtons mode="decimal" v-model="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
-                </div>
-            </div>
-        </div>
-        <div class="field">
-            <div class="grid formgrid">
-                <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                    <Textarea :disabled="!isOwner" rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" @input="processPersonaBumpTokens" />
-                    <div>
-                        <small>Tokens: {{ personaBumpTokens?.tokens && persona.bump?.content ? personaBumpTokens?.tokens : 0 }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="field">
-            <label
                 for="personality"
                 v-tooltip="
                     `The bot's actual personality. For the name field to be used here, add {0} to the text. This value is replaced with the bot's name.
@@ -226,6 +166,71 @@ const processPersonaBumpTokens = (event: any) => {
                 <small>Tokens: {{ personalityTokens?.tokens && persona.personality ? personalityTokens?.tokens : 0 }}</small>
             </div>
         </div>
+
+        <div class="card">
+            <Panel header="Optional settings" :toggleable="true" :collapsed="true">
+                <div class="field">
+                    <label
+                        for="nudge"
+                        class="mb-3"
+                        v-tooltip="
+                            `Instruction applied after the last message in context. A reminder to the AI of what it should be, act or speak like.
+                                The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                        "
+                    >
+                        Nudge <i class="pi pi-info-circle" />
+                    </label>
+                    <div class="grid formgrid">
+                        <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                            <Dropdown :disabled="!isOwner" id="nudge-role" v-model="persona.nudge.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" />
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="grid formgrid">
+                        <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                            <Textarea :disabled="!isOwner" rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" @input="processPersonaNudgeTokens" />
+                            <div>
+                                <small>Tokens: {{ personaNudgeTokens?.tokens && persona.nudge?.content ? personaNudgeTokens?.tokens : 0 }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label
+                        for="bump"
+                        class="mb-3"
+                        v-tooltip="
+                            `A reminder of the behavior the AI's should have that gets added in between messages.
+                                The frequency defines how many times the instruction is repeated in context.
+                                The role decides whether the AI interprets this as a system instruction, something said by itself or something said by the user. Each role will have different results.`
+                        "
+                    >
+                        Bump <i class="pi pi-info-circle" />
+                    </label>
+                    <div class="grid formgrid">
+                        <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                            <Dropdown :disabled="!isOwner" id="bump-role" v-model="persona.bump.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" />
+                        </div>
+                        <div class="col-12 mb-2 lg:col-6 lg:mb-0">
+                            <InputNumber :disabled="!isOwner" showButtons mode="decimal" v-model="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="grid formgrid">
+                        <div class="col-12 mb-2 lg:col-12 lg:mb-0">
+                            <Textarea :disabled="!isOwner" rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" @input="processPersonaBumpTokens" />
+                            <div>
+                                <small>Tokens: {{ personaBumpTokens?.tokens && persona.bump?.content ? personaBumpTokens?.tokens : 0 }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Panel>
+        </div>
+
         <div>
             <small>
                 Total tokens in persona (sum of all fields):
