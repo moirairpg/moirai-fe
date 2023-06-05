@@ -68,7 +68,7 @@ const router = createRouter({
         {
             path: '/auth/discord',
             name: 'discord',
-            component: () => import('@/views/DiscordLogin.vue'),
+            component: () => import('@/views/auth/DiscordLogin.vue'),
             meta: {
                 title: 'ChatRPG | Logging in...',
                 requiresLogin: false
@@ -77,7 +77,7 @@ const router = createRouter({
         {
             path: '/error',
             name: 'error',
-            component: () => import('@/views/template/pages/auth/Error.vue'),
+            component: () => import('@/views/errors/AuthError.vue'),
             meta: {
                 title: 'ChatRPG | Error',
                 requiresLogin: false
@@ -86,7 +86,7 @@ const router = createRouter({
         {
             path: '/error/not-found',
             name: 'notfound',
-            component: () => import('@/views/template/pages/NotFound.vue'),
+            component: () => import('@/views/errors/NotFound.vue'),
             meta: {
                 title: 'ChatRPG | Not Found',
                 requiresLogin: false
@@ -95,7 +95,7 @@ const router = createRouter({
         {
             path: '/error/access-denied',
             name: 'accessDenied',
-            component: () => import('@/views/template/pages/auth/Access.vue'),
+            component: () => import('@/views/auth/Access.vue'),
             meta: {
                 title: 'ChatRPG | Access Denied',
                 requiresLogin: false

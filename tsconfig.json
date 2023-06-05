@@ -1,25 +1,28 @@
 {
-  "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "lib": ["es6"],
-    "allowJs": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "removeComments": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
+    "extends": "@vue/tsconfig/tsconfig.json",
+    "compilerOptions": {
+        "jsx": "preserve",
+        "jsxImportSource": "vue",
+        "target": "ES2020",
+        "module": "ES2020",
+        "lib": ["es6", "dom"],
+        "allowJs": true,
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "removeComments": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"]
+        },
+        "strict": true,
+        "strictPropertyInitialization": false,
+        "typeRoots": ["./node_modules/@types", "./src/@types"],
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true
     },
-    "strict": true,
-    "strictPropertyInitialization": false,
-    "typeRoots": ["./node_modules/@types", "./src/@types"],
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
-  },
-  "include": ["src/**/*", "index.ts"]
+    "include": ["src/**/*", "index.ts"]
 }

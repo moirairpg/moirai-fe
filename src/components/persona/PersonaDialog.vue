@@ -2,7 +2,6 @@
 import { Ref, ref, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { decodeTokens } from '../../resources/tokenizer';
-import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 import Persona from '../../types/persona/Persona';
 import LabelItem from '../../types/LabelItem';
 
@@ -49,67 +48,31 @@ const savePersona = (): void => {
     emit('onSave', persona.value);
 };
 
+const downloadPersona = (): void => {
+    emit('onDownload', persona.value);
+};
+
+const clonePersona = (): void => {
+    emit('onClone', persona.value);
+};
+
 const closeWindow = (): void => {
     emit('onClose');
 };
 
-const downloadPersona = (): void => {
-    const personaToDownload: Persona = Object.assign({}, persona.value);
-    delete personaToDownload.ownerData;
-    delete personaToDownload.canEdit;
-
-    const fileName: string = `persona-${personaToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${personaToDownload.name}.json`;
-    const url: string = window.URL.createObjectURL(new Blob([JSON.stringify(personaToDownload, null, 2)]));
-    const link: HTMLAnchorElement = document.createElement('a');
-
-    link.href = url;
-    link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
-    document.body.appendChild(link);
-    link.click();
-
-    toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona downloaded', life: 3000 });
-};
-
-const clonePersona = async () => {
-    try {
-        const personaToClone: Persona = Object.assign({}, persona.value);
-        delete personaToClone.id;
-        delete personaToClone.owner;
-        delete personaToClone.ownerData;
-        delete personaToClone.canEdit;
-
-        // personaToClone.owner = loggedUser.id;
-        personaToClone.name = `${personaToClone.name} - Copy`;
-        // const createdPersona = await personaService.createPersona(personaToClone, loggedUser.id);
-
-        // createdPersona.canEdit = true;
-        // createdPersona.ownerData = loggedUser;
-
-        // viewPersonaDialog.value = false;
-        // personaDialog.value = true;
-
-        // persona.value = createdPersona;
-        // personas.value.push(createdPersona);
-        // toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona cloned', life: 3000 });
-    } catch (error) {
-        console.error(`An error ocurred while cloning the persona -> ${error}`);
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning persona', life: 3000 });
-    }
-};
-
-const processPersonaNameTokens = (event) => {
+const processPersonaNameTokens = (event: any) => {
     personaNameTokens.value = decodeTokens(event.target.value) as any;
 };
 
-const processPersonalityTokens = (event) => {
+const processPersonalityTokens = (event: any) => {
     personalityTokens.value = decodeTokens(event.target.value) as any;
 };
 
-const processPersonaNudgeTokens = (event) => {
+const processPersonaNudgeTokens = (event: any) => {
     personaNudgeTokens.value = decodeTokens(event.target.value) as any;
 };
 
-const processPersonaBumpTokens = (event) => {
+const processPersonaBumpTokens = (event: any) => {
     personaBumpTokens.value = decodeTokens(event.target.value) as any;
 };
 </script>
