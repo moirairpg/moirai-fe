@@ -3,11 +3,14 @@ import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
-import PersonaDialog from '@/components/persona/PersonaDialog.vue';
+import PersonaViewDialog from '@/components/persona/PersonaViewDialog.vue';
+import PersonaImportDialog from '@/components/persona/PersonaImportDialog.vue';
 
 import PersonaService from '@/service/PersonaService';
 import DiscordService from '@/service/DiscordService';
-import store from '../resources/store';
+import store from '@/resources/store';
+import PersonaDeleteBulkDialog from '@/components/persona/PersonaDeleteBulkDialog.vue';
+import PersonaDeleteDialog from '@/components/persona/PersonaDeleteDialog.vue';
 
 const personaService = new PersonaService();
 const discordService = new DiscordService();
@@ -58,7 +61,17 @@ const importPersona = () => {
 };
 
 const createNewPersona = () => {
-    persona.value = { nudge: { role: null }, bump: { role: null } };
+    persona.value = {
+        owner: loggedUser.id,
+        ownerData: loggedUser,
+        nudge: {
+            role: null
+        },
+        bump: {
+            role: null
+        }
+    };
+
     personaSubmitted.value = false;
     personaDialogVisible.value = true;
 };
@@ -207,27 +220,15 @@ const clonePersona = async () => {
     }
 };
 
-const onImport = async (event) => {
-    event.files.forEach(async (file) => {
-        const reader = new FileReader();
-        reader.onload = async (res) => {
-            const personaToImport = JSON.parse(res.target.result);
-            personaToImport.owner = loggedUser.id;
+const uploadPersona = async (event) => {
+    const personaToImport = event.persona;
+    personaToImport.owner = loggedUser.id;
 
-            const createdPersona = await personaService.createPersona(personaToImport, loggedUser.id);
-            createdPersona.canEdit = true;
-            createdPersona.ownerData = loggedUser;
-
-            personas.value.push(createdPersona);
-            toast.add({ severity: 'success', summary: 'Success!', detail: `Persona imported (${file.name})`, life: 3000 });
-        };
-
-        reader.onerror = (err) => {
-            console.log(err);
-            toast.add({ severity: 'error', summary: 'Error', detail: `Error importing persona (${file.name})`, life: 3000 });
-        };
-        reader.readAsText(file);
-    });
+    const createdPersona = await personaService.createPersona(personaToImport, loggedUser.id);
+    createdPersona.canEdit = true;
+    createdPersona.ownerData = loggedUser;
+    personas.value.push(createdPersona);
+    toast.add({ severity: 'success', summary: 'Success!', detail: `Persona imported (${event.file.name})`, life: 3000 });
 
     personaImportDialog.value = false;
 };
@@ -368,38 +369,10 @@ const onImport = async (event) => {
                     </TabPanel>
                 </TabView>
 
-                <PersonaDialog :persona="persona" :isOwner="persona.owner === loggedUser.id" v-model:visible="personaDialogVisible" @onClose="hidePersonaDialog" @onSave="savePersona" @onDownload="downloadPersona" @onClone="clonePersona" />
-                <Dialog v-model:visible="personaImportDialog" header="Import" :modal="true">
-                    <FileUpload name="import[]" :customUpload="true" @uploader="onImport" :multiple="true" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
-                    <template #footer>
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="personaImportDialog = false" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="deletePersonaDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
-                    <div class="flex align-items-center justify-content-center">
-                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                        <span v-if="persona">
-                            Are you sure you want to delete <b>{{ persona.name }}</b
-                            >?
-                        </span>
-                    </div>
-                    <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deletePersonaDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deletePersona" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="deletePersonasDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
-                    <div class="flex align-items-center justify-content-center">
-                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                        <span v-if="persona">Are you sure you want to delete the selected personas?</span>
-                    </div>
-                    <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deletePersonasDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteSelectedPersonas" />
-                    </template>
-                </Dialog>
+                <PersonaViewDialog :persona="persona" :isOwner="persona.owner === loggedUser.id" v-model:visible="personaDialogVisible" @onClose="hidePersonaDialog" @onSave="savePersona" @onDownload="downloadPersona" @onClone="clonePersona" />
+                <PersonaImportDialog v-model:visible="personaImportDialog" @onImport="uploadPersona" />
+                <PersonaDeleteBulkDialog v-model:visible="deletePersonasDialog" @onConfirm="deleteSelectedPersonas" @onCancel="deletePersonasDialog = false" />
+                <PersonaDeleteDialog v-model:visible="deletePersonaDialog" :persona="persona" @onConfirm="deletePersona" @onCancel="deletePersonaDialog = false" />
             </div>
         </div>
     </div>
