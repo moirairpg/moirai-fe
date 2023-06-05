@@ -19,7 +19,7 @@ const toast = useToast();
 const persona = ref({ nudge: { role: null }, bump: { role: null } });
 const personas = ref(null);
 const selectedPersonas = ref(null);
-const personaDialog = ref(false);
+const personaDialogVisible = ref(false);
 const viewPersonaDialog = ref(false);
 const deletePersonaDialog = ref(false);
 const deletePersonasDialog = ref(false);
@@ -60,11 +60,11 @@ const importPersona = () => {
 const createNewPersona = () => {
     persona.value = { nudge: { role: null }, bump: { role: null } };
     personaSubmitted.value = false;
-    personaDialog.value = true;
+    personaDialogVisible.value = true;
 };
 
 const hidePersonaDialog = () => {
-    personaDialog.value = false;
+    personaDialogVisible.value = false;
     personaSubmitted.value = false;
 };
 
@@ -99,14 +99,14 @@ const savePersona = async () => {
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving persona', life: 3000 });
             }
         }
-        personaDialog.value = false;
+        personaDialogVisible.value = false;
         persona.value = { nudge: { role: null }, bump: { role: null } };
     }
 };
 
 const viewPersona = (editPersona) => {
     persona.value = { ...editPersona };
-    personaDialog.value = true;
+    personaDialogVisible.value = true;
 };
 
 const confirmDeletePersona = (editPersona) => {
@@ -196,7 +196,7 @@ const clonePersona = async () => {
         createdPersona.ownerData = loggedUser;
 
         viewPersonaDialog.value = false;
-        personaDialog.value = true;
+        personaDialogVisible.value = true;
 
         persona.value = createdPersona;
         personas.value.push(createdPersona);
@@ -368,7 +368,7 @@ const onImport = async (event) => {
                     </TabPanel>
                 </TabView>
 
-                <PersonaDialog :persona="persona" :isOwner="persona.owner === loggedUser.id" v-model:visible="personaDialog" @onClose="hidePersonaDialog" @onSave="savePersona" @onDownload="downloadPersona" @onClone="clonePersona" />
+                <PersonaDialog :persona="persona" :isOwner="persona.owner === loggedUser.id" v-model:visible="personaDialogVisible" @onClose="hidePersonaDialog" @onSave="savePersona" @onDownload="downloadPersona" @onClone="clonePersona" />
                 <Dialog v-model:visible="personaImportDialog" header="Import" :modal="true">
                     <FileUpload name="import[]" :customUpload="true" @uploader="onImport" :multiple="true" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
                     <template #footer>
