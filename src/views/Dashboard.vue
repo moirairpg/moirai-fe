@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Ref, ref } from 'vue';
-import PersonaDialog from './persona/PersonaDialog.vue';
-import Persona from '../types/persona/Persona';
+import PersonaDialog from '@/components/persona/PersonaDialog.vue';
+import Persona from '@/types/persona/Persona';
 
 const visible = ref(false);
 const viewVisible = ref(false);
@@ -38,7 +38,7 @@ const hidePersonaViewWindow = () => {
     viewVisible.value = false;
 };
 
-const printPersona = (persona) => {
+const printPersona = (persona: Persona) => {
     console.log(`AAAAAAAAAAA -> ${JSON.stringify(persona, null, 2)}`);
 };
 </script>

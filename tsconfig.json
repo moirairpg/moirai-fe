@@ -1,6 +1,7 @@
 {
     "extends": "@vue/tsconfig/tsconfig.json",
     "compilerOptions": {
+        "verbatimModuleSyntax": false,
         "jsx": "preserve",
         "jsxImportSource": "vue",
         "target": "ES2020",
