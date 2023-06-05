@@ -1,4 +1,4 @@
 export default interface Nudge {
-    role: string;
-    content: string;
+    role?: string;
+    content?: string;
 }

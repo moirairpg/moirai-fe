@@ -4,11 +4,11 @@ import DiscordUser from '../DiscordUser';
 
 export default interface Persona {
     id?: string;
-    name: string;
-    intent: string;
-    personality: string;
+    name?: string;
+    intent?: string;
+    personality?: string;
     owner?: string;
-    visibility: string;
+    visibility?: string;
     nudge?: Nudge;
     bump?: Bump;
     ownerData?: DiscordUser;

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Ref, ref, onMounted } from 'vue';
-import { useToast } from 'primevue/usetoast';
+import { Ref, ref, onMounted, watch } from 'vue';
 import { decodeTokens } from '../../resources/tokenizer';
 import Persona from '../../types/persona/Persona';
 import LabelItem from '../../types/LabelItem';
@@ -10,16 +9,19 @@ interface Props {
     isOwner: Boolean;
 }
 
-const toast: any = useToast();
-const emit: any = defineEmits(['onSave', 'onClose']);
+const emit: any = defineEmits(['onSave', 'onDownload', 'onClone', 'onClose']);
 const props: Readonly<Props> = defineProps<Props>();
 
-onMounted((): void => {
-    personaNameTokens.value = decodeTokens(persona.value.name) as any;
-    personalityTokens.value = decodeTokens(persona.value.personality) as any;
-    personaNudgeTokens.value = decodeTokens(persona.value.nudge?.content ?? '') as any;
-    personaBumpTokens.value = decodeTokens(persona.value.bump?.content ?? '') as any;
-});
+watch(
+    () => props.persona,
+    (selectedPersona) => {
+        persona.value = selectedPersona;
+        updateTokens();
+    }
+),
+    { immediate: true, deep: true };
+
+onMounted((): void => updateTokens());
 
 const persona: Ref<Persona> = ref(props.persona);
 const personaSubmitted: Ref<Boolean> = ref(false);
@@ -43,6 +45,13 @@ const visibilities: Ref<LabelItem[]> = ref([
     { label: 'PRIVATE', value: 'private' },
     { label: 'PUBLIC', value: 'public' }
 ]);
+
+const updateTokens = (): void => {
+    personaNameTokens.value = decodeTokens(persona.value.name ?? '') as any;
+    personalityTokens.value = decodeTokens(persona.value.personality ?? '') as any;
+    personaNudgeTokens.value = decodeTokens(persona.value.nudge?.content ?? '') as any;
+    personaBumpTokens.value = decodeTokens(persona.value.bump?.content ?? '') as any;
+};
 
 const savePersona = (): void => {
     emit('onSave', persona.value);
