@@ -1,10 +1,11 @@
-<script setup>
-import { ref } from 'vue';
+<script setup lang="ts">
+import { Ref, ref } from 'vue';
 import PersonaDialog from './persona/PersonaDialog.vue';
+import Persona from '../types/persona/Persona';
 
 const visible = ref(false);
 const viewVisible = ref(false);
-const persona = ref({
+const persona: Ref<Persona> = ref({
     id: 'CHAT',
     name: 'ChatRPG',
     intent: 'chat',
@@ -19,7 +20,7 @@ const persona = ref({
     bump: {
         frequency: 0
     }
-});
+} as Persona);
 
 const showPersonaWindow = () => {
     visible.value = true;
@@ -48,8 +49,8 @@ const printPersona = (persona) => {
             <div class="card">
                 <Button :onclick="showPersonaWindow">Show editable</Button>
                 <Button :onclick="showPersonaViewWindow">Show disabled</Button>
-                <PersonaDialog v-model:p="persona" :isOwner="persona.owner === '560204799925288962'" v-model:visible="visible" @onClose="hidePersonaWindow" @onSave="printPersona" />
-                <PersonaDialog v-model:p="persona" :isOwner="persona.owner === 'aaaaa'" v-model:visible="viewVisible" @onClose="hidePersonaViewWindow" @onSave="printPersona" />
+                <PersonaDialog :persona="persona" :isOwner="persona.owner === '560204799925288962'" v-model:visible="visible" @onClose="hidePersonaWindow" @onSave="printPersona" />
+                <PersonaDialog :persona="persona" :isOwner="persona.owner === 'aaaaa'" v-model:visible="viewVisible" @onClose="hidePersonaViewWindow" @onSave="printPersona" />
             </div>
         </div>
     </div>

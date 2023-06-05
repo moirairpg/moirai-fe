@@ -1,104 +1,116 @@
-<script>
+<script setup lang="ts">
+import { Ref, ref, onMounted } from 'vue';
+import { useToast } from 'primevue/usetoast';
 import { decodeTokens } from '../../resources/tokenizer';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
-import { useToast } from 'primevue/usetoast';
+import Persona from '../../types/persona/Persona';
+import LabelItem from '../../types/LabelItem';
 
-export default {
-    props: {
-        p: { type: Object, required: true },
-        isOwner: { type: Boolean, required: true }
-    },
-    data() {
-        return {
-            persona: this.p,
-            personaSubmitted: false,
-            personaNameTokens: null,
-            personalityTokens: null,
-            personaNudgeTokens: null,
-            personaBumpTokens: null,
-            toast: useToast(),
-            intents: [
-                { label: 'CHAT', value: 'chat' },
-                { label: 'RPG', value: 'rpg' }
-            ],
-            roles: [
-                { label: 'SYSTEM', value: 'system' },
-                { label: 'ASSISTANT', value: 'assistant' },
-                { label: 'USER', value: 'user' }
-            ],
-            visibilities: [
-                { label: 'PRIVATE', value: 'private' },
-                { label: 'PUBLIC', value: 'public' }
-            ]
-        };
-    },
-    methods: {
-        savePersona() {
-            this.$emit('onSave', this.persona);
-        },
-        closeWindow() {
-            this.$emit('onClose');
-        },
-        downloadPersona() {
-            const personaToDownload = Object.assign({}, this.persona);
-            delete personaToDownload.ownerData;
-            delete personaToDownload.canEdit;
+interface Props {
+    persona: Persona;
+    isOwner: Boolean;
+}
 
-            const fileName = `persona-${personaToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${personaToDownload.name}.json`;
-            const url = window.URL.createObjectURL(new Blob([JSON.stringify(personaToDownload, null, 2)]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
-            document.body.appendChild(link);
-            link.click();
+const toast: any = useToast();
+const emit: any = defineEmits(['onSave', 'onClose']);
+const props: Readonly<Props> = defineProps<Props>();
 
-            this.toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona downloaded', life: 3000 });
-        },
-        async clonePersona() {
-            try {
-                const personaToClone = Object.assign({}, persona.value);
-                delete personaToClone.id;
-                delete personaToClone.owner;
-                delete personaToClone.ownerData;
-                delete personaToClone.canEdit;
+onMounted((): void => {
+    personaNameTokens.value = decodeTokens(persona.value.name) as any;
+    personalityTokens.value = decodeTokens(persona.value.personality) as any;
+    personaNudgeTokens.value = decodeTokens(persona.value.nudge?.content ?? '') as any;
+    personaBumpTokens.value = decodeTokens(persona.value.bump?.content ?? '') as any;
+});
 
-                personaToClone.owner = loggedUser.id;
-                personaToClone.name = `${personaToClone.name} - Copy`;
-                const createdPersona = await personaService.createPersona(personaToClone, loggedUser.id);
+const persona: Ref<Persona> = ref(props.persona);
+const personaSubmitted: Ref<Boolean> = ref(false);
+const personaNameTokens: Ref<any> = ref({});
+const personalityTokens: Ref<any> = ref({});
+const personaNudgeTokens: Ref<any> = ref({});
+const personaBumpTokens: Ref<any> = ref({});
 
-                createdPersona.canEdit = true;
-                createdPersona.ownerData = loggedUser;
+const intents: Ref<LabelItem[]> = ref([
+    { label: 'CHAT', value: 'chat' },
+    { label: 'RPG', value: 'rpg' }
+]);
 
-                viewPersonaDialog.value = false;
-                personaDialog.value = true;
+const roles: Ref<LabelItem[]> = ref([
+    { label: 'SYSTEM', value: 'system' },
+    { label: 'ASSISTANT', value: 'assistant' },
+    { label: 'USER', value: 'user' }
+]);
 
-                persona.value = createdPersona;
-                personas.value.push(createdPersona);
-                toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona cloned', life: 3000 });
-            } catch (error) {
-                console.error(`An error ocurred while cloning the persona -> ${error}`);
-                toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning persona', life: 3000 });
-            }
-        },
-        processPersonaNameTokens(event) {
-            this.personaNameTokens = decodeTokens(event.target.value);
-        },
-        processPersonalityTokens(event) {
-            this.personalityTokens = decodeTokens(event.target.value);
-        },
-        processPersonaNudgeTokens(event) {
-            this.personaNudgeTokens = decodeTokens(event.target.value);
-        },
-        processPersonaBumpTokens(event) {
-            this.personaBumpTokens = decodeTokens(event.target.value);
-        }
-    },
-    mounted() {
-        this.personaNameTokens = decodeTokens(this.persona.name);
-        this.personalityTokens = decodeTokens(this.persona.personality);
-        this.personaNudgeTokens = decodeTokens(this.persona.nudge?.content ?? '');
-        this.personaBumpTokens = decodeTokens(this.persona.bump?.content ?? '');
+const visibilities: Ref<LabelItem[]> = ref([
+    { label: 'PRIVATE', value: 'private' },
+    { label: 'PUBLIC', value: 'public' }
+]);
+
+const savePersona = (): void => {
+    emit('onSave', persona.value);
+};
+
+const closeWindow = (): void => {
+    emit('onClose');
+};
+
+const downloadPersona = (): void => {
+    const personaToDownload: Persona = Object.assign({}, persona.value);
+    delete personaToDownload.ownerData;
+    delete personaToDownload.canEdit;
+
+    const fileName: string = `persona-${personaToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${personaToDownload.name}.json`;
+    const url: string = window.URL.createObjectURL(new Blob([JSON.stringify(personaToDownload, null, 2)]));
+    const link: HTMLAnchorElement = document.createElement('a');
+
+    link.href = url;
+    link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
+    document.body.appendChild(link);
+    link.click();
+
+    toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona downloaded', life: 3000 });
+};
+
+const clonePersona = async () => {
+    try {
+        const personaToClone: Persona = Object.assign({}, persona.value);
+        delete personaToClone.id;
+        delete personaToClone.owner;
+        delete personaToClone.ownerData;
+        delete personaToClone.canEdit;
+
+        // personaToClone.owner = loggedUser.id;
+        personaToClone.name = `${personaToClone.name} - Copy`;
+        // const createdPersona = await personaService.createPersona(personaToClone, loggedUser.id);
+
+        // createdPersona.canEdit = true;
+        // createdPersona.ownerData = loggedUser;
+
+        // viewPersonaDialog.value = false;
+        // personaDialog.value = true;
+
+        // persona.value = createdPersona;
+        // personas.value.push(createdPersona);
+        // toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona cloned', life: 3000 });
+    } catch (error) {
+        console.error(`An error ocurred while cloning the persona -> ${error}`);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error cloning persona', life: 3000 });
     }
+};
+
+const processPersonaNameTokens = (event) => {
+    personaNameTokens.value = decodeTokens(event.target.value) as any;
+};
+
+const processPersonalityTokens = (event) => {
+    personalityTokens.value = decodeTokens(event.target.value) as any;
+};
+
+const processPersonaNudgeTokens = (event) => {
+    personaNudgeTokens.value = decodeTokens(event.target.value) as any;
+};
+
+const processPersonaBumpTokens = (event) => {
+    personaBumpTokens.value = decodeTokens(event.target.value) as any;
 };
 </script>
 <template>
@@ -136,7 +148,7 @@ export default {
                     </span>
                 </template>
             </Dropdown>
-            <small class="p-invalid" v-if="personaSubmitted && !persona.description">Visibility is required.</small>
+            <small class="p-invalid" v-if="personaSubmitted && !persona.visibility">Visibility is required.</small>
         </div>
 
         <div class="field">
@@ -188,7 +200,7 @@ export default {
                 <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                     <Textarea :disabled="!isOwner" rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" @input="processPersonaNudgeTokens" />
                     <div>
-                        <small>Tokens: {{ personaNudgeTokens?.tokens && persona.nudge.content ? personaNudgeTokens?.tokens : 0 }}</small>
+                        <small>Tokens: {{ personaNudgeTokens?.tokens && persona.nudge?.content ? personaNudgeTokens?.tokens : 0 }}</small>
                     </div>
                 </div>
             </div>
@@ -220,7 +232,7 @@ export default {
                 <div class="col-12 mb-2 lg:col-12 lg:mb-0">
                     <Textarea :disabled="!isOwner" rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" @input="processPersonaBumpTokens" />
                     <div>
-                        <small>Tokens: {{ personaBumpTokens?.tokens && persona.bump.content ? personaBumpTokens?.tokens : 0 }}</small>
+                        <small>Tokens: {{ personaBumpTokens?.tokens && persona.bump?.content ? personaBumpTokens?.tokens : 0 }}</small>
                     </div>
                 </div>
             </div>
@@ -247,8 +259,8 @@ export default {
                 Total tokens in persona (sum of all fields):
                 {{
                     (personalityTokens?.tokens && persona.personality ? personalityTokens?.tokens : 0) +
-                        (personaBumpTokens?.tokens && persona.bump.content ? personaBumpTokens?.tokens : 0) +
-                        (personaNudgeTokens?.tokens && persona.nudge.content ? personaNudgeTokens?.tokens : 0) +
+                        (personaBumpTokens?.tokens && persona.bump?.content ? personaBumpTokens?.tokens : 0) +
+                        (personaNudgeTokens?.tokens && persona.nudge?.content ? personaNudgeTokens?.tokens : 0) +
                         (personaNameTokens?.tokens && persona.name ? personaNameTokens?.tokens : 0) ?? 0
                 }}
             </small>
