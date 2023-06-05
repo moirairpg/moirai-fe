@@ -1,7 +1,4 @@
 import { createApp } from 'vue';
-import App from './App.vue';
-import router from './resources/router';
-import store from './resources/store';
 
 import PrimeVue from 'primevue/config';
 import AutoComplete from 'primevue/autocomplete';
@@ -100,6 +97,9 @@ import TreeSelect from 'primevue/treeselect';
 import TreeTable from 'primevue/treetable';
 import TriStateCheckbox from 'primevue/tristatecheckbox';
 import VirtualScroller from 'primevue/virtualscroller';
+import store from './resources/store';
+import router from './resources/router';
+import App from './App.vue';
 
 import CodeHighlight from '@/components/CodeHighlight.vue';
 import BlockViewer from '@/components/BlockViewer.vue';

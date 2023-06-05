@@ -12,5 +12,5 @@ export default interface Persona {
     nudge?: Nudge;
     bump?: Bump;
     ownerData?: DiscordUser;
-    canEdit?: Boolean;
+    canEdit?: boolean;
 }

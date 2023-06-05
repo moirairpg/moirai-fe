@@ -1,7 +1,7 @@
 import webclient from '../resources/webclient';
 import store from '../resources/store';
 
-const authData = store.getters.authData;
+const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 export default class ChannelConfigService {

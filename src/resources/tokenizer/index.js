@@ -13,8 +13,8 @@ export function decodeTokens(text) {
 
     if (decodedTokens.length > 0) {
         return {
-            decodedTokens: decodedTokens,
-            encodedTokens: encodedTokens,
+            decodedTokens,
+            encodedTokens,
             characters: text.length,
             tokens: encodedTokens.length,
             words: text.match(/\b(\w+)\b/g).length,
@@ -24,9 +24,8 @@ export function decodeTokens(text) {
             tritanopia: ['rgba(68, 102, 110, 1)', 'rgba(252, 159, 171, 1)', 'rgba(0, 185, 199, 1)', 'rgba(238, 67, 70, 1)', 'rgba(133, 209, 225, 1)']
         };
     }
-};
+}
 
 export function decodeSingleToken(tokenId) {
     return decodeToken(tokenId);
 }
-

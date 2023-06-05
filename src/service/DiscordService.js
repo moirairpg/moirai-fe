@@ -1,6 +1,6 @@
+import queryString from 'query-string';
 import webclient from '../resources/webclient';
 import store from '../resources/store';
-import queryString from 'query-string';
 
 const clientId = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_ID;
 const clientSecret = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_SECRET;
@@ -35,7 +35,7 @@ export default class DiscordService {
 
     async retrieveSelfUserData() {
         try {
-            const authData = store.getters.authData;
+            const { authData } = store.getters;
             const response = await webclient({
                 method: 'GET',
                 headers: {

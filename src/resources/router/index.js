@@ -105,17 +105,16 @@ const router = createRouter({
 });
 
 router.beforeEach((toRoute, fromRoute, next) => {
-
     window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
-    if (toRoute.matched.some(record => record.meta.requiresLogin)) {
+    if (toRoute.matched.some((record) => record.meta.requiresLogin)) {
         if (!store.getters.isLoggedIn) {
-            next({ name: 'login' })
+            next({ name: 'login' });
         } else {
             next();
         }
     } else {
         next();
     }
-})
+});
 
 export default router;

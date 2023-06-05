@@ -1,3 +1,1 @@
-export default interface DiscordUser {
-    
-}
+export default interface DiscordUser {}

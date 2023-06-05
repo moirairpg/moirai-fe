@@ -338,7 +338,7 @@ const downloadWorld = () => {
     document.body.appendChild(link);
     link.click();
 
-toast.add({ severity: 'success', summary: 'Success!', detail: 'World downloaded', life: 3000 });
+    toast.add({ severity: 'success', summary: 'Success!', detail: 'World downloaded', life: 3000 });
 };
 
 const cloneWorld = async () => {
