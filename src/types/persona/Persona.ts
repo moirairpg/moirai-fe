@@ -13,4 +13,6 @@ export default interface Persona {
     bump?: Bump;
     ownerData?: DiscordUser;
     canEdit?: boolean;
+    writePermissions?: string[];
+    readPermissions?: string[];
 }

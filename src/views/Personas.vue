@@ -1,8 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { FilterMatchMode } from 'primevue/api';
-import { ref, onMounted, onBeforeMount } from 'vue';
+import { ref, onMounted, onBeforeMount, Ref } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
+import { ToastServiceMethods } from 'primevue/toastservice';
+
 import PersonaViewDialog from '@/components/persona/PersonaViewDialog.vue';
 import PersonaImportDialog from '@/components/persona/PersonaImportDialog.vue';
 
@@ -11,37 +13,38 @@ import DiscordService from '@/service/DiscordService';
 import store from '@/resources/store';
 import PersonaDeleteBulkDialog from '@/components/persona/PersonaDeleteBulkDialog.vue';
 import PersonaDeleteDialog from '@/components/persona/PersonaDeleteDialog.vue';
+import Persona from '@/types/persona/Persona';
 
-const personaService = new PersonaService();
-const discordService = new DiscordService();
-const loggedUser = store.getters.loggedUser;
+const personaService: PersonaService = new PersonaService();
+const discordService: DiscordService = new DiscordService();
+const loggedUser: any = store.getters.loggedUser;
 
-const dt = ref(null);
-const toast = useToast();
+const dt: Ref<any> = ref(null);
+const toast: ToastServiceMethods = useToast();
 
-const persona = ref({ nudge: { role: null }, bump: { role: null } });
-const personas = ref(null);
-const selectedPersonas = ref(null);
-const personaDialogVisible = ref(false);
-const viewPersonaDialog = ref(false);
-const deletePersonaDialog = ref(false);
-const deletePersonasDialog = ref(false);
-const personaSubmitted = ref(false);
-const personaImportDialog = ref(false);
-const personaSearchFilters = ref({});
+const persona: Ref<Persona> = ref({ owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } });
+const personas: Ref<Persona[]> = ref([]);
+const selectedPersonas: Ref<Persona[]> = ref([]);
+const personaDialogVisible: Ref<Boolean> = ref(false);
+const viewPersonaDialog: Ref<Boolean> = ref(false);
+const deletePersonaDialog: Ref<Boolean> = ref(false);
+const deletePersonasDialog: Ref<Boolean> = ref(false);
+const personaSubmitted: Ref<Boolean> = ref(false);
+const personaImportDialog: Ref<Boolean> = ref(false);
+const personaSearchFilters: Ref<any> = ref({});
 
-onBeforeMount(() => {
+onBeforeMount((): void => {
     initFilters();
 });
 
-onMounted(async () => {
-    personaService.getAllPersonas(loggedUser.id).then(async (data) => {
-        const ps = [];
+onMounted(async (): Promise<void> => {
+    personaService.getAllPersonas(loggedUser.id).then(async (data: Persona[]) => {
+        const ps: Persona[] = [];
         if (data?.[0] !== undefined) {
             for (let p of data) {
-                let canEdit = false;
+                let canEdit: boolean = false;
                 const ownerData = await discordService.retrieveUserData(p.owner);
-                if (p.owner === loggedUser.id || p.writePermissions?.contains(loggedUser.id)) {
+                if (p.owner === loggedUser.id || p.writePermissions?.includes(loggedUser.id)) {
                     canEdit = true;
                 }
 
@@ -55,41 +58,29 @@ onMounted(async () => {
     });
 });
 
-const importPersona = () => {
+const importPersona = (): void => {
     personaSubmitted.value = false;
     personaImportDialog.value = true;
 };
 
-const createNewPersona = () => {
-    persona.value = {
-        owner: loggedUser.id,
-        ownerData: loggedUser,
-        nudge: {
-            role: null
-        },
-        bump: {
-            role: null
-        }
-    };
+const createNewPersona = (): void => {
+    persona.value = { owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
 
     personaSubmitted.value = false;
     personaDialogVisible.value = true;
 };
 
-const hidePersonaDialog = () => {
+const hidePersonaDialog = (): void => {
     personaDialogVisible.value = false;
     personaSubmitted.value = false;
 };
 
-const savePersona = async () => {
+const savePersona = async (): Promise<void> => {
     personaSubmitted.value = true;
-    if (persona.value.name.trim() && persona.value.personality.trim() && persona.value.intent && persona.value.visibility) {
+    if (persona.value.name?.trim() && persona.value.personality?.trim() && persona.value.intent && persona.value.visibility) {
         if (persona.value.id) {
             try {
-                persona.value.visibility = persona.value.visibility.value ? persona.value.visibility.value : persona.value.visibility;
-                persona.value.intent = persona.value.intent.value ? persona.value.intent.value : persona.value.intent;
                 await personaService.updatePersona(persona.value, loggedUser.id);
-
                 personas.value[findPersonaIndexById(persona.value.id)] = persona.value;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona updated', life: 3000 });
             } catch (error) {
@@ -98,11 +89,7 @@ const savePersona = async () => {
             }
         } else {
             try {
-                persona.value.visibility = persona.value.visibility.value ? persona.value.visibility.value : persona.value.visibility;
-                persona.value.intent = persona.value.intent ? persona.value.intent.value : 'rpg';
-                persona.value.owner = loggedUser.id;
                 const createdPersona = await personaService.createPersona(persona.value, loggedUser.id);
-
                 createdPersona.canEdit = true;
                 createdPersona.ownerData = loggedUser;
                 personas.value.push(createdPersona);
@@ -113,21 +100,21 @@ const savePersona = async () => {
             }
         }
         personaDialogVisible.value = false;
-        persona.value = { nudge: { role: null }, bump: { role: null } };
+        persona.value = { owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
     }
 };
 
-const viewPersona = (editPersona) => {
+const viewPersona = (editPersona: Persona): void => {
     persona.value = { ...editPersona };
     personaDialogVisible.value = true;
 };
 
-const confirmDeletePersona = (editPersona) => {
+const confirmDeletePersona = (editPersona: Persona) => {
     persona.value = editPersona;
     deletePersonaDialog.value = true;
 };
 
-const deletePersona = async () => {
+const deletePersona = async (): Promise<void> => {
     try {
         await personaService.deletePersona(persona.value, loggedUser.id);
         personas.value = personas.value.filter((val) => val.id !== persona.value.id);
@@ -140,7 +127,7 @@ const deletePersona = async () => {
     }
 };
 
-const findPersonaIndexById = (id) => {
+const findPersonaIndexById = (id: string): number => {
     let index = -1;
     for (let i = 0; i < personas.value.length; i++) {
         if (personas.value[i].id === id) {
@@ -151,40 +138,41 @@ const findPersonaIndexById = (id) => {
     return index;
 };
 
-const confirmDeleteSelectedPersonas = () => {
+const confirmDeleteSelectedPersonas = (): void => {
     deletePersonasDialog.value = true;
 };
 
-const deleteSelectedPersonas = () => {
+const deleteSelectedPersonas = (): void => {
     personas.value = personas.value
-        .map((val) => {
+        .map((val: Persona) => {
             if (!selectedPersonas.value.includes(val)) {
                 return val;
             }
 
             return personaService.deletePersona(val, loggedUser.id);
         })
-        .filter((val) => Object.keys(val).length !== 0);
+        .filter((val) => Object.keys(val).length !== 0) as Persona[];
 
     deletePersonasDialog.value = false;
-    selectedPersonas.value = null;
+    selectedPersonas.value = [];
     toast.add({ severity: 'success', summary: 'Success!', detail: 'Personas selected deleted', life: 3000 });
 };
 
-const initFilters = () => {
+const initFilters = (): void => {
     personaSearchFilters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
 
-const downloadPersona = () => {
-    const personaToDownload = Object.assign({}, persona.value);
+const downloadPersona = (): void => {
+    const personaToDownload: Persona = Object.assign({}, persona.value);
     delete personaToDownload.ownerData;
     delete personaToDownload.canEdit;
 
-    const fileName = `persona-${personaToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${personaToDownload.name}.json`;
-    const url = window.URL.createObjectURL(new Blob([JSON.stringify(personaToDownload, null, 2)]));
-    const link = document.createElement('a');
+    const fileName: string = `persona-${personaToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${personaToDownload.name}.json`;
+    const url: string = window.URL.createObjectURL(new Blob([JSON.stringify(personaToDownload, null, 2)]));
+    const link: HTMLAnchorElement = document.createElement('a');
+
     link.href = url;
     link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
     document.body.appendChild(link);
@@ -193,9 +181,9 @@ const downloadPersona = () => {
     toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona downloaded', life: 3000 });
 };
 
-const clonePersona = async () => {
+const clonePersona = async (): Promise<void> => {
     try {
-        const personaToClone = Object.assign({}, persona.value);
+        const personaToClone: Persona = Object.assign({}, persona.value);
         delete personaToClone.id;
         delete personaToClone.owner;
         delete personaToClone.ownerData;
@@ -203,7 +191,7 @@ const clonePersona = async () => {
 
         personaToClone.owner = loggedUser.id;
         personaToClone.name = `${personaToClone.name} - Copy`;
-        const createdPersona = await personaService.createPersona(personaToClone, loggedUser.id);
+        const createdPersona: Persona = await personaService.createPersona(personaToClone, loggedUser.id);
 
         createdPersona.canEdit = true;
         createdPersona.ownerData = loggedUser;
@@ -220,11 +208,11 @@ const clonePersona = async () => {
     }
 };
 
-const uploadPersona = async (event) => {
-    const personaToImport = event.persona;
+const uploadPersona = async (event: any) => {
+    const personaToImport: Persona = event.persona;
     personaToImport.owner = loggedUser.id;
 
-    const createdPersona = await personaService.createPersona(personaToImport, loggedUser.id);
+    const createdPersona: Persona = await personaService.createPersona(personaToImport, loggedUser.id);
     createdPersona.canEdit = true;
     createdPersona.ownerData = loggedUser;
     personas.value.push(createdPersona);
