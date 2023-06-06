@@ -14,9 +14,8 @@ import Persona from '@/types/persona/Persona';
 
 import store from '@/resources/store';
 import personaService from '@/service/PersonaService';
-import DiscordService from '@/service/DiscordService';
+import discordService from '@/service/DiscordService';
 
-const discordService: DiscordService = new DiscordService();
 const loggedUser: any = store.getters.loggedUser;
 
 const dataViewRef: Ref<any> = ref(null);
@@ -42,7 +41,7 @@ onMounted(async (): Promise<void> => {
         if (data?.[0] !== undefined) {
             for (let p of data) {
                 let canEdit: boolean = false;
-                const ownerData = await discordService.retrieveUserData(p.owner);
+                const ownerData = await discordService.retrieveUserData(p.owner as string);
                 if (p.owner === loggedUser.id || p.writePermissions?.includes(loggedUser.id)) {
                     canEdit = true;
                 }

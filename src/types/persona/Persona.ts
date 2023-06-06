@@ -1,6 +1,6 @@
-import Nudge from './Nudge';
-import Bump from './Bump';
-import DiscordUser from '../DiscordUser';
+import Nudge from '@/types/persona/Nudge';
+import Bump from '@/types/persona/Bump';
+import DiscordUser from '@/types/discord/DiscordUser';
 
 export default interface Persona {
     id?: string;

@@ -1,16 +1,18 @@
 import queryString from 'query-string';
 import webclient from '../resources/webclient';
 import store from '../resources/store';
+import DiscordAuth from '@/types/discord/DiscordAuth';
+import DiscordUser from '@/types/discord/DiscordUser';
 
-const clientId = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_ID;
-const clientSecret = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_SECRET;
-const redirectUrl = import.meta.env.VITE_CHATRPG_DISCORD_REDIRECT_URL;
-const baseUrl = import.meta.env.VITE_CHATRPG_DISCORD_API_BASE_URL;
-const backendBaseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
+const clientId: string = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_ID;
+const clientSecret: string = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_SECRET;
+const redirectUrl: string = import.meta.env.VITE_CHATRPG_DISCORD_REDIRECT_URL;
+const baseUrl: string = import.meta.env.VITE_CHATRPG_DISCORD_API_BASE_URL;
+const backendBaseUrl: string = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
-export default class DiscordService {
-    async retrieveToken(authCode) {
-        const response = await webclient({
+class DiscordService {
+    async retrieveToken(authCode: string): Promise<DiscordAuth> {
+        const response: any = await webclient({
             method: 'POST',
             data: queryString.stringify({
                 client_id: clientId,
@@ -33,10 +35,10 @@ export default class DiscordService {
         return response;
     }
 
-    async retrieveSelfUserData() {
+    async retrieveSelfUserData(): Promise<DiscordUser> {
         try {
             const { authData } = store.getters;
-            const response = await webclient({
+            const response: any = await webclient({
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${authData.access_token}`
@@ -52,9 +54,9 @@ export default class DiscordService {
         }
     }
 
-    async retrieveUserData(userId) {
+    async retrieveUserData(userId: string): Promise<DiscordUser> {
         try {
-            const response = await webclient(`${backendBaseUrl}/discord/user/${userId}`, {
+            const response: any = await webclient(`${backendBaseUrl}/discord/user/${userId}`, {
                 method: 'GET'
             });
 
@@ -65,3 +67,5 @@ export default class DiscordService {
         }
     }
 }
+
+export default new DiscordService();
