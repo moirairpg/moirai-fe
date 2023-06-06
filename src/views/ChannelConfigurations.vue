@@ -2,16 +2,14 @@
 import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import ChannelConfigService from '@/service/ChannelConfigService';
+import channelConfigService from '@/service/ChannelConfigService';
 import personaService from '@/service/PersonaService';
-import WorldService from '@/service/WorldService';
+import worldService from '@/service/WorldService';
 import discordService from '@/service/DiscordService';
 import store from '../resources/store';
 import tokenizer from '@/resources/Tokenizer';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
-const worldService = new WorldService();
-const channelConfigService = new ChannelConfigService();
 const loggedUser = store.getters.loggedUser;
 
 const dt = ref(null);

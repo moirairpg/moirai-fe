@@ -5,7 +5,7 @@ import ChannelConfiguration from '@/types/chconf/ChannelConfiguration';
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
-export default class ChannelConfigService {
+class ChannelConfigService {
     async getAllChannelConfigs(requesterUserId: string): Promise<ChannelConfiguration[]> {
         try {
             const response: any = await webclient(`${baseUrl}/channel-config`, {
@@ -102,3 +102,5 @@ export default class ChannelConfigService {
         }
     }
 }
+
+export default new ChannelConfigService();

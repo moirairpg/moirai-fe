@@ -1,7 +1,5 @@
 <script>
-import DiscordService from '@/service/DiscordService';
-
-const discordService = new DiscordService();
+import discordService from '@/service/DiscordService';
 
 export default {
     async mounted() {

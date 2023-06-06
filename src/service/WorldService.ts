@@ -5,7 +5,7 @@ import World from '@/types/world/World';
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
-export default class WorldService {
+class WorldService {
     async getAllWorlds(requesterUserId: string): Promise<World[]> {
         try {
             const response: any = await webclient(`${baseUrl}/world`, {
@@ -89,3 +89,5 @@ export default class WorldService {
         }
     }
 }
+
+export default new WorldService();

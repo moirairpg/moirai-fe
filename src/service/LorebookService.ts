@@ -6,7 +6,7 @@ import World from '@/types/world/World';
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
-export default class LorebookService {
+class LorebookService {
     async createLorebookEntry(entry: LorebookEntry, world: World, requesterUserId: string): Promise<LorebookEntry> {
         try {
             const response: any = await webclient(`${baseUrl}/lore/entry/${world.id}`, {
@@ -68,3 +68,5 @@ export default class LorebookService {
         }
     }
 }
+
+export default new LorebookService();

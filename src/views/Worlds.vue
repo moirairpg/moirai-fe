@@ -5,13 +5,11 @@ import tokenizer from '@/resources/Tokenizer';
 import { useToast } from 'primevue/usetoast';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
-import WorldService from '@/service/WorldService';
-import LorebookService from '@/service/LorebookService';
+import worldService from '@/service/WorldService';
+import lorebookService from '@/service/LorebookService';
 import discordService from '@/service/DiscordService';
 import store from '../resources/store';
 
-const worldService = new WorldService();
-const lorebookService = new LorebookService();
 const loggedUser = store.getters.loggedUser;
 
 const dt = ref(null);
