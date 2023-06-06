@@ -3,17 +3,15 @@ import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import ChannelConfigService from '@/service/ChannelConfigService';
-import PersonaService from '@/service/PersonaService';
+import personaService from '@/service/PersonaService';
 import WorldService from '@/service/WorldService';
-import DiscordService from '@/service/DiscordService';
+import discordService from '@/service/DiscordService';
 import store from '../resources/store';
-import { decodeTokens, decodeSingleToken } from '../resources/tokenizer';
+import tokenizer from '@/resources/Tokenizer';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
-const personaService = new PersonaService();
 const worldService = new WorldService();
 const channelConfigService = new ChannelConfigService();
-const discordService = new DiscordService();
 const loggedUser = store.getters.loggedUser;
 
 const dt = ref(null);
@@ -267,7 +265,7 @@ const viewChannelConfig = (editChannelConfig) => {
     logitBiases.value = [];
     for (var key in channelConfig.value.model_settings.logit_bias) {
         const value = channelConfig.value.model_settings.logit_bias[key];
-        const token = decodeSingleToken(key);
+        const token = tokenizer.decodeSingleToken(key);
         logitBiases.value.push(`${token}:${value}`);
     }
 
@@ -285,7 +283,7 @@ const editChannelConfig = (editChannelConfig) => {
     logitBiases.value = [];
     for (var key in channelConfig.value.model_settings.logit_bias) {
         const value = channelConfig.value.model_settings.logit_bias[key];
-        const token = decodeSingleToken(key);
+        const token = tokenizer.decodeSingleToken(key);
         logitBiases.value.push({
             text: `${token}:${value}`,
             decodedToken: token,
@@ -404,7 +402,7 @@ const addLogitBias = () => {
         logitBiases.value[existingBiasIndex].bias = logitBiasValue.value;
         logitBiases.value[existingBiasIndex].text = `${logitBiasToken.value}:${logitBiasValue.value}`;
     } else {
-        const tokenized = decodeTokens(logitBiasToken.value);
+        const tokenized = tokenizer.decodeTokens(logitBiasToken.value);
         tokenized.encodedTokens.forEach((tokenId, index) => {
             logitBiases.value.push({
                 text: `${tokenized.decodedTokens[index]}:${logitBiasValue.value}`,

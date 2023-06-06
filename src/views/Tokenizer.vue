@@ -1,13 +1,13 @@
 <script setup>
 import { ref } from 'vue';
-import { decodeTokens } from '../resources/tokenizer';
+import tokenizer from '@/resources/Tokenizer';
 
 const pipe = ref(false);
 const colors = ref(null);
 const text = ref(null);
 const processedTokens = ref(null);
 const processTokens = (event) => {
-    processedTokens.value = decodeTokens(event.target.value);
+    processedTokens.value = tokenizer.decodeTokens(event.target.value);
     colors.value = processedTokens.value.trueColors;
 };
 
