@@ -1,30 +1,15 @@
-import webclient from '../resources/webclient';
-import store from '../resources/store';
+import webclient from '@/resources/webclient';
+import store from '@/resources/store';
+import LorebookEntry from '@/types/world/LorebookEntry';
+import World from '@/types/world/World';
 
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 export default class LorebookService {
-    async getAllEntriesFromLorebook(lorebook) {
+    async createLorebookEntry(entry: LorebookEntry, world: World, requesterUserId: string): Promise<LorebookEntry> {
         try {
-            const response = await webclient(`${baseUrl}/lore/entry/lorebook/${lorebook.id}`, {
-                method: 'GET',
-                headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.access_token}`
-                }
-            });
-
-            return await response.lorebook_entries;
-        } catch (error) {
-            console.error(`Error retrieving lorebook data from lorebook with id ${lorebook.id} -> ${error}`);
-            throw error;
-        }
-    }
-
-    async createLorebookEntry(entry, lorebook, requesterUserId) {
-        try {
-            const response = await webclient(`${baseUrl}/lore/entry/${lorebook.id}`, {
+            const response: any = await webclient(`${baseUrl}/lore/entry/${world.id}`, {
                 method: 'POST',
                 data: {
                     id: entry.id,
@@ -39,15 +24,15 @@ export default class LorebookService {
             });
 
             return response.lorebook_entry;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error creating lorebook entry with id ${entry.id} -> ${error}`);
             throw error;
         }
     }
 
-    async updateLorebookEntry(entry, requesterUserId) {
+    async updateLorebookEntry(entry: LorebookEntry, requesterUserId: string): Promise<LorebookEntry> {
         try {
-            const response = await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
+            const response: any = await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
                 method: 'PUT',
                 data: {
                     id: entry.id,
@@ -62,13 +47,13 @@ export default class LorebookService {
             });
 
             return response;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error updating lorebook entry with id ${entry.id} -> ${error}`);
             throw error;
         }
     }
 
-    async deleteLorebookEntry(entry, requesterUserId) {
+    async deleteLorebookEntry(entry: LorebookEntry, requesterUserId: string): Promise<void> {
         try {
             await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
                 method: 'DELETE',
@@ -77,7 +62,7 @@ export default class LorebookService {
                     Authorization: `Bearer ${authData.access_token}`
                 }
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error deleting lorebook entry with id ${entry.id} -> ${error}`);
             throw error;
         }

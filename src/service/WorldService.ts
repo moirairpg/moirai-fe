@@ -1,13 +1,14 @@
-import webclient from '../resources/webclient';
-import store from '../resources/store';
+import webclient from '@/resources/webclient';
+import store from '@/resources/store';
+import World from '@/types/world/World';
 
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 export default class WorldService {
-    async getAllWorlds(requesterUserId) {
+    async getAllWorlds(requesterUserId: string): Promise<World[]> {
         try {
-            const response = await webclient(`${baseUrl}/world`, {
+            const response: any = await webclient(`${baseUrl}/world`, {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
@@ -16,15 +17,15 @@ export default class WorldService {
             });
 
             return await response.worlds;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error retrieving world data -> ${error}`);
             throw error;
         }
     }
 
-    async createWorld(world, requesterUserId) {
+    async createWorld(world: World, requesterUserId: string): Promise<World> {
         try {
-            const response = await webclient(`${baseUrl}/world`, {
+            const response: any = await webclient(`${baseUrl}/world`, {
                 method: 'POST',
                 data: {
                     id: world.id,
@@ -32,7 +33,7 @@ export default class WorldService {
                     description: world.description,
                     owner: world.owner,
                     visibility: world.visibility,
-                    initial_prompt: world.initial_prompt,
+                    initial_prompt: world.initialPrompt,
                     lorebook: world.lorebook
                 },
                 headers: {
@@ -42,15 +43,15 @@ export default class WorldService {
             });
 
             return response.world;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error creating world -> ${error}`);
             throw error;
         }
     }
 
-    async updateWorld(world, requesterUserId) {
+    async updateWorld(world: World, requesterUserId: string): Promise<World> {
         try {
-            const response = await webclient(`${baseUrl}/world/${world.id}`, {
+            const response: any = await webclient(`${baseUrl}/world/${world.id}`, {
                 method: 'PUT',
                 data: {
                     id: world.id,
@@ -58,7 +59,7 @@ export default class WorldService {
                     description: world.description,
                     owner: world.owner,
                     visibility: world.visibility,
-                    initial_prompt: world.initial_prompt
+                    initial_prompt: world.initialPrompt
                 },
                 headers: {
                     requester: requesterUserId,
@@ -67,13 +68,13 @@ export default class WorldService {
             });
 
             return await response;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error updating world with id ${world.id} -> ${error}`);
             throw error;
         }
     }
 
-    async deleteWorld(world, requesterUserId) {
+    async deleteWorld(world: World, requesterUserId: string): Promise<void> {
         try {
             await webclient(`${baseUrl}/world/${world.id}`, {
                 method: 'DELETE',
@@ -82,7 +83,7 @@ export default class WorldService {
                     Authorization: `Bearer ${authData.access_token}`
                 }
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error deleting world with id ${world.id} -> ${error}`);
             throw error;
         }

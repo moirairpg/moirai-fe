@@ -1,6 +1,6 @@
 import queryString from 'query-string';
-import webclient from '../resources/webclient';
-import store from '../resources/store';
+import webclient from '@/resources/webclient';
+import store from '@/resources/store';
 import DiscordAuth from '@/types/discord/DiscordAuth';
 import DiscordUser from '@/types/discord/DiscordUser';
 

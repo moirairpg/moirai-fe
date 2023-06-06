@@ -1,13 +1,14 @@
-import webclient from '../resources/webclient';
-import store from '../resources/store';
+import webclient from '@/resources/webclient';
+import store from '@/resources/store';
+import ChannelConfiguration from '@/types/chconf/ChannelConfiguration';
 
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 export default class ChannelConfigService {
-    async getAllChannelConfigs(requesterUserId) {
+    async getAllChannelConfigs(requesterUserId: string): Promise<ChannelConfiguration[]> {
         try {
-            const response = await webclient(`${baseUrl}/channel-config`, {
+            const response: any = await webclient(`${baseUrl}/channel-config`, {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
@@ -16,30 +17,30 @@ export default class ChannelConfigService {
             });
 
             return await response.channel_configs;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error retrieving channel config data -> ${error}`);
             throw error;
         }
     }
 
-    async createChannelConfig(channelConfig, requesterUserId) {
+    async createChannelConfig(channelConfig: ChannelConfiguration, requesterUserId: string): Promise<ChannelConfiguration> {
         try {
-            const response = await webclient(`${baseUrl}/channel-config`, {
+            const response: any = await webclient(`${baseUrl}/channel-config`, {
                 method: 'POST',
                 data: {
                     id: channelConfig.id,
                     name: channelConfig.name,
                     owner: channelConfig.owner,
                     persona: {
-                        id: channelConfig.persona.id
+                        id: channelConfig.persona?.id
                     },
                     world: {
-                        id: channelConfig.world.id
+                        id: channelConfig.world?.id
                     },
                     moderation_settings: {
-                        id: channelConfig.moderation_settings.id
+                        id: channelConfig.moderationSettings?.id
                     },
-                    model_settings: channelConfig.model_settings
+                    model_settings: channelConfig.modelSettings
                 },
                 headers: {
                     requester: requesterUserId,
@@ -48,30 +49,30 @@ export default class ChannelConfigService {
             });
 
             return response.channel_config;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error creating channel config -> ${error}`);
             throw error;
         }
     }
 
-    async updateChannelConfig(channelConfig, requesterUserId) {
+    async updateChannelConfig(channelConfig: ChannelConfiguration, requesterUserId: string): Promise<ChannelConfiguration> {
         try {
-            const response = await webclient(`${baseUrl}/channel-config/${channelConfig.id}`, {
+            const response: any = await webclient(`${baseUrl}/channel-config/${channelConfig.id}`, {
                 method: 'PUT',
                 data: {
                     id: channelConfig.id,
                     name: channelConfig.name,
                     owner: channelConfig.owner,
                     persona: {
-                        id: channelConfig.persona.id
+                        id: channelConfig.persona?.id
                     },
                     world: {
-                        id: channelConfig.world.id
+                        id: channelConfig.world?.id
                     },
                     moderation_settings: {
-                        id: channelConfig.moderation_settings.id
+                        id: channelConfig.moderationSettings?.id
                     },
-                    model_settings: channelConfig.model_settings
+                    model_settings: channelConfig.modelSettings
                 },
                 headers: {
                     requester: requesterUserId,
@@ -80,13 +81,13 @@ export default class ChannelConfigService {
             });
 
             return await response;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error updating channel config with id ${channelConfig.id} -> ${error}`);
             throw error;
         }
     }
 
-    async deleteChannelConfig(channelConfig, requesterUserId) {
+    async deleteChannelConfig(channelConfig: ChannelConfiguration, requesterUserId: string): Promise<void> {
         try {
             await webclient(`${baseUrl}/channel-config/${channelConfig.id}`, {
                 method: 'DELETE',
@@ -95,7 +96,7 @@ export default class ChannelConfigService {
                     Authorization: `Bearer ${authData.access_token}`
                 }
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error deleting channel config with id ${channelConfig.id} -> ${error}`);
             throw error;
         }
