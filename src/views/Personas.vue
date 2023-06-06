@@ -7,15 +7,15 @@ import { ToastServiceMethods } from 'primevue/toastservice';
 
 import PersonaViewDialog from '@/components/persona/PersonaViewDialog.vue';
 import PersonaImportDialog from '@/components/persona/PersonaImportDialog.vue';
-
-import PersonaService from '@/service/PersonaService';
-import DiscordService from '@/service/DiscordService';
-import store from '@/resources/store';
-import PersonaDeleteBulkDialog from '@/components/persona/PersonaDeleteBulkDialog.vue';
 import PersonaDeleteDialog from '@/components/persona/PersonaDeleteDialog.vue';
+import PersonaDeleteBulkDialog from '@/components/persona/PersonaDeleteBulkDialog.vue';
+
 import Persona from '@/types/persona/Persona';
 
-const personaService: PersonaService = new PersonaService();
+import store from '@/resources/store';
+import personaService from '@/service/PersonaService';
+import DiscordService from '@/service/DiscordService';
+
 const discordService: DiscordService = new DiscordService();
 const loggedUser: any = store.getters.loggedUser;
 
@@ -38,7 +38,7 @@ onBeforeMount((): void => {
 });
 
 onMounted(async (): Promise<void> => {
-    personaService.getAllPersonas(loggedUser.id).then(async (data: Persona[]) => {
+    await personaService.getAllPersonas(loggedUser.id).then(async (data: Persona[]) => {
         const ps: Persona[] = [];
         if (data?.[0] !== undefined) {
             for (let p of data) {
@@ -89,7 +89,7 @@ const savePersona = async (): Promise<void> => {
             }
         } else {
             try {
-                const createdPersona = await personaService.createPersona(persona.value, loggedUser.id);
+                const createdPersona: Persona = await personaService.createPersona(persona.value, loggedUser.id);
                 createdPersona.canEdit = true;
                 createdPersona.ownerData = loggedUser;
                 personas.value.push(createdPersona);
@@ -144,7 +144,7 @@ const confirmDeleteSelectedPersonas = (): void => {
 
 const deleteSelectedPersonas = (): void => {
     personas.value = personas.value
-        .map((val: Persona) => {
+        .map((val: Persona): any => {
             if (!selectedPersonas.value.includes(val)) {
                 return val;
             }

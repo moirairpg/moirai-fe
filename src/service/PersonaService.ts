@@ -1,13 +1,14 @@
-import webclient from '../resources/webclient';
-import store from '../resources/store';
+import webclient from '@/resources/webclient';
+import store from '@/resources/store';
+import Persona from '@/types/persona/Persona';
 
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
-export default class PersonaService {
-    async getAllPersonas(requesterUserId) {
+class PersonaService {
+    async getAllPersonas(requesterUserId: string): Promise<Persona[]> {
         try {
-            const response = await webclient(`${baseUrl}/persona`, {
+            const response: any = await webclient(`${baseUrl}/persona`, {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
@@ -16,15 +17,15 @@ export default class PersonaService {
             });
 
             return await response.personas;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error retrieving persona data -> ${error}`);
             throw error;
         }
     }
 
-    async createPersona(persona, requesterUserId) {
+    async createPersona(persona: Persona, requesterUserId: string): Promise<Persona> {
         try {
-            const response = await webclient(`${baseUrl}/persona`, {
+            const response: any = await webclient(`${baseUrl}/persona`, {
                 method: 'POST',
                 data: {
                     id: persona.id,
@@ -43,15 +44,15 @@ export default class PersonaService {
             });
 
             return response.persona;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error creating persona -> ${error}`);
             throw error;
         }
     }
 
-    async updatePersona(persona, requesterUserId) {
+    async updatePersona(persona: Persona, requesterUserId: string): Promise<Persona> {
         try {
-            const response = await webclient(`${baseUrl}/persona/${persona.id}`, {
+            const response: any = await webclient(`${baseUrl}/persona/${persona.id}`, {
                 method: 'PUT',
                 data: {
                     id: persona.id,
@@ -70,13 +71,13 @@ export default class PersonaService {
             });
 
             return await response;
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error updating persona with id ${persona.id} -> ${error}`);
             throw error;
         }
     }
 
-    async deletePersona(persona, requesterUserId) {
+    async deletePersona(persona: Persona, requesterUserId: string): Promise<void> {
         try {
             await webclient(`${baseUrl}/persona/${persona.id}`, {
                 method: 'DELETE',
@@ -85,9 +86,11 @@ export default class PersonaService {
                     Authorization: `Bearer ${authData.access_token}`
                 }
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Error deleting persona with id ${persona.id} -> ${error}`);
             throw error;
         }
     }
 }
+
+export default new PersonaService();
