@@ -19,19 +19,18 @@ import DiscordService from '@/service/DiscordService';
 const discordService: DiscordService = new DiscordService();
 const loggedUser: any = store.getters.loggedUser;
 
-const dt: Ref<any> = ref(null);
+const dataViewRef: Ref<any> = ref(null);
 const toast: ToastServiceMethods = useToast();
 
 const persona: Ref<Persona> = ref({ owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } });
 const personas: Ref<Persona[]> = ref([]);
 const selectedPersonas: Ref<Persona[]> = ref([]);
-const personaDialogVisible: Ref<Boolean> = ref(false);
-const viewPersonaDialog: Ref<Boolean> = ref(false);
-const deletePersonaDialog: Ref<Boolean> = ref(false);
-const deletePersonasDialog: Ref<Boolean> = ref(false);
-const personaSubmitted: Ref<Boolean> = ref(false);
-const personaImportDialog: Ref<Boolean> = ref(false);
-const personaSearchFilters: Ref<any> = ref({});
+const isPersonaDialogVisible: Ref<Boolean> = ref(false);
+const isDeleteDialogVisible: Ref<Boolean> = ref(false);
+const isBulkDeleteDialogVisible: Ref<Boolean> = ref(false);
+const isImportDialogVisible: Ref<Boolean> = ref(false);
+const isPersonaSubmitted: Ref<Boolean> = ref(false);
+const searchFilters: Ref<any> = ref({});
 
 onBeforeMount((): void => {
     initFilters();
@@ -59,24 +58,24 @@ onMounted(async (): Promise<void> => {
 });
 
 const importPersona = (): void => {
-    personaSubmitted.value = false;
-    personaImportDialog.value = true;
+    isPersonaSubmitted.value = false;
+    isImportDialogVisible.value = true;
 };
 
 const createNewPersona = (): void => {
     persona.value = { owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
 
-    personaSubmitted.value = false;
-    personaDialogVisible.value = true;
+    isPersonaSubmitted.value = false;
+    isPersonaDialogVisible.value = true;
 };
 
 const hidePersonaDialog = (): void => {
-    personaDialogVisible.value = false;
-    personaSubmitted.value = false;
+    isPersonaDialogVisible.value = false;
+    isPersonaSubmitted.value = false;
 };
 
 const savePersona = async (): Promise<void> => {
-    personaSubmitted.value = true;
+    isPersonaSubmitted.value = true;
     if (persona.value.name?.trim() && persona.value.personality?.trim() && persona.value.intent && persona.value.visibility) {
         if (persona.value.id) {
             try {
@@ -99,26 +98,26 @@ const savePersona = async (): Promise<void> => {
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving persona', life: 3000 });
             }
         }
-        personaDialogVisible.value = false;
+        isPersonaDialogVisible.value = false;
         persona.value = { owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
     }
 };
 
 const viewPersona = (editPersona: Persona): void => {
     persona.value = { ...editPersona };
-    personaDialogVisible.value = true;
+    isPersonaDialogVisible.value = true;
 };
 
 const confirmDeletePersona = (editPersona: Persona) => {
     persona.value = editPersona;
-    deletePersonaDialog.value = true;
+    isDeleteDialogVisible.value = true;
 };
 
 const deletePersona = async (): Promise<void> => {
     try {
         await personaService.deletePersona(persona.value, loggedUser.id);
         personas.value = personas.value.filter((val) => val.id !== persona.value.id);
-        deletePersonaDialog.value = false;
+        isDeleteDialogVisible.value = false;
         persona.value = {};
         toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona deleted', life: 3000 });
     } catch (error) {
@@ -139,7 +138,7 @@ const findPersonaIndexById = (id: string): number => {
 };
 
 const confirmDeleteSelectedPersonas = (): void => {
-    deletePersonasDialog.value = true;
+    isBulkDeleteDialogVisible.value = true;
 };
 
 const deleteSelectedPersonas = (): void => {
@@ -153,13 +152,13 @@ const deleteSelectedPersonas = (): void => {
         })
         .filter((val) => Object.keys(val).length !== 0) as Persona[];
 
-    deletePersonasDialog.value = false;
+    isBulkDeleteDialogVisible.value = false;
     selectedPersonas.value = [];
     toast.add({ severity: 'success', summary: 'Success!', detail: 'Personas selected deleted', life: 3000 });
 };
 
 const initFilters = (): void => {
-    personaSearchFilters.value = {
+    searchFilters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
@@ -196,9 +195,6 @@ const clonePersona = async (): Promise<void> => {
         createdPersona.canEdit = true;
         createdPersona.ownerData = loggedUser;
 
-        viewPersonaDialog.value = false;
-        personaDialogVisible.value = true;
-
         persona.value = createdPersona;
         personas.value.push(createdPersona);
         toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona cloned', life: 3000 });
@@ -218,7 +214,7 @@ const uploadPersona = async (event: any) => {
     personas.value.push(createdPersona);
     toast.add({ severity: 'success', summary: 'Success!', detail: `Persona imported (${event.file.name})`, life: 3000 });
 
-    personaImportDialog.value = false;
+    isImportDialogVisible.value = false;
 };
 </script>
 
@@ -241,7 +237,7 @@ const uploadPersona = async (event: any) => {
 
                         <DataView
                             layout="grid"
-                            ref="dt"
+                            ref="dataViewRef"
                             :value="personas"
                             dataKey="id"
                             :paginator="true"
@@ -297,13 +293,13 @@ const uploadPersona = async (event: any) => {
                         </Toolbar>
 
                         <DataTable
-                            ref="dt"
+                            ref="dataViewRef"
                             :value="personas"
                             v-model:selection="selectedPersonas"
                             dataKey="id"
                             :paginator="true"
                             :rows="10"
-                            :filters="personaSearchFilters"
+                            :filters="searchFilters"
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             :rowsPerPageOptions="[5, 10, 25]"
                             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
@@ -315,7 +311,7 @@ const uploadPersona = async (event: any) => {
                                     <h5 class="m-0">Personas</h5>
                                     <span class="block mt-2 md:mt-0 p-input-icon-left">
                                         <i class="pi pi-search" />
-                                        <InputText v-model="personaSearchFilters['global'].value" placeholder="Search..." />
+                                        <InputText v-model="searchFilters['global'].value" placeholder="Search..." />
                                     </span>
                                 </div>
                             </template>
@@ -357,10 +353,10 @@ const uploadPersona = async (event: any) => {
                     </TabPanel>
                 </TabView>
 
-                <PersonaViewDialog :persona="persona" :isOwner="persona.owner === loggedUser.id" v-model:visible="personaDialogVisible" @onClose="hidePersonaDialog" @onSave="savePersona" @onDownload="downloadPersona" @onClone="clonePersona" />
-                <PersonaImportDialog v-model:visible="personaImportDialog" @onImport="uploadPersona" />
-                <PersonaDeleteBulkDialog v-model:visible="deletePersonasDialog" @onConfirm="deleteSelectedPersonas" @onCancel="deletePersonasDialog = false" />
-                <PersonaDeleteDialog v-model:visible="deletePersonaDialog" :persona="persona" @onConfirm="deletePersona" @onCancel="deletePersonaDialog = false" />
+                <PersonaViewDialog :persona="persona" :isOwner="persona.owner === loggedUser.id" v-model:visible="isPersonaDialogVisible" @onClose="hidePersonaDialog" @onSave="savePersona" @onDownload="downloadPersona" @onClone="clonePersona" />
+                <PersonaImportDialog v-model:visible="isImportDialogVisible" @onImport="uploadPersona" />
+                <PersonaDeleteBulkDialog v-model:visible="isBulkDeleteDialogVisible" @onConfirm="deleteSelectedPersonas" @onCancel="isBulkDeleteDialogVisible = false" />
+                <PersonaDeleteDialog v-model:visible="isDeleteDialogVisible" :persona="persona" @onConfirm="deletePersona" @onCancel="isDeleteDialogVisible = false" />
             </div>
         </div>
     </div>
