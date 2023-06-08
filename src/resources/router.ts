@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { NavigationGuardNext, RouteLocationNormalized, createRouter, createWebHistory } from 'vue-router';
 import AppLayout from '@/layout/AppLayout.vue';
-import store from '../store';
+import store from '@/resources/store';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -104,8 +104,8 @@ const router = createRouter({
     ]
 });
 
-router.beforeEach((toRoute, fromRoute, next) => {
-    window.document.title = toRoute.meta && toRoute.meta.title ? toRoute.meta.title : 'Home';
+router.beforeEach((toRoute: RouteLocationNormalized, fromRoute: RouteLocationNormalized, next: NavigationGuardNext) => {
+    window.document.title = toRoute.meta && toRoute.meta.title ? (toRoute.meta.title as string) : 'Home';
     if (toRoute.matched.some((record) => record.meta.requiresLogin)) {
         if (!store.getters.isLoggedIn) {
             next({ name: 'login' });

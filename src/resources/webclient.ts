@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 const environment = import.meta.env.MODE;
-const webclient = async (url, opts) => {
+const webclient = async (url: string, opts: any): Promise<any> => {
     if (environment === 'development') {
         axios.interceptors.request.use((request) => {
             console.trace(`Made request to ${request.url}`, JSON.stringify(request, null, 2));
@@ -14,7 +14,7 @@ const webclient = async (url, opts) => {
         });
     }
 
-    const response = await axios(url, opts);
+    const response: AxiosResponse<any, any> = await axios(url, opts);
     return response.data;
 };
 

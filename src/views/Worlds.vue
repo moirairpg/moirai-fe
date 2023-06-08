@@ -1,7 +1,7 @@
 <script setup>
 import { FilterMatchMode } from 'primevue/api';
 import { ref, onMounted, onBeforeMount } from 'vue';
-import tokenizer from '@/resources/Tokenizer';
+import { decodeTokens } from '@/resources/tokenizer';
 import { useToast } from 'primevue/usetoast';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
@@ -44,15 +44,15 @@ const visibilities = ref([
 ]);
 
 const processLorebookEntryNameTokens = (event) => {
-    lorebookEntryNameTokens.value = tokenizer.decodeTokens(event.target.value);
+    lorebookEntryNameTokens.value = decodeTokens(event.target.value);
 };
 
 const processLorebookEntryDescriptionTokens = (event) => {
-    lorebookEntryDescriptionTokens.value = tokenizer.decodeTokens(event.target.value);
+    lorebookEntryDescriptionTokens.value = decodeTokens(event.target.value);
 };
 
 const processWorldPromptTokens = (event) => {
-    worldPromptTokens.value = tokenizer.decodeTokens(event.target.value);
+    worldPromptTokens.value = decodeTokens(event.target.value);
 };
 
 onBeforeMount(() => {
@@ -184,15 +184,15 @@ const saveEntry = async () => {
 const viewLorebookEntry = (editEntry) => {
     entry.value = { ...editEntry };
 
-    lorebookEntryNameTokens.value = tokenizer.decodeTokens(entry.value.name);
-    lorebookEntryDescriptionTokens.value = tokenizer.decodeTokens(entry.value.description);
+    lorebookEntryNameTokens.value = decodeTokens(entry.value.name);
+    lorebookEntryDescriptionTokens.value = decodeTokens(entry.value.description);
 
     viewEntryDialog.value = true;
 };
 
 const viewWorld = (editWorld) => {
     world.value = { ...editWorld };
-    worldPromptTokens.value = tokenizer.decodeTokens(world.value.initial_prompt ?? '');
+    worldPromptTokens.value = decodeTokens(world.value.initial_prompt ?? '');
     viewWorldDialog.value = true;
 };
 
@@ -200,15 +200,15 @@ const editEntry = (editEntry) => {
     editEntry.entries = [];
     entry.value = { ...editEntry };
 
-    lorebookEntryNameTokens.value = tokenizer.decodeTokens(entry.value.name);
-    lorebookEntryDescriptionTokens.value = tokenizer.decodeTokens(entry.value.description);
+    lorebookEntryNameTokens.value = decodeTokens(entry.value.name);
+    lorebookEntryDescriptionTokens.value = decodeTokens(entry.value.description);
 
     entryDialog.value = true;
 };
 
 const editWorld = (editWorld) => {
     world.value = { ...editWorld };
-    worldPromptTokens.value = tokenizer.decodeTokens(world.value.initial_prompt ?? '');
+    worldPromptTokens.value = decodeTokens(world.value.initial_prompt ?? '');
     worldDialog.value = true;
 };
 

@@ -7,7 +7,7 @@ import personaService from '@/service/PersonaService';
 import worldService from '@/service/WorldService';
 import discordService from '@/service/DiscordService';
 import store from '../resources/store';
-import tokenizer from '@/resources/Tokenizer';
+import { decodeSingleToken, decodeTokens } from '@/resources/tokenizer';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 
 const loggedUser = store.getters.loggedUser;
@@ -263,7 +263,7 @@ const viewChannelConfig = (editChannelConfig) => {
     logitBiases.value = [];
     for (var key in channelConfig.value.model_settings.logit_bias) {
         const value = channelConfig.value.model_settings.logit_bias[key];
-        const token = tokenizer.decodeSingleToken(key);
+        const token = decodeSingleToken(key);
         logitBiases.value.push(`${token}:${value}`);
     }
 
@@ -281,7 +281,7 @@ const editChannelConfig = (editChannelConfig) => {
     logitBiases.value = [];
     for (var key in channelConfig.value.model_settings.logit_bias) {
         const value = channelConfig.value.model_settings.logit_bias[key];
-        const token = tokenizer.decodeSingleToken(key);
+        const token = decodeSingleToken(key);
         logitBiases.value.push({
             text: `${token}:${value}`,
             decodedToken: token,
@@ -400,7 +400,7 @@ const addLogitBias = () => {
         logitBiases.value[existingBiasIndex].bias = logitBiasValue.value;
         logitBiases.value[existingBiasIndex].text = `${logitBiasToken.value}:${logitBiasValue.value}`;
     } else {
-        const tokenized = tokenizer.decodeTokens(logitBiasToken.value);
+        const tokenized = decodeTokens(logitBiasToken.value);
         tokenized.encodedTokens.forEach((tokenId, index) => {
             logitBiases.value.push({
                 text: `${tokenized.decodedTokens[index]}:${logitBiasValue.value}`,

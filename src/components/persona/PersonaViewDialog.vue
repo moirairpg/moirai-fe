@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Ref, ref, onMounted, watch } from 'vue';
-import tokenizer from '@/resources/Tokenizer';
+import { decodeTokens } from '@/resources/tokenizer';
 import Persona from '@/types/persona/Persona';
 import LabelItem from '@/types/LabelItem';
 import TokenProps from '@/types/TokenProps';
@@ -48,10 +48,10 @@ const visibilities: Ref<LabelItem[]> = ref([
 ]);
 
 const updateTokens = (): void => {
-    personaNameTokens.value = tokenizer.decodeTokens(persona.value.name ?? '');
-    personalityTokens.value = tokenizer.decodeTokens(persona.value.personality ?? '');
-    personaNudgeTokens.value = tokenizer.decodeTokens(persona.value.nudge?.content ?? '');
-    personaBumpTokens.value = tokenizer.decodeTokens(persona.value.bump?.content ?? '');
+    personaNameTokens.value = decodeTokens(persona.value.name ?? '');
+    personalityTokens.value = decodeTokens(persona.value.personality ?? '');
+    personaNudgeTokens.value = decodeTokens(persona.value.nudge?.content ?? '');
+    personaBumpTokens.value = decodeTokens(persona.value.bump?.content ?? '');
 };
 
 const savePersona = (): void => {
@@ -71,19 +71,19 @@ const closeWindow = (): void => {
 };
 
 const processPersonaNameTokens = (event: any) => {
-    personaNameTokens.value = tokenizer.decodeTokens(event.target.value);
+    personaNameTokens.value = decodeTokens(event.target.value);
 };
 
 const processPersonalityTokens = (event: any) => {
-    personalityTokens.value = tokenizer.decodeTokens(event.target.value);
+    personalityTokens.value = decodeTokens(event.target.value);
 };
 
 const processPersonaNudgeTokens = (event: any) => {
-    personaNudgeTokens.value = tokenizer.decodeTokens(event.target.value);
+    personaNudgeTokens.value = decodeTokens(event.target.value);
 };
 
 const processPersonaBumpTokens = (event: any) => {
-    personaBumpTokens.value = tokenizer.decodeTokens(event.target.value);
+    personaBumpTokens.value = decodeTokens(event.target.value);
 };
 </script>
 <template>
