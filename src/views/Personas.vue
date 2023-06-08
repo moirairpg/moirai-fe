@@ -5,7 +5,7 @@ import { useToast } from 'primevue/usetoast';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
 import { ToastServiceMethods } from 'primevue/toastservice';
 
-import PersonaViewDialog from '@/components/persona/PersonaViewDialog.vue';
+import PersonaDialog from '@/components/persona/PersonaDialog.vue';
 import PersonaImportDialog from '@/components/persona/PersonaImportDialog.vue';
 import PersonaDeleteDialog from '@/components/persona/PersonaDeleteDialog.vue';
 import PersonaDeleteBulkDialog from '@/components/persona/PersonaDeleteBulkDialog.vue';
@@ -352,7 +352,7 @@ const uploadPersona = async (event: any) => {
                     </TabPanel>
                 </TabView>
 
-                <PersonaViewDialog :persona="persona" :isOwner="persona.owner === loggedUser.id" v-model:visible="isPersonaDialogVisible" @onClose="hidePersonaDialog" @onSave="savePersona" @onDownload="downloadPersona" @onClone="clonePersona" />
+                <PersonaDialog :persona="persona" :isOwner="persona.owner === loggedUser.id" v-model:visible="isPersonaDialogVisible" @onClose="hidePersonaDialog" @onSave="savePersona" @onDownload="downloadPersona" @onClone="clonePersona" />
                 <PersonaImportDialog v-model:visible="isImportDialogVisible" @onImport="uploadPersona" />
                 <PersonaDeleteBulkDialog v-model:visible="isBulkDeleteDialogVisible" @onConfirm="deleteSelectedPersonas" @onCancel="isBulkDeleteDialogVisible = false" />
                 <PersonaDeleteDialog v-model:visible="isDeleteDialogVisible" :persona="persona" @onConfirm="deletePersona" @onCancel="isDeleteDialogVisible = false" />
