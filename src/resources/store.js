@@ -1,5 +1,5 @@
-import { createStore } from 'vuex';
 import SecureLS from 'secure-ls';
+import { createStore } from 'vuex';
 
 const encryptionKey = import.meta.env.VITE_CHATRPG_COOKIE_ENCRYPTION_KEY;
 const ls = new SecureLS({

@@ -1,4 +1,4 @@
-import { toRefs, reactive, computed } from 'vue';
+import { computed, reactive, toRefs } from 'vue';
 
 const layoutConfig = reactive({
     ripple: true,

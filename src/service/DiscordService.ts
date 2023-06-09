@@ -1,8 +1,8 @@
-import queryString from 'query-string';
-import webclient from '@/resources/webclient';
 import store from '@/resources/store';
+import webclient from '@/resources/webclient';
 import DiscordAuth from '@/types/discord/DiscordAuth';
 import DiscordUser from '@/types/discord/DiscordUser';
+import queryString from 'query-string';
 
 const clientId: string = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_ID;
 const clientSecret: string = import.meta.env.VITE_CHATRPG_DISCORD_CLIENT_SECRET;

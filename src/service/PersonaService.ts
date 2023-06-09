@@ -1,5 +1,5 @@
-import webclient from '@/resources/webclient';
 import store from '@/resources/store';
+import webclient from '@/resources/webclient';
 import Persona from '@/types/persona/Persona';
 
 const { authData } = store.getters;

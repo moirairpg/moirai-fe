@@ -1,5 +1,5 @@
-import webclient from '@/resources/webclient';
 import store from '@/resources/store';
+import webclient from '@/resources/webclient';
 import World from '@/types/world/World';
 
 const { authData } = store.getters;
@@ -59,7 +59,8 @@ class WorldService {
                     description: world.description,
                     owner: world.owner,
                     visibility: world.visibility,
-                    initial_prompt: world.initialPrompt
+                    initial_prompt: world.initialPrompt,
+                    lorebook: world.lorebook
                 },
                 headers: {
                     requester: requesterUserId,

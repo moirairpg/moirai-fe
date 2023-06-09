@@ -1,6 +1,6 @@
-import { NavigationGuardNext, RouteLocationNormalized, createRouter, createWebHistory } from 'vue-router';
 import AppLayout from '@/layout/AppLayout.vue';
 import store from '@/resources/store';
+import { NavigationGuardNext, RouteLocationNormalized, createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
     history: createWebHistory(),

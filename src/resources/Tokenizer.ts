@@ -1,5 +1,5 @@
-import { encode, decodeGenerator, decodeToken } from 'gpt-tokenizer';
 import TokenProps from '@/types/TokenProps';
+import { decodeGenerator, decodeToken, encode } from 'gpt-tokenizer';
 
 export const decodeTokens = (text: string): TokenProps => {
     let decodedTokens = [];

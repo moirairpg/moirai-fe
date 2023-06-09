@@ -1,5 +1,5 @@
-import webclient from '@/resources/webclient';
 import store from '@/resources/store';
+import webclient from '@/resources/webclient';
 import ChannelConfiguration from '@/types/chconf/ChannelConfiguration';
 
 const { authData } = store.getters;

@@ -3,4 +3,5 @@ export default interface LorebookEntry {
     name?: string;
     regex?: string;
     description?: string;
+    isNew?: boolean;
 }
