@@ -5,9 +5,21 @@ import { decodeTokens } from '@/resources/tokenizer';
 import TokenProps from '@/types/TokenProps';
 
 const text: Ref<string> = ref('');
+const stringifiedTokens: Ref<string> = ref('');
+const stringifiedTokenIds: Ref<string> = ref('');
 const processedTokens: Ref<TokenProps> = ref({});
 const processTokens = (event: any): void => {
     processedTokens.value = decodeTokens(event.target.value);
+    stringifyTokens();
+    stringifyTokenIds();
+};
+
+const stringifyTokens = (): void => {
+    stringifiedTokens.value = processedTokens?.value.decodedTokens?.join('|') as string;
+};
+
+const stringifyTokenIds = (): void => {
+    stringifiedTokenIds.value = processedTokens?.value.encodedTokens?.join(', ') as string;
 };
 </script>
 
@@ -23,55 +35,11 @@ const processTokens = (event: any): void => {
                     </div>
                     <div class="col-12 mb-2 lg:col-12 lg:mb-0 field">
                         <label for="tokenized-text">Tokenized text</label>
-                        <div
-                            class="card"
-                            :style="{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                fontFamily: 'monospace',
-                                width: '100%',
-                                height: '200px',
-                                overflowY: 'auto',
-                                padding: '8px',
-                                border: '1px solid #ccc',
-                                borderColor: '#3c3c3c',
-                                lineHeight: '1.5',
-                                alignContent: 'flex-start'
-                            }"
-                        >
-                            <span v-for="(token, index) in processedTokens?.decodedTokens">
-                                <template v-if="index > 0">|</template>
-                                <span>
-                                    {{ token }}
-                                </span>
-                            </span>
-                        </div>
+                        <Textarea disabled v-model="stringifiedTokens" id="text-to-tonekize" placeholder="Text to be tokenized" rows="5" cols="30" />
                     </div>
                     <div class="col-12 mb-2 lg:col-12 lg:mb-0 field">
                         <label for="tokenized-text">Token IDs</label>
-                        <div
-                            class="card"
-                            :style="{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                fontFamily: 'monospace',
-                                width: '100%',
-                                height: '200px',
-                                overflowY: 'auto',
-                                padding: '8px',
-                                border: '1px solid #ccc',
-                                borderColor: '#3c3c3c',
-                                lineHeight: '1.5',
-                                alignContent: 'flex-start'
-                            }"
-                        >
-                            <span v-for="(token, index) in processedTokens?.encodedTokens" :style="{ display: 'inline-block' }">
-                                <template v-if="index > 0">, </template>
-                                <span>
-                                    {{ token }}
-                                </span>
-                            </span>
-                        </div>
+                        <Textarea disabled v-model="stringifiedTokenIds" id="text-to-tonekize" placeholder="Text to be tokenized" rows="5" cols="30" />
                     </div>
                 </div>
                 <div class="grid formgrid">
