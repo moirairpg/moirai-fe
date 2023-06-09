@@ -5,6 +5,8 @@ import Persona from '@/types/persona/Persona';
 import LabelItem from '@/types/LabelItem';
 import TokenProps from '@/types/TokenProps';
 
+import ConfirmIgnoreChangesDialog from '@/components/ConfirmIgnoreChangesDialog.vue';
+
 interface Props {
     persona: Persona;
     isOwner: Boolean;
@@ -16,7 +18,7 @@ const props: Readonly<Props> = defineProps<Props>();
 watch(
     () => props.persona,
     (selectedPersona) => {
-        persona.value = selectedPersona;
+        persona.value = Object.assign({}, JSON.parse(JSON.stringify(selectedPersona)));
         updateTokens();
     }
 ),
@@ -24,12 +26,13 @@ watch(
 
 onMounted((): void => updateTokens());
 
-const persona: Ref<Persona> = ref(props.persona);
+const persona: Ref<Persona> = ref(Object.assign({}, JSON.parse(JSON.stringify(props.persona))));
 const personaSubmitted: Ref<Boolean> = ref(false);
 const personaNameTokens: Ref<TokenProps> = ref({});
 const personalityTokens: Ref<TokenProps> = ref({});
 const personaNudgeTokens: Ref<TokenProps> = ref({});
 const personaBumpTokens: Ref<TokenProps> = ref({});
+const isPendingChangePromptVisible: Ref<boolean> = ref(false);
 
 const intents: Ref<LabelItem[]> = ref([
     { label: 'CHAT', value: 'chat' },
@@ -54,7 +57,17 @@ const updateTokens = (): void => {
     personaBumpTokens.value = decodeTokens(persona.value.bump?.content ?? '');
 };
 
+const closePersonaPrompt = (): void => {
+    if (JSON.stringify(persona.value) !== JSON.stringify(props.persona)) {
+        isPendingChangePromptVisible.value = true;
+        return;
+    }
+
+    closeWindow();
+};
+
 const savePersona = (): void => {
+    isPendingChangePromptVisible.value = false;
     emit('onSave', persona.value);
 };
 
@@ -67,6 +80,7 @@ const clonePersona = (): void => {
 };
 
 const closeWindow = (): void => {
+    isPendingChangePromptVisible.value = false;
     emit('onClose');
 };
 
@@ -247,7 +261,7 @@ const processPersonaBumpTokens = (event: any) => {
             <Toolbar class="mb-4">
                 <template v-slot:start>
                     <div class="my-2">
-                        <Button label="Close" icon="pi pi-times" class="p-button-danger" @click="closeWindow" />
+                        <Button label="Close" icon="pi pi-times" class="p-button-danger" @click="closePersonaPrompt" />
                     </div>
                 </template>
                 <template v-slot:end>
@@ -257,5 +271,6 @@ const processPersonaBumpTokens = (event: any) => {
                 </template>
             </Toolbar>
         </template>
+        <ConfirmIgnoreChangesDialog v-model:visible="isPendingChangePromptVisible" @onConfirm="closeWindow" @onCancel="isPendingChangePromptVisible = false" />
     </Dialog>
 </template>

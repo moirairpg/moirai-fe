@@ -37,12 +37,12 @@ const updateTokens = (): void => {
     lorebookEntryDescriptionTokens.value = decodeTokens(entry.value.description ?? '');
 };
 
-const processLorebookEntryNameTokens = (): void => {
-    lorebookEntryNameTokens.value = decodeTokens(entry.value.name ?? '');
+const processLorebookEntryNameTokens = (event: any): void => {
+    lorebookEntryNameTokens.value = decodeTokens(event.target.value ?? '');
 };
 
-const processLorebookEntryDescriptionTokens = (): void => {
-    lorebookEntryDescriptionTokens.value = decodeTokens(entry.value.description ?? '');
+const processLorebookEntryDescriptionTokens = (event: any): void => {
+    lorebookEntryDescriptionTokens.value = decodeTokens(event.target.value ?? '');
 };
 
 const closeEntryPrompt = (): void => {

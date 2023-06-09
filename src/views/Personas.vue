@@ -73,13 +73,13 @@ const hidePersonaDialog = (): void => {
     isPersonaSubmitted.value = false;
 };
 
-const savePersona = async (): Promise<void> => {
+const savePersona = async (savedPersona: Persona): Promise<void> => {
     isPersonaSubmitted.value = true;
-    if (persona.value.name?.trim() && persona.value.personality?.trim() && persona.value.intent && persona.value.visibility) {
-        if (persona.value.id) {
+    if (savedPersona.name?.trim() && savedPersona.personality?.trim() && savedPersona.intent && savedPersona.visibility) {
+        if (savedPersona.id) {
             try {
-                await personaService.updatePersona(persona.value, loggedUser.id);
-                personas.value[findPersonaIndexById(persona.value.id)] = persona.value;
+                await personaService.updatePersona(savedPersona, loggedUser.id);
+                personas.value[findPersonaIndexById(savedPersona.id)] = savedPersona;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Persona updated', life: 3000 });
             } catch (error) {
                 console.error(`An error ocurred while updating the persona -> ${error}`);
@@ -87,7 +87,7 @@ const savePersona = async (): Promise<void> => {
             }
         } else {
             try {
-                const createdPersona: Persona = await personaService.createPersona(persona.value, loggedUser.id);
+                const createdPersona: Persona = await personaService.createPersona(savedPersona, loggedUser.id);
                 createdPersona.canEdit = true;
                 createdPersona.ownerData = loggedUser;
                 personas.value.push(createdPersona);
