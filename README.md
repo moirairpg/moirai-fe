@@ -1,5 +1,5 @@
 # ChatRPG: a virtual Dungeon Master for RPG adventures (frontend project)
-[![Maintainability](https://api.codeclimate.com/v1/badges/15dd7fe7da189cd24474/maintainability)](https://codeclimate.com/github/thaalesalves/ChatRPG-fe/maintainability) [![React CI](https://github.com/thaalesalves/ChatRPG-fe/actions/workflows/automated-cicd.yml/badge.svg)](https://github.com/thaalesalves/ChatRPG-fe/actions/workflows/automated-cicd.yml)
+[![Maintainability](https://api.codeclimate.com/v1/badges/15dd7fe7da189cd24474/maintainability)](https://codeclimate.com/github/thaalesalves/ChatRPG-fe/maintainability) [![Node.js CI](https://github.com/thaalesalves/ChatRPG-fe/actions/workflows/automated-cicd.yml/badge.svg)](https://github.com/thaalesalves/ChatRPG-fe/actions/workflows/automated-cicd.yml)
 
 ChatRPG is a Discord bot powered by JDA that is connected to OpenAI's GPT-3 API. It is cabaple of generating text using base or finetuned models, and was made to act primarily as a chatbot and as an RPG dungeon master. Developed by veteran AI Dungeon and NovelAI players and contributors, aimed to make text-based RPGs more flexible and easier to use on Discord. This is the project containing its frontend code, written in TypeScript with Vue 3.
 
