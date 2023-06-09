@@ -120,11 +120,6 @@ const viewWorld = (editWorld: World) => {
     isWorldDialogVisible.value = true;
 };
 
-const editWorld = (editWorld: World) => {
-    world.value = { ...editWorld };
-    isWorldDialogVisible.value = true;
-};
-
 const confirmDeleteWorld = (editWorld: World) => {
     world.value = editWorld;
     isDeleteDialogVisible.value = true;
@@ -295,9 +290,8 @@ const uploadWorld = async (event: any) => {
                                             {{ slotProps.data.description }}
                                         </p>
                                         <div class="flex align-items-center justify-content-between">
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
+                                            <Button :icon="'pi pi-' + (slotProps.data.canEdit ? 'pencil' : 'eye')" class="p-button-rounded p-button-success mr-2" @click="viewWorld(slotProps.data)" />
                                             <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
-                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewWorld(slotProps.data)" />
                                         </div>
                                     </div>
                                 </div>
@@ -362,9 +356,8 @@ const uploadWorld = async (event: any) => {
                             </Column>
                             <Column headerStyle="min-width:10rem;">
                                 <template #body="slotProps">
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
+                                    <Button :icon="'pi pi-' + (slotProps.data.canEdit ? 'pencil' : 'eye')" class="p-button-rounded p-button-success mr-2" @click="viewWorld(slotProps.data)" />
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
-                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-success mt-2" @click="viewWorld(slotProps.data)" />
                                 </template>
                             </Column>
                         </DataTable>

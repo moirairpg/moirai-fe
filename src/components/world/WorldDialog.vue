@@ -74,7 +74,7 @@ const createNewEntry = (): void => {
     isEntryDialogVisible.value = true;
 };
 
-const editEntry = (editEntry: LorebookEntry): void => {
+const viewEntry = (editEntry: LorebookEntry): void => {
     editEntry.isNew = false;
     entry.value = { ...editEntry };
     isEntryDialogVisible.value = true;
@@ -248,8 +248,8 @@ const saveEntry = (savedEntry: LorebookEntry) => {
                                         {{ slotProps.data.description }}
                                     </p>
                                     <div class="flex align-items-center justify-content-between">
-                                        <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editEntry(slotProps.data)" />
-                                        <Button icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteEntry(slotProps.data)" />
+                                        <Button :icon="'pi pi-' + (world.canEdit ? 'pencil' : 'eye')" class="p-button-rounded p-button-success mr-2" @click="viewEntry(slotProps.data)" />
+                                        <Button v-if="world.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteEntry(slotProps.data)" />
                                     </div>
                                 </div>
                             </div>
@@ -310,8 +310,8 @@ const saveEntry = (savedEntry: LorebookEntry) => {
                         </Column>
                         <Column headerStyle="min-width:10rem;">
                             <template #body="slotProps">
-                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editEntry(slotProps.data)" />
-                                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteEntry(slotProps.data)" />
+                                <Button :icon="'pi pi-' + (world.canEdit ? 'pencil' : 'eye')" class="p-button-rounded p-button-success mr-2" @click="viewEntry(slotProps.data)" />
+                                <Button v-if="world.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteEntry(slotProps.data)" />
                             </template>
                         </Column>
                     </DataTable>
