@@ -6,9 +6,9 @@ import { decodeTokens } from '@/resources/tokenizer';
 import { ToastServiceMethods } from 'primevue/toastservice';
 
 import ConfirmIgnoreChangesDialog from '@/components/ConfirmIgnoreChangesDialog.vue';
-import LorebookEntryDialog from '@/components/world/LorebookEntryDialog.vue';
-import LorebookEntryDeleteDialog from '@/components/world/LorebookEntryDeleteDialog.vue';
-import LorebookEntryDeleteBulkDialog from '@/components/world/LorebookEntryDeleteBulkDialog.vue';
+import LorebookEntryDialog from '@/components/lorebook/LorebookEntryDialog.vue';
+import LorebookEntryDeleteDialog from '@/components/lorebook/LorebookEntryDeleteDialog.vue';
+import LorebookEntryDeleteBulkDialog from '@/components/lorebook/LorebookEntryDeleteBulkDialog.vue';
 
 import LabelItem from '@/types/LabelItem';
 import World from '@/types/world/World';
