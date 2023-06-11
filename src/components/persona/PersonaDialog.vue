@@ -9,11 +9,15 @@ import ConfirmIgnoreChangesDialog from '@/components/ConfirmIgnoreChangesDialog.
 
 interface Props {
     persona: Persona;
-    isOwner: Boolean;
+    canEdit: boolean;
+    allowSelection?: boolean;
 }
 
 const emit: any = defineEmits(['onSave', 'onDownload', 'onClone', 'onClose']);
-const props: Readonly<Props> = defineProps<Props>();
+const props: Readonly<Props> = withDefaults(defineProps<Props>(), {
+    canEdit: false,
+    allowSelection: false
+});
 
 watch(
     () => props.persona,
@@ -63,23 +67,23 @@ const closePersonaPrompt = (): void => {
         return;
     }
 
-    closeWindow();
+    sendClose();
 };
 
-const savePersona = (): void => {
+const sendSave = (): void => {
     isPendingChangePromptVisible.value = false;
     emit('onSave', persona.value);
 };
 
-const downloadPersona = (): void => {
+const sendDownload = (): void => {
     emit('onDownload', persona.value);
 };
 
-const clonePersona = (): void => {
+const sendClone = (): void => {
     emit('onClone', persona.value);
 };
 
-const closeWindow = (): void => {
+const sendClose = (): void => {
     isPendingChangePromptVisible.value = false;
     emit('onClose');
 };
@@ -113,7 +117,7 @@ const processPersonaBumpTokens = (event: any) => {
             >
                 Name <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
             </label>
-            <InputText :disabled="!isOwner" id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" @input="processPersonaNameTokens" />
+            <InputText :disabled="!canEdit" id="name" v-model="persona.name" required="true" autofocus :class="{ 'p-invalid': personaSubmitted && !persona.name }" @input="processPersonaNameTokens" />
             <small class="p-invalid" v-if="personaSubmitted && !persona.name">Name is required.</small>
             <div>
                 <small>Tokens: {{ personaNameTokens?.tokens && persona.name ? personaNameTokens?.tokens : 0 }}</small>
@@ -122,7 +126,7 @@ const processPersonaBumpTokens = (event: any) => {
 
         <div class="field">
             <label for="visibility" class="mb-3">Visibility <strong :style="{ color: 'red' }">*</strong></label>
-            <Dropdown :disabled="!isOwner" id="visibility" v-model="persona.visibility" :options="visibilities" optionLabel="label" placeholder="Persona visibility" :class="{ 'p-invalid': personaSubmitted && !persona.visibility }">
+            <Dropdown :disabled="!canEdit" id="visibility" v-model="persona.visibility" :options="visibilities" optionLabel="label" placeholder="Persona visibility" :class="{ 'p-invalid': personaSubmitted && !persona.visibility }">
                 <template #value="slotProps">
                     <div v-if="slotProps.value && slotProps.value.value">
                         <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
@@ -149,7 +153,7 @@ const processPersonaBumpTokens = (event: any) => {
             >
                 Intent <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
             </label>
-            <Dropdown :disabled="!isOwner" id="intent" v-model="persona.intent" :options="intents" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">
+            <Dropdown :disabled="!canEdit" id="intent" v-model="persona.intent" :options="intents" optionLabel="label" placeholder="Persona intent" :class="{ 'p-invalid': personaSubmitted && !persona.intent }">
                 <template #value="slotProps">
                     <div v-if="slotProps.value && slotProps.value.value">
                         <span :class="'intent-badge intent-' + slotProps.value.value">{{ slotProps.value.label }}</span>
@@ -175,7 +179,7 @@ const processPersonaBumpTokens = (event: any) => {
             >
                 Personality <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
             </label>
-            <Textarea :disabled="!isOwner" id="personality" v-model="persona.personality" required="true" rows="10" cols="20" :class="{ 'p-invalid': personaSubmitted && !persona.personality }" @input="processPersonalityTokens" />
+            <Textarea :disabled="!canEdit" id="personality" v-model="persona.personality" required="true" rows="10" cols="20" :class="{ 'p-invalid': personaSubmitted && !persona.personality }" @input="processPersonalityTokens" />
             <small class="p-invalid" v-if="personaSubmitted && !persona.personality">Personality is required.</small>
             <div>
                 <small>Tokens: {{ personalityTokens?.tokens && persona.personality ? personalityTokens?.tokens : 0 }}</small>
@@ -197,14 +201,14 @@ const processPersonaBumpTokens = (event: any) => {
                     </label>
                     <div class="grid formgrid">
                         <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                            <Dropdown :disabled="!isOwner" id="nudge-role" v-model="persona.nudge.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" />
+                            <Dropdown :disabled="!canEdit" id="nudge-role" v-model="persona.nudge!.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Nudge role" />
                         </div>
                     </div>
                 </div>
                 <div class="field">
                     <div class="grid formgrid">
                         <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                            <Textarea :disabled="!isOwner" rows="3" v-model="persona.nudge.content" id="nudge-text" type="text" placeholder="Nudge text" @input="processPersonaNudgeTokens" />
+                            <Textarea :disabled="!canEdit" rows="3" v-model="persona.nudge!.content" id="nudge-text" type="text" placeholder="Nudge text" @input="processPersonaNudgeTokens" />
                             <div>
                                 <small>Tokens: {{ personaNudgeTokens?.tokens && persona.nudge?.content ? personaNudgeTokens?.tokens : 0 }}</small>
                             </div>
@@ -226,17 +230,17 @@ const processPersonaBumpTokens = (event: any) => {
                     </label>
                     <div class="grid formgrid">
                         <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                            <Dropdown :disabled="!isOwner" id="bump-role" v-model="persona.bump.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" />
+                            <Dropdown :disabled="!canEdit" id="bump-role" v-model="persona.bump!.role" optionValue="value" :options="roles" optionLabel="label" placeholder="Bump role" />
                         </div>
                         <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                            <InputNumber :disabled="!isOwner" showButtons mode="decimal" v-model="persona.bump.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
+                            <InputNumber :disabled="!canEdit" showButtons mode="decimal" v-model="persona.bump!.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
                         </div>
                     </div>
                 </div>
                 <div class="field">
                     <div class="grid formgrid">
                         <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                            <Textarea :disabled="!isOwner" rows="3" v-model="persona.bump.content" id="bump-text" type="text" placeholder="Bump text" @input="processPersonaBumpTokens" />
+                            <Textarea :disabled="!canEdit" rows="3" v-model="persona.bump!.content" id="bump-text" type="text" placeholder="Bump text" @input="processPersonaBumpTokens" />
                             <div>
                                 <small>Tokens: {{ personaBumpTokens?.tokens && persona.bump?.content ? personaBumpTokens?.tokens : 0 }}</small>
                             </div>
@@ -265,12 +269,12 @@ const processPersonaBumpTokens = (event: any) => {
                     </div>
                 </template>
                 <template v-slot:end>
-                    <Button v-if="persona.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="clonePersona" />
-                    <Button v-if="persona.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadPersona" />
-                    <Button v-if="isOwner" label="Save" icon="pi pi-check" class="p-button-primary" @click="savePersona" />
+                    <Button v-if="persona.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="sendClone" />
+                    <Button v-if="persona.id" label="Download" icon="pi pi-download" class="p-button-text" @click="sendDownload" />
+                    <Button v-if="canEdit" label="Save" icon="pi pi-check" class="p-button-primary" @click="sendSave" />
                 </template>
             </Toolbar>
         </template>
-        <ConfirmIgnoreChangesDialog v-model:visible="isPendingChangePromptVisible" @onConfirm="closeWindow" @onCancel="isPendingChangePromptVisible = false" />
+        <ConfirmIgnoreChangesDialog v-model:visible="isPendingChangePromptVisible" @onConfirm="sendClose" @onCancel="isPendingChangePromptVisible = false" />
     </Dialog>
 </template>
