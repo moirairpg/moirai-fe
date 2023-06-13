@@ -6,11 +6,17 @@ import { FilterMatchMode } from 'primevue/api';
 import { ToastServiceMethods } from 'primevue/toastservice';
 
 const emit: any = defineEmits(['onDelete', 'onDeleteBulk', 'onCreate', 'onImport', 'onOpen']);
-const props: Readonly<Props> = defineProps<Props>();
+const props: Readonly<Props> = withDefaults(defineProps<Props>(), {
+    selectedPersona: {} as Persona,
+    isViewOnly: false
+});
+
 const toast: ToastServiceMethods = useToast();
 
 interface Props {
     personas: Persona[];
+    selectedPersona: Persona | any;
+    isViewOnly: boolean;
 }
 
 onBeforeMount((): void => {
@@ -63,7 +69,7 @@ const sendDeleteBulk = (): void => {
 </script>
 <template>
     <Toast />
-    <Toolbar class="mb-4">
+    <Toolbar v-if="!isViewOnly" class="mb-4">
         <template v-slot:start>
             <div class="my-2">
                 <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="sendCreate" />
@@ -93,25 +99,30 @@ const sendDeleteBulk = (): void => {
 
         <template #empty>No personas found.</template>
 
-        <template #grid="slotProps">
+        <template #grid="persona">
             <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
                 <div class="p-4 border-1 surface-border surface-card border-round">
                     <div class="flex flex-wrap align-items-center justify-content-between gap-2">
                         <div class="flex align-items-center gap-2">
                             <i class="pi pi-user"></i>
-                            <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
+                            <span class="font-semibold">{{ persona.data.ownerData.username }}</span>
                         </div>
-                        <Tag :value="slotProps.data.intent" :class="'intent-badge intent-' + (slotProps.data.intent ? slotProps.data.intent.toLowerCase() : '')"></Tag>
+                        <Tag v-if="!isViewOnly" :value="persona.data.intent" :class="'intent-badge intent-' + (persona.data.intent ? persona.data.intent.toLowerCase() : '')" />
+                        <Tag
+                            v-if="isViewOnly"
+                            :value="`${persona.data.intent.toUpperCase()} - ${persona.data.id === selectedPersona.id ? `SELECTED` : `AVAILABLE`}`"
+                            :class="'selected-badge ' + (persona.data.id === selectedPersona.id ? 'selected' : 'available') + '-item'"
+                        />
                     </div>
                     <div class="flex flex-column align-items-center gap-3 py-5">
-                        <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
+                        <div class="text-2xl font-bold card-overflow-title">{{ persona.data.name }}</div>
                     </div>
                     <p align="center" class="card-overflow">
-                        {{ slotProps.data.personality }}
+                        {{ persona.data.personality }}
                     </p>
                     <div class="flex align-items-center justify-content-between">
-                        <Button :icon="'pi pi-' + (slotProps.data.canEdit ? 'pencil' : 'eye')" class="p-button-rounded p-button-success mt-2" @click="sendOpen(slotProps.data)" />
-                        <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="sendDelete(slotProps.data)" />
+                        <Button :icon="'pi pi-' + (persona.data.canEdit && !isViewOnly ? 'pencil' : 'eye')" class="p-button-rounded p-button-success mt-2" @click="sendOpen(persona.data)" />
+                        <Button v-if="persona.data.canEdit && !isViewOnly" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="sendDelete(persona.data)" />
                     </div>
                 </div>
             </div>

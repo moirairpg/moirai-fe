@@ -26,11 +26,11 @@ const toast: ToastServiceMethods = useToast();
 const persona: Ref<Persona> = ref({ canEdit: true, owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } });
 const personas: Ref<Persona[]> = ref([]);
 const selectedPersonas: Ref<Persona[]> = ref([]);
-const isPersonaDialogVisible: Ref<Boolean> = ref(false);
-const isDeleteDialogVisible: Ref<Boolean> = ref(false);
-const isBulkDeleteDialogVisible: Ref<Boolean> = ref(false);
-const isImportDialogVisible: Ref<Boolean> = ref(false);
-const isPersonaSubmitted: Ref<Boolean> = ref(false);
+const isPersonaDialogVisible: Ref<boolean> = ref(false);
+const isDeleteDialogVisible: Ref<boolean> = ref(false);
+const isBulkDeleteDialogVisible: Ref<boolean> = ref(false);
+const isImportDialogVisible: Ref<boolean> = ref(false);
+const isPersonaSubmitted: Ref<boolean> = ref(false);
 const searchFilters: Ref<any> = ref({});
 
 onBeforeMount(async (): Promise<void> => {

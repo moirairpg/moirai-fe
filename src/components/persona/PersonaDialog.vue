@@ -10,10 +10,10 @@ import ConfirmIgnoreChangesDialog from '@/components/ConfirmIgnoreChangesDialog.
 interface Props {
     persona: Persona;
     canEdit: boolean;
-    allowSelection?: boolean;
+    allowSelection: boolean;
 }
 
-const emit: any = defineEmits(['onSave', 'onDownload', 'onClone', 'onClose']);
+const emit: any = defineEmits(['onSave', 'onDownload', 'onClone', 'onClose', 'onSelect']);
 const props: Readonly<Props> = withDefaults(defineProps<Props>(), {
     canEdit: false,
     allowSelection: false
@@ -31,7 +31,7 @@ watch(
 onMounted((): void => updateTokens());
 
 const persona: Ref<Persona> = ref(Object.assign({}, JSON.parse(JSON.stringify(props.persona))));
-const personaSubmitted: Ref<Boolean> = ref(false);
+const personaSubmitted: Ref<boolean> = ref(false);
 const personaNameTokens: Ref<TokenProps> = ref({});
 const personalityTokens: Ref<TokenProps> = ref({});
 const personaNudgeTokens: Ref<TokenProps> = ref({});
@@ -68,6 +68,10 @@ const closePersonaPrompt = (): void => {
     }
 
     sendClose();
+};
+
+const sendSelect = (): void => {
+    emit('onSelect', persona.value);
 };
 
 const sendSave = (): void => {
@@ -269,9 +273,10 @@ const processPersonaBumpTokens = (event: any) => {
                     </div>
                 </template>
                 <template v-slot:end>
-                    <Button v-if="persona.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="sendClone" />
-                    <Button v-if="persona.id" label="Download" icon="pi pi-download" class="p-button-text" @click="sendDownload" />
-                    <Button v-if="canEdit" label="Save" icon="pi pi-check" class="p-button-primary" @click="sendSave" />
+                    <Button v-if="persona.id && !allowSelection" label="Clone" icon="pi pi-copy" class="p-button-text" @click="sendClone" />
+                    <Button v-if="persona.id && !allowSelection" label="Download" icon="pi pi-download" class="p-button-text" @click="sendDownload" />
+                    <Button v-if="canEdit && !allowSelection" label="Save" icon="pi pi-check" class="p-button-primary" @click="sendSave" />
+                    <Button v-if="allowSelection" label="Select" icon="pi pi-check" class="p-button-primary" @click="sendSelect" />
                 </template>
             </Toolbar>
         </template>

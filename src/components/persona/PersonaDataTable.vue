@@ -6,11 +6,17 @@ import { FilterMatchMode } from 'primevue/api';
 import { ToastServiceMethods } from 'primevue/toastservice';
 
 const emit: any = defineEmits(['onDelete', 'onDeleteBulk', 'onCreate', 'onImport', 'onOpen']);
-const props: Readonly<Props> = defineProps<Props>();
+const props: Readonly<Props> = withDefaults(defineProps<Props>(), {
+    selectedPersona: {} as Persona,
+    isViewOnly: false
+});
+
 const toast: ToastServiceMethods = useToast();
 
 interface Props {
     personas: Persona[];
+    selectedPersona: Persona | any;
+    isViewOnly: boolean;
 }
 
 onBeforeMount((): void => {
@@ -63,7 +69,7 @@ const sendDeleteBulk = (): void => {
 </script>
 <template>
     <Toast />
-    <Toolbar class="mb-4">
+    <Toolbar v-if="!isViewOnly" class="mb-4">
         <template v-slot:start>
             <div class="my-2">
                 <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="sendCreate" />
@@ -86,6 +92,7 @@ const sendDeleteBulk = (): void => {
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} personas"
         responsiveLayout="scroll"
         maxLength
+        :rowStyle="({ id }) => (id === selectedPersona.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : '') as Object"
     >
         <template #header>
             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
@@ -99,7 +106,7 @@ const sendDeleteBulk = (): void => {
 
         <template #empty>No personas found.</template>
 
-        <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+        <Column v-if="!isViewOnly" selectionMode="multiple" headerStyle="width: 3rem"></Column>
         <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
             <template #body="persona">
                 <span class="p-column-title">Name</span>
@@ -126,8 +133,8 @@ const sendDeleteBulk = (): void => {
         </Column>
         <Column headerStyle="min-width:10rem;">
             <template #body="persona">
-                <Button :icon="'pi pi-' + (persona.data.canEdit ? 'pencil' : 'eye')" class="p-button-rounded p-button-success mt-2" @click="sendOpen(persona.data)" />
-                <Button v-if="persona.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="sendDelete(persona.data)" />
+                <Button :icon="'pi pi-' + (persona.data.canEdit && !isViewOnly ? 'pencil' : 'eye')" class="p-button-rounded p-button-success mt-2" @click="sendOpen(persona.data)" />
+                <Button v-if="persona.data.canEdit && !isViewOnly" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="sendDelete(persona.data)" />
             </template>
         </Column>
     </DataTable>
