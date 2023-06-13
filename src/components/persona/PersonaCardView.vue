@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Ref, ref, watch, onBeforeMount } from 'vue';
+import { Ref, ref, watch } from 'vue';
 import Persona from '@/types/persona/Persona';
 
-const emit: any = defineEmits(['onDelete', 'onDeleteBulk', 'onCreate', 'onImport', 'onOpen']);
+const emit: any = defineEmits(['onOpen']);
 const props: Readonly<Props> = defineProps<Props>();
 
 interface Props {

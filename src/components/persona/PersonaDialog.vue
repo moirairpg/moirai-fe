@@ -61,7 +61,7 @@ const updateTokens = (): void => {
     personaBumpTokens.value = decodeTokens(persona.value.bump?.content ?? '');
 };
 
-const closePersonaPrompt = (): void => {
+const checkModificationsBeforeClosing = (): void => {
     if (JSON.stringify(persona.value) !== JSON.stringify(props.persona)) {
         isPendingChangePromptVisible.value = true;
         return;
@@ -269,7 +269,7 @@ const processPersonaBumpTokens = (event: any) => {
             <Toolbar class="mb-4">
                 <template v-slot:start>
                     <div class="my-2">
-                        <Button label="Close" icon="pi pi-times" class="p-button-danger" @click="closePersonaPrompt" />
+                        <Button label="Close" icon="pi pi-times" class="p-button-danger" @click="checkModificationsBeforeClosing" />
                     </div>
                 </template>
                 <template v-slot:end>

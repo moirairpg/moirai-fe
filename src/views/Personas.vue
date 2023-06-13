@@ -20,7 +20,6 @@ import discordService from '@/service/DiscordService';
 
 const loggedUser: any = store.getters.loggedUser;
 
-const dataViewRef: Ref<any> = ref(null);
 const toast: ToastServiceMethods = useToast();
 
 const persona: Ref<Persona> = ref({ canEdit: true, owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } });
@@ -221,7 +220,6 @@ const uploadPersona = async (event: any) => {
         <div class="col-12">
             <div class="card">
                 <Toast />
-
                 <TabView>
                     <TabPanel header="Card view">
                         <PersonaDataView :personas="personas" @onOpen="viewPersona" @onDelete="confirmDeletePersona" @onCreate="createNewPersona" @onImport="importPersona" />
