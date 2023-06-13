@@ -198,7 +198,7 @@ const saveEntry = (savedEntry: LorebookEntry) => {
 
         <div class="field">
             <label for="visibility" class="mb-3">Visibility <strong :style="{ color: 'red' }">*</strong></label>
-            <Dropdown :disabled="!canEdit" id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
+            <Dropdown :disabled="!canEdit" id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" optionValue="value" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
                 <template #value="slotProps">
                     <div v-if="slotProps.value && slotProps.value.value">
                         <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
