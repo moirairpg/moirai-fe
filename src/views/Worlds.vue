@@ -9,6 +9,8 @@ import WorldDialog from '@/components/world/WorldDialog.vue';
 import WorldImportDialog from '@/components/world/WorldImportDialog.vue';
 import WorldDeleteDialog from '@/components/world/WorldDeleteDialog.vue';
 import WorldDeleteBulkDialog from '@/components/world/WorldDeleteBulkDialog.vue';
+import WorldDataTable from '@/components/world/WorldDataTable.vue';
+import WorldDataView from '@/components/world/WorldDataView.vue';
 
 import lorebookService from '@/service/LorebookService';
 import worldService from '@/service/WorldService';
@@ -243,7 +245,8 @@ const uploadWorld = async (event: any) => {
                 <Toast />
                 <TabView>
                     <TabPanel header="Card view">
-                        <Toolbar class="mb-4">
+                        <WorldDataView :worlds="worlds" @onOpen="viewWorld" @onDelete="confirmDeleteWorld" @onCreate="createNewWorld" @onImport="importWorld" />
+                        <!-- <Toolbar class="mb-4">
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
@@ -296,10 +299,11 @@ const uploadWorld = async (event: any) => {
                                     </div>
                                 </div>
                             </template>
-                        </DataView>
+                        </DataView> -->
                     </TabPanel>
                     <TabPanel header="Table view">
-                        <Toolbar class="mb-4">
+                        <WorldDataTable :worlds="worlds" @onOpen="viewWorld" @onDelete="confirmDeleteWorld" @onCreate="createNewWorld" @onImport="importWorld" @onDeleteBulk="confirmDeleteSelectedWorlds" />
+                        <!-- <Toolbar class="mb-4">
                             <template v-slot:start>
                                 <div class="my-2">
                                     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
@@ -360,11 +364,11 @@ const uploadWorld = async (event: any) => {
                                     <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
                                 </template>
                             </Column>
-                        </DataTable>
+                        </DataTable> -->
                     </TabPanel>
                 </TabView>
 
-                <WorldDialog v-model:visible="isWorldDialogVisible" :world="world" :isOwner="world.owner === loggedUser.id" @onClose="hideWorldDialog" @onSave="saveWorld" @onDownload="downloadWorld" @onClone="cloneWorld" />
+                <WorldDialog v-model:visible="isWorldDialogVisible" :world="world" :canEdit="world.owner === loggedUser.id" @onClose="hideWorldDialog" @onSave="saveWorld" @onDownload="downloadWorld" @onClone="cloneWorld" />
                 <WorldImportDialog v-model:visible="isImportDialogVisible" @onImport="uploadWorld" />
                 <WorldDeleteDialog v-model:visible="isDeleteDialogVisible" :world="world" @onConfirm="deleteWorld" @onCancel="isDeleteDialogVisible = false" />
                 <WorldDeleteBulkDialog v-model:visible="isDeleteBulkDialogVisible" @onConfirm="deleteSelectedWorlds" @onCancel="isDeleteBulkDialogVisible = false" />

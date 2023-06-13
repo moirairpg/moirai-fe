@@ -17,12 +17,16 @@ import LorebookEntry from '@/types/world/LorebookEntry';
 
 interface Props {
     world: World;
-    isOwner: boolean;
+    canEdit: boolean;
+    allowSelection: boolean;
 }
 
 const toast: ToastServiceMethods = useToast();
-const emit: any = defineEmits(['onSave', 'onDownload', 'onClone', 'onClose']);
-const props: Readonly<Props> = defineProps<Props>();
+const emit: any = defineEmits(['onSave', 'onDownload', 'onClone', 'onClose', 'onSelect']);
+const props: Readonly<Props> = withDefaults(defineProps<Props>(), {
+    canEdit: false,
+    allowSelection: false
+});
 
 watch(
     () => props.world,
@@ -89,31 +93,35 @@ const confirmDeleteSelectedEntries = (): void => {
     isEntryDeleteBulkDialogVisible.value = true;
 };
 
-const closeWorldPrompt = (): void => {
+const checkModificationsBeforeClosing = (): void => {
     if (JSON.stringify(world.value) !== JSON.stringify(props.world)) {
         isPendingChangePromptVisible.value = true;
         return;
     }
 
-    sendCloseWorld();
+    sendClose();
 };
 
-const sendCloseWorld = (): void => {
+const sendClose = (): void => {
     isPendingChangePromptVisible.value = false;
     emit('onClose');
 };
 
-const sendDownloadWorld = (): void => {
+const sendDownload = (): void => {
     emit('onDownload', world.value);
 };
 
-const sendSaveWorld = (): void => {
+const sendSave = (): void => {
     isPendingChangePromptVisible.value = false;
     emit('onSave', world.value);
 };
 
-const sendCloneWorld = (): void => {
+const sendClone = (): void => {
     emit('onClone', world.value);
+};
+
+const sendSelect = (): void => {
+    emit('onSelect', world.value);
 };
 
 const findEntryIndexById = (id: string) => {
@@ -167,13 +175,13 @@ const saveEntry = (savedEntry: LorebookEntry) => {
         <Toast />
         <div class="field">
             <label for="name">Name <strong :style="{ color: 'red' }">*</strong></label>
-            <InputText :disabled="!isOwner" id="name" v-model="world.name" required="true" autofocus :class="{ 'p-invalid': worldSubmitted && !world.name }" />
+            <InputText :disabled="!canEdit" id="name" v-model="world.name" required="true" autofocus :class="{ 'p-invalid': worldSubmitted && !world.name }" />
             <small class="p-invalid" v-if="worldSubmitted && !world.name">Name is required.</small>
         </div>
 
         <div class="field">
             <label for="description">Description <strong :style="{ color: 'red' }">*</strong></label>
-            <Textarea :disabled="!isOwner" id="description" v-model="world.description" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.description }" />
+            <Textarea :disabled="!canEdit" id="description" v-model="world.description" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.description }" />
             <small class="p-invalid" v-if="worldSubmitted && !world.description">Description is required.</small>
         </div>
 
@@ -181,7 +189,7 @@ const saveEntry = (savedEntry: LorebookEntry) => {
             <label for="initialPrompt" v-tooltip="`Text used to begin the adventure instanced from this world. Upon using the /start command on Discord, this text will be shown and reacted upon by the AI.`">
                 Adventure start text <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
             </label>
-            <Textarea :disabled="!isOwner" id="initialPrompt" v-model="world.initialPrompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initialPrompt }" @input="processWorldPromptTokens" />
+            <Textarea :disabled="!canEdit" id="initialPrompt" v-model="world.initialPrompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initialPrompt }" @input="processWorldPromptTokens" />
             <small class="p-invalid" v-if="worldSubmitted && !world.initialPrompt">Prompt is required.</small>
             <div>
                 <small>Tokens: {{ worldPromptTokens?.tokens && world.initialPrompt ? worldPromptTokens?.tokens : 0 }}</small>
@@ -190,7 +198,7 @@ const saveEntry = (savedEntry: LorebookEntry) => {
 
         <div class="field">
             <label for="visibility" class="mb-3">Visibility <strong :style="{ color: 'red' }">*</strong></label>
-            <Dropdown :disabled="!isOwner" id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
+            <Dropdown :disabled="!canEdit" id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
                 <template #value="slotProps">
                     <div v-if="slotProps.value && slotProps.value.value">
                         <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
@@ -227,7 +235,7 @@ const saveEntry = (savedEntry: LorebookEntry) => {
                         responsiveLayout="scroll"
                     >
                         <template #header>
-                            <Toolbar v-if="isOwner" class="mb-4">
+                            <Toolbar v-if="canEdit" class="mb-4">
                                 <template v-slot:start>
                                     <div class="my-2">
                                         <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewEntry" />
@@ -277,7 +285,7 @@ const saveEntry = (savedEntry: LorebookEntry) => {
                                     <InputText v-model="entryFilters['global'].value" placeholder="Search..." />
                                 </span>
                             </div>
-                            <Toolbar v-if="isOwner" class="mb-4">
+                            <Toolbar v-if="canEdit" class="mb-4">
                                 <template v-slot:start>
                                     <div class="my-2">
                                         <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewEntry" />
@@ -317,23 +325,24 @@ const saveEntry = (savedEntry: LorebookEntry) => {
                     </DataTable>
                 </TabPanel>
             </TabView>
-            <LorebookEntryDialog v-model:visible="isEntryDialogVisible" :entry="entry" :isOwner="isOwner" @onSave="saveEntry" @onClose="isEntryDialogVisible = false" />
+            <LorebookEntryDialog v-model:visible="isEntryDialogVisible" :entry="entry" :isOwner="canEdit" @onSave="saveEntry" @onClose="isEntryDialogVisible = false" />
             <LorebookEntryDeleteDialog v-model:visible="isEntryDeleteDialogVisible" :entry="entry" @onConfirm="deleteEntry" @onCancel="isEntryDeleteDialogVisible = false" />
             <LorebookEntryDeleteBulkDialog v-model:visible="isEntryDeleteBulkDialogVisible" @onConfirm="deleteSelectedEntries" @onCancel="isEntryDeleteBulkDialogVisible = false" />
-            <ConfirmIgnoreChangesDialog v-model:visible="isPendingChangePromptVisible" @onConfirm="sendCloseWorld" @onCancel="isPendingChangePromptVisible = false" />
+            <ConfirmIgnoreChangesDialog v-model:visible="isPendingChangePromptVisible" @onConfirm="sendClose" @onCancel="isPendingChangePromptVisible = false" />
         </div>
 
         <template #footer>
             <Toolbar class="mb-4">
                 <template v-slot:start>
                     <div class="my-2">
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="closeWorldPrompt" />
+                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="checkModificationsBeforeClosing" />
                     </div>
                 </template>
                 <template v-slot:end>
-                    <Button v-if="world.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="sendCloneWorld" />
-                    <Button v-if="world.id" label="Download" icon="pi pi-download" class="p-button-text" @click="sendDownloadWorld" />
-                    <Button v-if="isOwner" label="Save" icon="pi pi-check" class="p-button-primary" @click="sendSaveWorld" />
+                    <Button v-if="world.id && !allowSelection" label="Clone" icon="pi pi-copy" class="p-button-text" @click="sendClone" />
+                    <Button v-if="world.id && !allowSelection" label="Download" icon="pi pi-download" class="p-button-text" @click="sendDownload" />
+                    <Button v-if="canEdit && !allowSelection" label="Save" icon="pi pi-check" class="p-button-primary" @click="sendSave" />
+                    <Button v-if="allowSelection" label="Select" icon="pi pi-check" class="p-button-primary" @click="sendSelect" />
                 </template>
             </Toolbar>
         </template>
