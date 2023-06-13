@@ -130,7 +130,16 @@ const processPersonaBumpTokens = (event: any) => {
 
         <div class="field">
             <label for="visibility" class="mb-3">Visibility <strong :style="{ color: 'red' }">*</strong></label>
-            <Dropdown :disabled="!canEdit" id="visibility" v-model="persona.visibility" :options="visibilities" optionValue="value" optionLabel="label" placeholder="Persona visibility" :class="{ 'p-invalid': personaSubmitted && !persona.visibility }">
+            <Dropdown
+                :disabled="!canEdit"
+                id="visibility"
+                v-model="persona.visibility"
+                :options="visibilities"
+                optionValue="value"
+                optionLabel="label"
+                placeholder="Persona visibility"
+                :class="{ 'p-invalid': personaSubmitted && !persona.visibility }"
+            >
                 <template #value="slotProps">
                     <div v-if="slotProps.value && slotProps.value.value">
                         <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
