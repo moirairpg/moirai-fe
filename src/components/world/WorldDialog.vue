@@ -17,7 +17,7 @@ import LorebookEntry from '@/types/world/LorebookEntry';
 
 interface Props {
     world: World;
-    isOwner: Boolean;
+    isOwner: boolean;
 }
 
 const toast: ToastServiceMethods = useToast();
@@ -37,11 +37,11 @@ onMounted((): void => updateTokens());
 onBeforeMount((): void => initEntryFilters());
 
 const world: Ref<World> = ref(Object.assign({}, JSON.parse(JSON.stringify(props.world))));
-const worldSubmitted: Ref<Boolean> = ref(false);
+const worldSubmitted: Ref<boolean> = ref(false);
 const worldPromptTokens: Ref<TokenProps> = ref({});
 
 const entry: Ref<LorebookEntry> = ref({ isNew: true });
-const entrySubmitted: Ref<Boolean> = ref(false);
+const entrySubmitted: Ref<boolean> = ref(false);
 const selectedEntries: Ref<LorebookEntry[]> = ref([]);
 const dataViewRef: Ref<any> = ref(null);
 const entryFilters: Ref<any> = ref({});

@@ -9,7 +9,7 @@ import LorebookEntry from '@/types/world/LorebookEntry';
 
 interface Props {
     entry: LorebookEntry;
-    isOwner: Boolean;
+    isOwner: boolean;
 }
 
 const emit: any = defineEmits(['onSave', 'onClose']);
@@ -27,7 +27,7 @@ watch(
 onMounted((): void => updateTokens());
 
 const entry: Ref<LorebookEntry> = ref(Object.assign({}, JSON.parse(JSON.stringify(props.entry))));
-const entrySubmitted: Ref<Boolean> = ref(false);
+const entrySubmitted: Ref<boolean> = ref(false);
 const lorebookEntryNameTokens: Ref<TokenProps> = ref({});
 const lorebookEntryDescriptionTokens: Ref<TokenProps> = ref({});
 const isPendingChangePromptVisible: Ref<boolean> = ref(false);
