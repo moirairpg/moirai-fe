@@ -16,7 +16,7 @@ class ChannelConfigService {
                 }
             });
 
-            return await response.channel_configs;
+            return await response.channelConfigs;
         } catch (error: any) {
             console.error(`Error retrieving channel config data -> ${error}`);
             throw error;
@@ -37,10 +37,10 @@ class ChannelConfigService {
                     world: {
                         id: channelConfig.world?.id
                     },
-                    moderation_settings: {
+                    moderationSettings: {
                         id: channelConfig.moderationSettings?.id
                     },
-                    model_settings: channelConfig.modelSettings
+                    modelSettings: channelConfig.modelSettings
                 },
                 headers: {
                     requester: requesterUserId,
@@ -48,7 +48,7 @@ class ChannelConfigService {
                 }
             });
 
-            return response.channel_config;
+            return response.channelConfig;
         } catch (error: any) {
             console.error(`Error creating channel config -> ${error}`);
             throw error;
@@ -69,10 +69,10 @@ class ChannelConfigService {
                     world: {
                         id: channelConfig.world?.id
                     },
-                    moderation_settings: {
+                    moderationSettings: {
                         id: channelConfig.moderationSettings?.id
                     },
-                    model_settings: channelConfig.modelSettings
+                    modelSettings: channelConfig.modelSettings
                 },
                 headers: {
                     requester: requesterUserId,
