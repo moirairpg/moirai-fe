@@ -15,6 +15,9 @@ import World from '@/types/world/World';
 import Persona from '@/types/persona/Persona';
 import LogitBias from '@/types/chconf/LogitBias';
 
+import ChannelConfigDeleteBulkDialog from '@/components/chconf/ChannelConfigDeleteBulkDialog.vue';
+import ChannelConfigDeleteDialog from '@/components/chconf/ChannelConfigDeleteDialog.vue';
+import ChannelConfigImportDialog from '@/components/chconf/ChannelConfigImportDialog.vue';
 import ChannelConfigDialogVue from '@/components/chconf/ChannelConfigDialog.vue';
 
 const loggedUser: DiscordUser = store.getters.loggedUser;
@@ -33,15 +36,8 @@ const channelConfigSearchFilters: Ref<any> = ref({});
 
 const isChannelConfigDialogVisible: Ref<boolean> = ref(false);
 
-const world: Ref<World> = ref({});
 const worlds: Ref<World[]> = ref([]);
-const worldDialog: Ref<boolean> = ref(false);
-const worldSearchFilters: Ref<any> = ref({});
-
-const persona: Ref<Persona> = ref({});
 const personas: Ref<Persona[]> = ref([]);
-const personaSearchFilters: Ref<any> = ref({});
-const personaDialog: Ref<boolean> = ref(false);
 
 const temperatureValue: Ref<number> = ref(0.8);
 const maxTokens: Ref<number> = ref(200);
@@ -51,8 +47,6 @@ const selectedModel = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTok
 
 onBeforeMount(() => {
     initChannelConfigSearchFilters();
-    initWorldSearchFilters();
-    initPersonaSearchFilters();
 });
 
 onMounted(async () => {
@@ -152,26 +146,6 @@ const createNewChannelConfig = () => {
 const hideChannelConfigDialog = () => {
     channelConfigSubmitted.value = false;
     isChannelConfigDialogVisible.value = false;
-};
-
-const hideWorldDialog = () => {
-    worldDialog.value = false;
-};
-
-const hidePersonaDialog = () => {
-    personaDialog.value = false;
-};
-
-const selectWorld = () => {
-    channelConfig.value.world = world.value;
-    worldDialog.value = false;
-    world.value = {};
-};
-
-const selectPersona = () => {
-    channelConfig.value.persona = persona.value;
-    personaDialog.value = false;
-    persona.value = {};
 };
 
 const saveChannelConfig = async () => {
@@ -322,18 +296,6 @@ const deleteSelectedChannelConfigs = () => {
 
 const initChannelConfigSearchFilters = () => {
     channelConfigSearchFilters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-    };
-};
-
-const initWorldSearchFilters = () => {
-    worldSearchFilters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-    };
-};
-
-const initPersonaSearchFilters = () => {
-    personaSearchFilters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
@@ -557,107 +519,12 @@ const onImport = async (event: any) => {
                         </DataTable>
                     </TabPanel>
                 </TabView>
-
-                <Dialog v-model:visible="channelConfigImportDialog" header="Import" :modal="true">
-                    <FileUpload name="import[]" :customUpload="true" @uploader="onImport" :multiple="true" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
-                    <template #footer>
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="channelConfigImportDialog = false" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="deleteChannelConfigDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
-                    <div class="flex align-items-center justify-content-center">
-                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                        <span v-if="channelConfig">
-                            Are you sure you want to delete <b>{{ channelConfig.name }}</b
-                            >?
-                        </span>
-                    </div>
-                    <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteChannelConfigDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteChannelConfig" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="deleteChannelConfigsDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
-                    <div class="flex align-items-center justify-content-center">
-                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                        <span v-if="channelConfig">Are you sure you want to delete the selected channel configs?</span>
-                    </div>
-                    <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteChannelConfigsDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteSelectedChannelConfigs" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="worldDialog" header="World" :modal="true" class="p-fluid">
-                    <div class="field">
-                        <label for="name">Name</label>
-                        <InputText id="name" v-model="world.name" disabled />
-                    </div>
-                    <div class="field">
-                        <label for="description">Description</label>
-                        <Textarea id="description" v-model="world.description" rows="3" cols="20" disabled />
-                    </div>
-                    <template #footer>
-                        <Button label="Close" icon="pi pi-times" class="p-button-danger" @click="hideWorldDialog" />
-                        <Button v-if="worldDialog" label="Select" icon="pi pi-check" class="p-button-primary" @click="selectWorld" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="personaDialog" header="Persona" :modal="true" class="p-fluid">
-                    <div class="field">
-                        <label for="name">Name</label>
-                        <InputText disabled id="name" v-model="persona.name" required="true" />
-                    </div>
-
-                    <div class="field">
-                        <label for="intent" class="mb-3">Intent</label>
-                        <Textarea disabled id="intent" v-model="persona.intent" placeholder="Persona intent" />
-                    </div>
-
-                    <div class="field">
-                        <label for="nudge" class="mb-3">Nudge</label>
-                        <div class="grid formgrid">
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <InputText disabled id="nudge-role" v-model="persona.nudge!.role" placeholder="Nudge role" />
-                            </div>
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <Textarea disabled rows="1" v-model="persona.nudge!.content" id="nudge-text" type="text" placeholder="Nudge text" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="bump" class="mb-3">Bump</label>
-                        <div class="grid formgrid">
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <InputText disabled id="bump-role" v-model="persona.bump!.role" placeholder="Bump role" />
-                            </div>
-                            <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <InputNumber disabled mode="decimal" v-model="persona.bump!.frequency" id="bump-freq" type="text" placeholder="Bump frequency" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="grid formgrid">
-                            <div class="col-12 mb-2 lg:col-12 lg:mb-0">
-                                <Textarea disabled rows="1" v-model="persona.bump!.content" id="bump-text" type="text" placeholder="Bump text" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="personality">Personality</label>
-                        <Textarea disabled id="personality" v-model="persona.personality" required="true" rows="10" cols="20" />
-                    </div>
-                    <template #footer>
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hidePersonaDialog" />
-                        <Button label="Select" icon="pi pi-check" class="p-button-primary" @click="selectPersona" />
-                    </template>
-                </Dialog>
             </div>
         </div>
+
+        <ChannelConfigImportDialog @onImport="onImport" @onCancel="channelConfigImportDialog = false" />
+        <ChannelConfigDeleteDialog v-model:visible="deleteChannelConfigDialog" :channelConfig="channelConfig" @onConfirm="deleteChannelConfig" @onCancel="deleteChannelConfigDialog = false" />
+        <ChannelConfigDeleteBulkDialog v-model:visible="deleteChannelConfigsDialog" @onConfirm="deleteSelectedChannelConfigs" @onCancel="deleteChannelConfigsDialog = false" />
         <ChannelConfigDialogVue
             v-model:visible="isChannelConfigDialogVisible"
             :canEdit="channelConfig.canEdit as boolean"
