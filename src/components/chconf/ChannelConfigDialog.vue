@@ -195,7 +195,7 @@ const onStrictFilterChange = (event: any) => {
 };
 
 const checkForChanges = (): void => {
-    if (JSON.stringify(world.value) !== JSON.stringify(props.channelConfig)) {
+    if (JSON.stringify(channelConfig.value) !== JSON.stringify(props.channelConfig)) {
         isPendingChangePromptVisible.value = true;
         return;
     }
