@@ -35,6 +35,7 @@ watch(
         channelConfig.value = Object.assign({}, JSON.parse(JSON.stringify(selectedChannelConfiguration)));
         personas.value = props.personas;
         worlds.value = props.worlds;
+        canEdit.value = props.canEdit;
         updateValues();
     }
 ),
@@ -47,6 +48,7 @@ onBeforeMount((): void => {
     updateValues();
 });
 
+const canEdit: Ref<boolean> = ref(props.canEdit);
 const channelConfig: Ref<ChannelConfiguration> = ref(Object.assign({}, JSON.parse(JSON.stringify(props.channelConfig))));
 const channelConfigs: Ref<ChannelConfiguration[]> = ref([]);
 const channelConfigSubmitted: Ref<boolean> = ref(false);
@@ -258,7 +260,7 @@ const sendClone = (): void => {
 
         <div class="field">
             <label for="config-name">Configuration name <strong :style="{ color: 'red' }">*</strong></label>
-            <InputText id="config-name" v-model="channelConfig.name" required="true" autofocus :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.name }" />
+            <InputText :disabled="!canEdit" id="config-name" v-model="channelConfig.name" required="true" autofocus :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.name }" />
             <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.name">Configuration name is required.</small>
         </div>
 
@@ -272,11 +274,11 @@ const sendClone = (): void => {
             >
                 AI Model <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
             </label>
-            <Dropdown id="ai-model" v-model="selectedModel" :options="modelsAvailable" optionLabel="label" :class="{ 'p-invalid': channelConfigSubmitted && !selectedModel }" />
+            <Dropdown :disabled="!canEdit" id="ai-model" v-model="selectedModel" :options="modelsAvailable" optionLabel="label" :class="{ 'p-invalid': channelConfigSubmitted && !selectedModel }" />
             <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
             <div class="col-12 md:col-4">
                 <div class="field-checkbox mb-0">
-                    <Checkbox binary id="strict-filter" name="strict-filter" :model-value="channelConfig.moderationSettings?.id === 'STRICT'" @input="onStrictFilterChange" />
+                    <Checkbox :disabled="!canEdit" binary id="strict-filter" name="strict-filter" :model-value="channelConfig.moderationSettings?.id === 'STRICT'" @input="onStrictFilterChange" />
                     <label
                         for="strict-filter"
                         v-tooltip="
@@ -303,8 +305,8 @@ const sendClone = (): void => {
                     >
                         Randomness <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                     </label>
-                    <InputNumber id="temperature" :allowEmpty="false" :maxFractionDigits="1" :min="0.1" :max="2" v-model.number="temperatureValue" @update:modelValue="getTemperaturePercentage(temperatureValue)" />
-                    <Slider v-model="temperaturePercentage" @update:modelValue="getTemperatureValue(temperaturePercentage)" />
+                    <InputNumber :disabled="!canEdit" id="temperature" :allowEmpty="false" :maxFractionDigits="1" :min="0.1" :max="2" v-model.number="temperatureValue" @update:modelValue="getTemperaturePercentage(temperatureValue)" />
+                    <Slider :disabled="!canEdit" v-model="temperaturePercentage" @update:modelValue="getTemperatureValue(temperaturePercentage)" />
                 </div>
                 <div class="col-12 mb-2 lg:col-4 lg:mb-0">
                     <label
@@ -317,7 +319,7 @@ const sendClone = (): void => {
                     >
                         Max tokens <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                     </label>
-                    <InputNumber v-model.number="channelConfig.modelSettings!.maxTokens" :min="100" :max="selectedModel.maxTokens" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens }" />
+                    <InputNumber :disabled="!canEdit" v-model.number="channelConfig.modelSettings!.maxTokens" :min="100" :max="selectedModel.maxTokens" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens }" />
                     <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens">Max token count is required.</small>
                 </div>
                 <div class="col-12 mb-2 lg:col-4 lg:mb-0">
@@ -330,7 +332,7 @@ const sendClone = (): void => {
                     >
                         Message history number <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                     </label>
-                    <InputNumber v-model.number="channelConfig.modelSettings!.chatHistoryMemory" :min="5" :max="20" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.chatHistoryMemory }" />
+                    <InputNumber :disabled="!canEdit" v-model.number="channelConfig.modelSettings!.chatHistoryMemory" :min="5" :max="20" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.chatHistoryMemory }" />
                     <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.modelSettings!.chatHistoryMemory">Message history count is required.</small>
                 </div>
             </div>
@@ -355,15 +357,15 @@ const sendClone = (): void => {
                             >
                                 Presence penalty <i class="pi pi-info-circle" />
                             </label>
-                            <InputNumber id="pres-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="presPenValue" @update:modelValue="getPresPenPercentage(presPenValue)" />
-                            <Slider v-model="presPenPercentage" @update:modelValue="getPresPenValue(presPenPercentage)" />
+                            <InputNumber :disabled="!canEdit" id="pres-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="presPenValue" @update:modelValue="getPresPenPercentage(presPenValue)" />
+                            <Slider :disabled="!canEdit" v-model="presPenPercentage" @update:modelValue="getPresPenValue(presPenPercentage)" />
                         </div>
                         <div class="col-12 mb-2 lg:col-6 lg:mb-0">
                             <label for="freq-pen" v-tooltip="'This value is optional. Defaults to 0. This penalizes the AI for repeating the same tokens too many times. The higher the value, the less the AI will repeat the same tokens.'">
                                 Frequency penalty <i class="pi pi-info-circle" />
                             </label>
-                            <InputNumber id="freq-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="freqPenValue" @update:modelValue="getFreqPenPercentage(freqPenValue)" />
-                            <Slider v-model="freqPenPercentage" @update:modelValue="getFreqPenValue(freqPenPercentage)" />
+                            <InputNumber :disabled="!canEdit" id="freq-pen" :maxFractionDigits="1" :min="-2" :max="2" v-model.number="freqPenValue" @update:modelValue="getFreqPenPercentage(freqPenValue)" />
+                            <Slider :disabled="!canEdit" v-model="freqPenPercentage" @update:modelValue="getFreqPenValue(freqPenPercentage)" />
                         </div>
                     </div>
                 </div>
@@ -379,7 +381,7 @@ const sendClone = (): void => {
                             >
                                 Stop sequences <i class="pi pi-info-circle" />
                             </label>
-                            <Chips id="stop-sequences" v-model="channelConfig.modelSettings!.stopSequence" :max="4" />
+                            <Chips :disabled="!canEdit" id="stop-sequences" v-model="channelConfig.modelSettings!.stopSequence" :max="4" />
                         </div>
                     </div>
                 </div>
@@ -395,19 +397,19 @@ const sendClone = (): void => {
                             >
                                 Logit bias <i class="pi pi-info-circle" />
                             </label>
-                            <Dropdown id="logit-bias" v-model="selectedLogitBias" :options="channelConfig.modelSettings!.logitBias" optionLabel="text" placeholder="Existing logit biases" @update:modelValue="selectLogitBias" />
-                            <InputText id="logit-bias-token" v-model="logitBiasToken" placeholder="Logit bias token" />
-                            <Slider v-model="logitBiasPercentage" @update:modelValue="getLogitBiasValue(logitBiasPercentage)" />
-                            <InputNumber id="logit-bias-bias" :maxFractionDigits="0" :min="-100" :max="100" v-model.number="logitBiasValue" @update:modelValue="getLogitBiasPercentage(logitBiasValue)" />
+                            <Dropdown :disabled="!canEdit" id="logit-bias" v-model="selectedLogitBias" :options="channelConfig.modelSettings!.logitBias" optionLabel="text" placeholder="Existing logit biases" @update:modelValue="selectLogitBias" />
+                            <InputText :disabled="!canEdit" id="logit-bias-token" v-model="logitBiasToken" placeholder="Logit bias token" />
+                            <Slider :disabled="!canEdit" v-model="logitBiasPercentage" @update:modelValue="getLogitBiasValue(logitBiasPercentage)" />
+                            <InputNumber :disabled="!canEdit" id="logit-bias-bias" :maxFractionDigits="0" :min="-100" :max="100" v-model.number="logitBiasValue" @update:modelValue="getLogitBiasPercentage(logitBiasValue)" />
                         </div>
                     </div>
                     <div class="field">
                         <div class="grid formgrid">
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <Button class="p-button-primary" label="Add/update logit bias" @click="addLogitBias" />
+                                <Button v-if="canEdit" class="p-button-primary" label="Add/update logit bias" @click="addLogitBias" />
                             </div>
                             <div class="col-12 mb-2 lg:col-6 lg:mb-0">
-                                <Button class="p-button-danger" label="Remove logit bias" @click="removeLogitBias" />
+                                <Button v-if="canEdit" class="p-button-danger" label="Remove logit bias" @click="removeLogitBias" />
                             </div>
                         </div>
                     </div>
@@ -417,7 +419,7 @@ const sendClone = (): void => {
 
         <div class="card" v-if="channelConfigs">
             <Panel header="Persona" :toggleable="true" :collapsed="true">
-                <PersonaCardView v-if="!canEdit && Object.getOwnPropertyNames(persona).length > 0" :persona="(channelConfig.persona as Persona)" @onOpen="openPersona" />
+                <PersonaCardView v-if="!canEdit && Object.getOwnPropertyNames(channelConfig.persona).length > 0" :persona="(channelConfig.persona as Persona)" @onOpen="openPersona" />
                 <TabView v-if="canEdit">
                     <TabPanel header="Card view">
                         <PersonaDataView :personas="personas" :selectedPersona="channelConfig.persona" :isViewOnly="true" @onOpen="openPersona" />
@@ -431,7 +433,7 @@ const sendClone = (): void => {
 
         <div class="card" v-if="channelConfigs">
             <Panel header="World" :toggleable="true" :collapsed="true">
-                <WorldCardView v-if="!canEdit && Object.getOwnPropertyNames(world).length > 0" :world="(channelConfig.world as World)" @onOpen="openWorld" />
+                <WorldCardView v-if="!canEdit && Object.getOwnPropertyNames(channelConfig.world).length > 0" :world="(channelConfig.world as World)" @onOpen="openWorld" />
                 <TabView v-if="canEdit">
                     <TabPanel header="Card view">
                         <WorldDataView :worlds="worlds" :selectedWorld="channelConfig.world" :isViewOnly="true" @onOpen="openWorld" />
@@ -453,7 +455,7 @@ const sendClone = (): void => {
                 <template v-slot:end>
                     <Button v-if="channelConfig.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="sendClone" />
                     <Button v-if="channelConfig.id" label="Download" icon="pi pi-download" class="p-button-text" @click="sendDownload" />
-                    <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="sendSave" />
+                    <Button v-if="canEdit" label="Save" icon="pi pi-check" class="p-button-primary" @click="sendSave" />
                 </template>
             </Toolbar>
         </template>
