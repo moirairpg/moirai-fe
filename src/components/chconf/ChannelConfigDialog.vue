@@ -75,7 +75,6 @@ const selectedLogitBias: Ref<LogitBias> = ref({});
 const logitBiasToken: Ref<string> = ref('');
 const logitBiasValue: Ref<number> = ref(0);
 const logitBiasPercentage: Ref<number> = ref(50);
-const selectedModel = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
 const modelsAvailable: Ref<LabelItem[]> = ref([
     // { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
     // { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
@@ -142,15 +141,14 @@ const getLogitBiasValue = (logitBiasPercentage: number) => {
 };
 
 const addLogitBias = () => {
-    const logitBiases = channelConfig.value.modelSettings!.logitBias;
-    let existingBiasIndex = logitBiases?.findIndex((bias) => bias.decodedToken === logitBiasToken.value) ?? -1;
+    let existingBiasIndex = channelConfig.value?.modelSettings?.logitBias?.findIndex((bias) => bias.decodedToken === logitBiasToken.value) ?? -1;
     if (existingBiasIndex > -1) {
-        logitBiases![existingBiasIndex].bias = logitBiasValue.value;
-        logitBiases![existingBiasIndex].text = `${logitBiasToken.value}:${logitBiasValue.value}`;
+        channelConfig.value!.modelSettings!.logitBias![existingBiasIndex].bias = logitBiasValue.value;
+        channelConfig.value!.modelSettings!.logitBias![existingBiasIndex].text = `${logitBiasToken.value}:${logitBiasValue.value}`;
     } else {
         const tokenized = decodeTokens(logitBiasToken.value);
         tokenized.encodedTokens?.forEach((tokenId, index) => {
-            logitBiases?.push({
+            channelConfig.value?.modelSettings?.logitBias?.push({
                 text: `${tokenized.decodedTokens![index]}:${logitBiasValue.value}`,
                 decodedToken: tokenized.decodedTokens![index],
                 encodedToken: tokenId,
@@ -239,16 +237,17 @@ const sendClose = (): void => {
 };
 
 const sendDownload = (): void => {
-    emit('onDownload', world.value);
+    emit('onDownload', channelConfig.value);
 };
 
 const sendSave = (): void => {
     isPendingChangePromptVisible.value = false;
-    emit('onSave', world.value);
+    channelConfig.value.modelSettings!.modelName = (channelConfig.value.modelSettings?.modelName as LabelItem).value;
+    emit('onSave', channelConfig.value);
 };
 
 const sendClone = (): void => {
-    emit('onClone', world.value);
+    emit('onClone', channelConfig.value);
 };
 </script>
 <template>
@@ -274,8 +273,8 @@ const sendClone = (): void => {
             >
                 AI Model <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
             </label>
-            <Dropdown :disabled="!canEdit" id="ai-model" v-model="selectedModel" :options="modelsAvailable" optionLabel="label" :class="{ 'p-invalid': channelConfigSubmitted && !selectedModel }" />
-            <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
+            <Dropdown :disabled="!canEdit" id="ai-model" v-model="channelConfig.modelSettings!.modelName" :options="modelsAvailable" optionLabel="label" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.modelName }" />
+            <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.modelSettings!.modelName">AI model is required.</small>
             <div class="col-12 md:col-4">
                 <div class="field-checkbox mb-0">
                     <Checkbox :disabled="!canEdit" binary id="strict-filter" name="strict-filter" :model-value="channelConfig.moderationSettings?.id === 'STRICT'" @input="onStrictFilterChange" />
@@ -314,12 +313,18 @@ const sendClone = (): void => {
                         v-tooltip="
                             `This value is required. Defaults to 100. The amount of tokens (considering both input and output) to be processed by the AI.
                                         Maximum number depends on model selected. We do not recommend providing a value higher than half of what the model supports, especially for smaller models.
-                                        Maximum allowed for the selected model: ${selectedModel.maxTokens}`
+                                        Maximum allowed for the selected model: ${channelConfig.modelSettings!.modelName?.maxTokens ?? 0}`
                         "
                     >
                         Max tokens <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                     </label>
-                    <InputNumber :disabled="!canEdit" v-model.number="channelConfig.modelSettings!.maxTokens" :min="100" :max="selectedModel.maxTokens" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens }" />
+                    <InputNumber
+                        :disabled="!canEdit"
+                        v-model.number="channelConfig.modelSettings!.maxTokens"
+                        :min="100"
+                        :max="channelConfig.modelSettings!.modelName?.maxTokens"
+                        :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens }"
+                    />
                     <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens">Max token count is required.</small>
                 </div>
                 <div class="col-12 mb-2 lg:col-4 lg:mb-0">

@@ -127,7 +127,11 @@ const createNewChannelConfig = () => {
         modelSettings: {
             maxTokens: maxTokens.value,
             chatHistoryMemory: maxHistoryMessageNumber.value,
-            temperature: temperatureValue.value
+            temperature: temperatureValue.value,
+            modelName: { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 },
+            presencePenalty: 0,
+            frequencyPenalty: 0,
+            logitBias: []
         },
         moderationSettings: {
             id: 'PERMISSIVE'
@@ -138,7 +142,6 @@ const createNewChannelConfig = () => {
     };
 
     logitBiases.value = [];
-    selectedModel.value = { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 };
     channelConfigSubmitted.value = false;
     isChannelConfigDialogVisible.value = true;
 };
@@ -148,19 +151,19 @@ const hideChannelConfigDialog = () => {
     isChannelConfigDialogVisible.value = false;
 };
 
-const saveChannelConfig = async () => {
+const saveChannelConfig = async (savedChannelConfig: ChannelConfiguration) => {
     channelConfigSubmitted.value = true;
-    if (!channelConfig.value.persona?.id || !channelConfig.value.world?.id) {
+    if (!savedChannelConfig.persona?.id || !savedChannelConfig.world?.id) {
         console.error(`Persona and world cannot be empty.`);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Persona and world cannot be empty. Please choose one for each before proceeding.', life: 3000 });
         return;
     }
 
-    if (channelConfig.value.name?.trim()) {
-        if (channelConfig.value.id) {
+    if (savedChannelConfig.name?.trim()) {
+        if (savedChannelConfig.id) {
             try {
-                channelConfig.value.owner = loggedUser.id;
-                // channelConfig.value.modelSettings = {
+                savedChannelConfig.owner = loggedUser.id;
+                // savedChannelConfig.modelSettings = {
                 //     modelName: selectedModel.value.value,
                 //     temperature: temperatureValue.value,
                 //     frequencyPenalty: freqPenValue.value,
@@ -172,9 +175,9 @@ const saveChannelConfig = async () => {
                 //     logitBias: logitBiases.value.reduce((dict, b, index) => ((dict[b.encodedToken] = b.bias), dict), {})
                 // };
 
-                await channelConfigService.updateChannelConfig(channelConfig.value, loggedUser.id);
+                await channelConfigService.updateChannelConfig(savedChannelConfig, loggedUser.id);
 
-                channelConfigs.value[findChannelConfigIndexById(channelConfig.value.id)] = channelConfig.value;
+                channelConfigs.value[findChannelConfigIndexById(savedChannelConfig.id)] = savedChannelConfig;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'Channel configuration updated', life: 3000 });
             } catch (error) {
                 console.error(`An error ocurred while updating the channel config -> ${error}`);
@@ -182,8 +185,8 @@ const saveChannelConfig = async () => {
             }
         } else {
             try {
-                channelConfig.value.owner = loggedUser.id;
-                // channelConfig.value.modelSettings = {
+                savedChannelConfig.owner = loggedUser.id;
+                // savedChannelConfig.modelSettings = {
                 //     modelName: selectedModel.value.value,
                 //     temperature: temperatureValue,
                 //     frequency_penalty: freqPenValue,
@@ -195,7 +198,7 @@ const saveChannelConfig = async () => {
                 //     logit_bias: logitBiases.value.reduce((dict, b, index) => ((dict[b.encodedToken] = b.bias), dict), {})
                 // };
 
-                const createdChannelConfig = await channelConfigService.createChannelConfig(channelConfig.value, loggedUser.id);
+                const createdChannelConfig = await channelConfigService.createChannelConfig(savedChannelConfig, loggedUser.id);
 
                 createdChannelConfig.canEdit = true;
                 createdChannelConfig.ownerData = loggedUser;
