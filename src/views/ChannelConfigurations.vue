@@ -15,6 +15,8 @@ import World from '@/types/world/World';
 import Persona from '@/types/persona/Persona';
 import LogitBias from '@/types/chconf/LogitBias';
 
+import ChannelConfigDataTable from '@/components/chconf/ChannelConfigDataTable.vue';
+import ChannelConfigDataView from '@/components/chconf/ChannelConfigDataView.vue';
 import ChannelConfigDeleteBulkDialog from '@/components/chconf/ChannelConfigDeleteBulkDialog.vue';
 import ChannelConfigDeleteDialog from '@/components/chconf/ChannelConfigDeleteDialog.vue';
 import ChannelConfigImportDialog from '@/components/chconf/ChannelConfigImportDialog.vue';
@@ -399,126 +401,17 @@ const onImport = async (event: any) => {
                 <Toast />
                 <TabView>
                     <TabPanel header="Card view">
-                        <Toolbar class="mb-4">
-                            <template v-slot:start>
-                                <div class="my-2">
-                                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewChannelConfig" />
-                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importChannelConfig" />
-                                </div>
-                            </template>
-                        </Toolbar>
-
-                        <DataView
-                            layout="grid"
-                            ref="dataViewRef"
-                            :value="channelConfigs"
-                            dataKey="id"
-                            :paginator="true"
-                            :rows="6"
-                            :filters="channelConfigSearchFilters"
-                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                            :rowsPerPageOptions="[6, 12, 18]"
-                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} configs"
-                            responsiveLayout="scroll"
-                        >
-                            <template #header>
-                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                    <h5 class="m-0">Channel configurations</h5>
-                                </div>
-                            </template>
-
-                            <template #empty>No configurations found.</template>
-
-                            <template #grid="slotProps">
-                                <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
-                                    <div class="p-4 border-1 surface-border surface-card border-round">
-                                        <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-                                            <div class="flex align-items-center gap-2">
-                                                <i class="pi pi-user"></i>
-                                                <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
-                                            </div>
-                                            <Tag :value="slotProps.data.persona.intent" :class="'intent-badge intent-' + (slotProps.data.persona.intent ? slotProps.data.persona.intent.toLowerCase() : '')"></Tag>
-                                        </div>
-                                        <div class="flex flex-column align-items-center gap-3 py-5">
-                                            <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
-                                        </div>
-                                        <p align="center" class="card-overflow">
-                                            {{ slotProps.data.description }}
-                                        </p>
-                                        <div class="flex align-items-center justify-content-between">
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editChannelConfig(slotProps.data)" />
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteChannelConfig(slotProps.data)" />
-                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewChannelConfig(slotProps.data)" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </DataView>
+                        <ChannelConfigDataView :channel-configs="channelConfigs" @onOpen="viewChannelConfig" @onDelete="confirmDeleteChannelConfig" @onCreate="createNewChannelConfig" @onImport="importChannelConfig" />
                     </TabPanel>
                     <TabPanel header="Table view">
-                        <Toolbar class="mb-4">
-                            <template v-slot:start>
-                                <div class="my-2">
-                                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewChannelConfig" />
-                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importChannelConfig" />
-                                    <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedChannelConfigs" :disabled="!selectedChannelConfigs || !selectedChannelConfigs.length" />
-                                </div>
-                            </template>
-                        </Toolbar>
-
-                        <DataTable
-                            ref="dataViewRef"
-                            :value="channelConfigs"
-                            v-model:selection="selectedChannelConfigs"
-                            dataKey="id"
-                            :paginator="true"
-                            :rows="10"
-                            :filters="channelConfigSearchFilters"
-                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                            :rowsPerPageOptions="[5, 10, 25]"
-                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} configs"
-                            responsiveLayout="scroll"
-                            maxLength
-                        >
-                            <template #header>
-                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                    <h5 class="m-0">Channel configurations</h5>
-                                    <span class="block mt-2 md:mt-0 p-input-icon-left">
-                                        <i class="pi pi-search" />
-                                        <InputText v-model="channelConfigSearchFilters['global'].value" placeholder="Search..." />
-                                    </span>
-                                </div>
-                            </template>
-
-                            <template #empty>No configurations found.</template>
-
-                            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                            <Column field="id" header="ID" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">ID</span>
-                                    <div class="table-column-overflow">{{ slotProps.data.id }}</div>
-                                </template>
-                            </Column>
-                            <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Name</span>
-                                    <div class="table-column-overflow">{{ slotProps.data.name }}</div>
-                                </template>
-                            </Column>
-                            <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Owner</span>
-                                    {{ slotProps.data.ownerData.username }}
-                                </template>
-                            </Column>
-                            <Column headerStyle="min-width:10rem;">
-                                <template #body="slotProps">
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editChannelConfig(slotProps.data)" />
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteChannelConfig(slotProps.data)" />
-                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewChannelConfig(slotProps.data)" />
-                                </template>
-                            </Column>
-                        </DataTable>
+                        <ChannelConfigDataTable
+                            :channel-configs="channelConfigs"
+                            @onOpen="viewChannelConfig"
+                            @onDelete="confirmDeleteChannelConfig"
+                            @onCreate="createNewChannelConfig"
+                            @onImport="importChannelConfig"
+                            @onDeleteBulk="confirmDeleteSelectedChannelConfigs"
+                        />
                     </TabPanel>
                 </TabView>
             </div>
