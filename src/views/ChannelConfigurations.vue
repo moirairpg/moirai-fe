@@ -24,7 +24,6 @@ import ChannelConfigDialogVue from '@/components/chconf/ChannelConfigDialog.vue'
 
 const loggedUser: DiscordUser = store.getters.loggedUser;
 
-const dataViewRef: Ref<any> = ref(null);
 const toast: ToastServiceMethods = useToast();
 
 const channelConfig: Ref<ChannelConfiguration> = ref({});
