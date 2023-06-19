@@ -13,14 +13,12 @@ const model = ref([
         items: [
             { label: 'Worlds', icon: 'pi pi-fw pi-globe', to: '/worlds' },
             { label: 'Persona', icon: 'pi pi-fw pi-user', to: '/personas' },
-            { label: 'Channel configurations', icon: 'pi pi-fw pi-wrench', to: '/channel-configs' },
+            { label: 'Channel configurations', icon: 'pi pi-fw pi-wrench', to: '/channel-configs' }
         ]
     },
     {
         label: 'Tools',
-        items: [
-            { label: 'Tokenizer', icon: 'pi pi-fw pi-mobile', to: '/tokenizer' },
-        ]
+        items: [{ label: 'Tokenizer', icon: 'pi pi-fw pi-mobile', to: '/tokenizer' }]
     }
 ]);
 </script>
