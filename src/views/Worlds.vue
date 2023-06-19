@@ -150,7 +150,8 @@ const findWorldIndexById = (id: string) => {
     return index;
 };
 
-const confirmDeleteSelectedWorlds = () => {
+const confirmDeleteSelectedWorlds = (deletedWorlds: World[]) => {
+    selectedWorlds.value = deletedWorlds;
     isDeleteBulkDialogVisible.value = true;
 };
 

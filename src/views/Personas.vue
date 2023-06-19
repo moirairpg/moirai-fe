@@ -134,8 +134,8 @@ const findPersonaIndexById = (id: string): number => {
     return index;
 };
 
-const confirmDeleteSelectedPersonas = (ps: Persona[]): void => {
-    selectedPersonas.value = ps;
+const confirmDeleteSelectedPersonas = (deletedPersonas: Persona[]): void => {
+    selectedPersonas.value = deletedPersonas;
     isBulkDeleteDialogVisible.value = true;
 };
 

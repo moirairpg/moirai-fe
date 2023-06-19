@@ -163,19 +163,6 @@ const saveChannelConfig = async (savedChannelConfig: ChannelConfiguration) => {
     if (savedChannelConfig.name?.trim()) {
         if (savedChannelConfig.id) {
             try {
-                savedChannelConfig.owner = loggedUser.id;
-                // savedChannelConfig.modelSettings = {
-                //     modelName: selectedModel.value.value,
-                //     temperature: temperatureValue.value,
-                //     frequencyPenalty: freqPenValue.value,
-                //     presencePenalty: presPenValue.value,
-                //     stopSequence: stopSequences.value,
-                //     maxTokens: maxTokens.value,
-                //     chatHistoryMemory: maxHistoryMessageNumber.value,
-                //     owner: loggedUser.id,
-                //     logitBias: logitBiases.value.reduce((dict, b, index) => ((dict[b.encodedToken] = b.bias), dict), {})
-                // };
-
                 await channelConfigService.updateChannelConfig(savedChannelConfig, loggedUser.id);
 
                 channelConfigs.value[findChannelConfigIndexById(savedChannelConfig.id)] = savedChannelConfig;
@@ -186,19 +173,6 @@ const saveChannelConfig = async (savedChannelConfig: ChannelConfiguration) => {
             }
         } else {
             try {
-                savedChannelConfig.owner = loggedUser.id;
-                // savedChannelConfig.modelSettings = {
-                //     modelName: selectedModel.value.value,
-                //     temperature: temperatureValue,
-                //     frequency_penalty: freqPenValue,
-                //     presence_penalty: presPenValue,
-                //     stop_sequence: stopSequences,
-                //     maxTokens: maxTokens.value,
-                //     chatHistoryMemory: maxHistoryMessageNumber.value,
-                //     owner: loggedUser.id,
-                //     logit_bias: logitBiases.value.reduce((dict, b, index) => ((dict[b.encodedToken] = b.bias), dict), {})
-                // };
-
                 const createdChannelConfig = await channelConfigService.createChannelConfig(savedChannelConfig, loggedUser.id);
 
                 createdChannelConfig.canEdit = true;
@@ -218,34 +192,6 @@ const saveChannelConfig = async (savedChannelConfig: ChannelConfiguration) => {
 const viewChannelConfig = (editChannelConfig: ChannelConfiguration) => {
     channelConfig.value = { ...editChannelConfig };
     logitBiases.value = [];
-    // for (var key in channelConfig.value.modelSettings.logit_bias) {
-    //     const value = channelConfig.value.modelSettings.logit_bias[key];
-    //     const token = decodeSingleToken(key);
-    //     logitBiases.value.push(`${token}:${value}`);
-    // }
-
-    isChannelConfigDialogVisible.value = true;
-};
-
-const editChannelConfig = (editChannelConfig: ChannelConfiguration) => {
-    channelConfig.value = { ...editChannelConfig };
-    // selectedModel.value = modelsAvailable.value.find((model) => model.value === editChannelConfig.modelSettings.modelName);
-    // temperatureValue.value = editChannelConfig.modelSettings.temperature;
-    // maxTokens.value = editChannelConfig.modelSettings.maxTokens;
-    // maxHistoryMessageNumber.value = editChannelConfig.modelSettings.chatHistoryMemory;
-
-    logitBiases.value = [];
-    // for (var key in channelConfig.value.modelSettings.logit_bias) {
-    //     const value = channelConfig.value.modelSettings.logit_bias[key];
-    //     const token = decodeSingleToken(key);
-    //     logitBiases.value.push({
-    //         text: `${token}:${value}`,
-    //         decodedToken: token,
-    //         encodedToken: key,
-    //         bias: value
-    //     });
-    // }
-
     isChannelConfigDialogVisible.value = true;
 };
 
@@ -278,20 +224,21 @@ const findChannelConfigIndexById = (id: string) => {
     return index;
 };
 
-const confirmDeleteSelectedChannelConfigs = () => {
+const confirmDeleteSelectedChannelConfigs = (deletedChannelConfigs: ChannelConfiguration[]) => {
+    selectedChannelConfigs.value = deletedChannelConfigs;
     deleteChannelConfigsDialog.value = true;
 };
 
 const deleteSelectedChannelConfigs = () => {
-    // channelConfigs.value = channelConfigs.value
-    //     .map((val) => {
-    //         if (!selectedChannelConfigs.value.includes(val)) {
-    //             return val;
-    //         }
+    channelConfigs.value = channelConfigs.value
+        .map((val): any => {
+            if (!selectedChannelConfigs.value.some((cc) => cc.id === val.id)) {
+                return val;
+            }
 
-    //         return channelConfigService.deleteChannelConfig(val, loggedUser.id);
-    //     })
-    //     .filter((val) => Object.keys(val).length !== 0);
+            return channelConfigService.deleteChannelConfig(val, loggedUser.id);
+        })
+        .filter((val) => Object.keys(val).length !== 0);
 
     deleteChannelConfigsDialog.value = false;
     selectedChannelConfigs.value = [];
