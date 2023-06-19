@@ -44,7 +44,6 @@ const temperatureValue: Ref<number> = ref(0.8);
 const maxTokens: Ref<number> = ref(200);
 const maxHistoryMessageNumber: Ref<number> = ref(10);
 const logitBiases: Ref<LogitBias[]> = ref([]);
-const selectedModel = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
 
 onBeforeMount(() => {
     initChannelConfigSearchFilters();
