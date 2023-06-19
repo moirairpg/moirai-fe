@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { FilterMatchMode } from 'primevue/api';
 import { Ref, ref, onBeforeMount, watch } from 'vue';
-import { decodeTokens } from '@/resources/tokenizer';
+import { decodeSingleToken, decodeTokens } from '@/resources/tokenizer';
 import ChannelConfiguration from '@/types/chconf/ChannelConfiguration';
 import World from '@/types/world/World';
 import Persona from '@/types/persona/Persona';
@@ -46,6 +46,12 @@ onBeforeMount((): void => {
     initWorldSearchFilters();
     initPersonaSearchFilters();
     updateValues();
+
+    document.addEventListener('keydown', (e) => {
+        if (e.keyCode == 27) {
+            checkForChanges();
+        }
+    });
 });
 
 const canEdit: Ref<boolean> = ref(props.canEdit);
@@ -65,6 +71,8 @@ const personaSearchFilters: Ref<any> = ref({});
 const isPersonaDialogVisible: Ref<boolean> = ref(false);
 const isPendingChangePromptVisible: Ref<boolean> = ref(false);
 
+const logitBiases: Ref<LogitBias[]> = ref([]);
+const selectedModel: Ref<LabelItem> = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
 const temperatureValue: Ref<number> = ref(0.8);
 const temperaturePercentage: Ref<number> = ref(40);
 const presPenValue: Ref<number> = ref(0);
@@ -79,6 +87,7 @@ const modelsAvailable: Ref<LabelItem[]> = ref([
     // { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
     // { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
     { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 },
+    { label: 'GPT-3.5 (ChatGPT 16K)', value: 'chatgpt16k', maxTokens: 16386 },
     { label: 'GPT-3 (Davinci)', value: 'davinci', maxTokens: 4096 },
     { label: 'GPT-3 (Babbage)', value: 'babbage', maxTokens: 2048 },
     { label: 'GPT-3 (Curie)', value: 'curie', maxTokens: 2048 },
@@ -92,6 +101,17 @@ const updateValues = () => {
     getTemperatureValue(temperaturePercentage.value as number);
     getPresPenValue(presPenPercentage.value as number);
     getFreqPenValue(freqPenPercentage.value as number);
+    for (var key in channelConfig.value.modelSettings?.logitBias) {
+        if (channelConfig.value.modelSettings?.logitBias?.hasOwnProperty(key)) {
+            const decodedToken = decodeSingleToken(Number(key));
+            logitBiases.value.push({
+                decodedToken: decodedToken,
+                encodedToken: Number(key),
+                bias: channelConfig.value.modelSettings?.logitBias[key],
+                text: `${decodedToken}:${channelConfig.value.modelSettings?.logitBias[key]}`
+            });
+        }
+    }
 };
 
 const initChannelConfigSearchFilters = () => {
@@ -141,21 +161,21 @@ const getLogitBiasValue = (logitBiasPercentage: number) => {
 };
 
 const addLogitBias = () => {
-    let existingBiasIndex = channelConfig.value?.modelSettings?.logitBias?.findIndex((bias) => bias.decodedToken === logitBiasToken.value) ?? -1;
-    if (existingBiasIndex > -1) {
-        channelConfig.value!.modelSettings!.logitBias![existingBiasIndex].bias = logitBiasValue.value;
-        channelConfig.value!.modelSettings!.logitBias![existingBiasIndex].text = `${logitBiasToken.value}:${logitBiasValue.value}`;
-    } else {
-        const tokenized = decodeTokens(logitBiasToken.value);
-        tokenized.encodedTokens?.forEach((tokenId, index) => {
-            channelConfig.value?.modelSettings?.logitBias?.push({
-                text: `${tokenized.decodedTokens![index]}:${logitBiasValue.value}`,
-                decodedToken: tokenized.decodedTokens![index],
-                encodedToken: tokenId,
+    let newTokens = decodeTokens(logitBiasToken.value);
+    newTokens.encodedTokens?.forEach((tk: number, index: number) => {
+        let existingBiasIndex = logitBiases.value?.findIndex((bias: LogitBias) => bias.encodedToken === tk) ?? -1;
+        if (existingBiasIndex > -1) {
+            logitBiases.value![existingBiasIndex].bias = logitBiasValue.value;
+            logitBiases.value![existingBiasIndex].text = `${newTokens.decodedTokens![index]}:${logitBiasValue.value}`;
+        } else {
+            logitBiases.value?.push({
+                text: `${newTokens.decodedTokens![index]}:${logitBiasValue.value}`,
+                decodedToken: newTokens.decodedTokens![index],
+                encodedToken: tk,
                 bias: logitBiasValue.value
             });
-        });
-    }
+        }
+    });
 
     selectedLogitBias.value = {};
     logitBiasToken.value = '';
@@ -164,10 +184,9 @@ const addLogitBias = () => {
 };
 
 const removeLogitBias = () => {
-    const logitBiases = channelConfig.value.modelSettings!.logitBias;
-    const logitBiasToRemove = logitBiases?.findIndex((bias: LogitBias) => bias.encodedToken === selectedLogitBias.value.encodedToken) ?? -1;
+    const logitBiasToRemove = logitBiases.value?.findIndex((bias: LogitBias) => bias.encodedToken === selectedLogitBias.value.encodedToken) ?? -1;
     if (logitBiasToRemove > -1) {
-        logitBiases?.splice(logitBiasToRemove, 1);
+        logitBiases.value?.splice(logitBiasToRemove, 1);
     }
 
     selectedLogitBias.value = {};
@@ -242,7 +261,13 @@ const sendDownload = (): void => {
 
 const sendSave = (): void => {
     isPendingChangePromptVisible.value = false;
-    channelConfig.value.modelSettings!.modelName = (channelConfig.value.modelSettings?.modelName as LabelItem).value;
+    channelConfig.value.modelSettings!.modelName = selectedModel.value.value;
+    channelConfig.value.modelSettings!.logitBias = Object.fromEntries(
+        logitBiases.value.map((bias: LogitBias) => {
+            return [bias.encodedToken, bias.bias];
+        })
+    );
+
     emit('onSave', channelConfig.value);
 };
 
@@ -273,8 +298,8 @@ const sendClone = (): void => {
             >
                 AI Model <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
             </label>
-            <Dropdown :disabled="!canEdit" id="ai-model" v-model="channelConfig.modelSettings!.modelName" :options="modelsAvailable" optionLabel="label" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.modelName }" />
-            <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.modelSettings!.modelName">AI model is required.</small>
+            <Dropdown :disabled="!canEdit" id="ai-model" v-model="selectedModel" :options="modelsAvailable" optionLabel="label" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.modelName }" />
+            <small class="p-invalid" v-if="channelConfigSubmitted && !selectedModel">AI model is required.</small>
             <div class="col-12 md:col-4">
                 <div class="field-checkbox mb-0">
                     <Checkbox :disabled="!canEdit" binary id="strict-filter" name="strict-filter" :model-value="channelConfig.moderationSettings?.id === 'STRICT'" @input="onStrictFilterChange" />
@@ -313,18 +338,12 @@ const sendClone = (): void => {
                         v-tooltip="
                             `This value is required. Defaults to 100. The amount of tokens (considering both input and output) to be processed by the AI.
                                         Maximum number depends on model selected. We do not recommend providing a value higher than half of what the model supports, especially for smaller models.
-                                        Maximum allowed for the selected model: ${channelConfig.modelSettings!.modelName?.maxTokens ?? 0}`
+                                        Maximum allowed for the selected model: ${selectedModel.maxTokens ?? 0}`
                         "
                     >
                         Max tokens <strong :style="{ color: 'red' }">*</strong> <i class="pi pi-info-circle" />
                     </label>
-                    <InputNumber
-                        :disabled="!canEdit"
-                        v-model.number="channelConfig.modelSettings!.maxTokens"
-                        :min="100"
-                        :max="channelConfig.modelSettings!.modelName?.maxTokens"
-                        :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens }"
-                    />
+                    <InputNumber :disabled="!canEdit" v-model.number="channelConfig.modelSettings!.maxTokens" :min="100" :max="selectedModel.maxTokens" :class="{ 'p-invalid': channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens }" />
                     <small class="p-invalid" v-if="channelConfigSubmitted && !channelConfig.modelSettings!.maxTokens">Max token count is required.</small>
                 </div>
                 <div class="col-12 mb-2 lg:col-4 lg:mb-0">
@@ -402,7 +421,7 @@ const sendClone = (): void => {
                             >
                                 Logit bias <i class="pi pi-info-circle" />
                             </label>
-                            <Dropdown :disabled="!canEdit" id="logit-bias" v-model="selectedLogitBias" :options="channelConfig.modelSettings!.logitBias" optionLabel="text" placeholder="Existing logit biases" @update:modelValue="selectLogitBias" />
+                            <Dropdown :disabled="!canEdit" id="logit-bias" v-model="selectedLogitBias" :options="logitBiases" optionLabel="text" placeholder="Existing logit biases" @update:modelValue="selectLogitBias" />
                             <InputText :disabled="!canEdit" id="logit-bias-token" v-model="logitBiasToken" placeholder="Logit bias token" />
                             <Slider :disabled="!canEdit" v-model="logitBiasPercentage" @update:modelValue="getLogitBiasValue(logitBiasPercentage)" />
                             <InputNumber :disabled="!canEdit" id="logit-bias-bias" :maxFractionDigits="0" :min="-100" :max="100" v-model.number="logitBiasValue" @update:modelValue="getLogitBiasPercentage(logitBiasValue)" />

@@ -128,7 +128,6 @@ const createNewChannelConfig = () => {
             maxTokens: maxTokens.value,
             chatHistoryMemory: maxHistoryMessageNumber.value,
             temperature: temperatureValue.value,
-            modelName: { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 },
             presencePenalty: 0,
             frequencyPenalty: 0,
             logitBias: []
@@ -530,7 +529,7 @@ const onImport = async (event: any) => {
         <ChannelConfigDeleteBulkDialog v-model:visible="deleteChannelConfigsDialog" @onConfirm="deleteSelectedChannelConfigs" @onCancel="deleteChannelConfigsDialog = false" />
         <ChannelConfigDialogVue
             v-model:visible="isChannelConfigDialogVisible"
-            :canEdit="channelConfig.canEdit as boolean"
+            :canEdit="channelConfig.canEdit ?? false"
             :channelConfig="channelConfig"
             :worlds="worlds"
             :personas="personas"
