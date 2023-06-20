@@ -28,7 +28,8 @@ const personaImportDialog = ref(false);
 const personaSearchFilters = ref({});
 const intents = ref([
     { label: 'CHAT', value: 'chat' },
-    { label: 'RPG', value: 'rpg' }
+    { label: 'RPG', value: 'rpg' },
+    { label: 'AUTHOR', value: 'author' }
 ]);
 const roles = ref([
     { label: 'SYSTEM', value: 'system' },
