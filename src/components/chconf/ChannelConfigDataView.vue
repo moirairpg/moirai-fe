@@ -88,7 +88,7 @@ const sendDeleteBulk = (): void => {
         :rows="6"
         :filters="searchFilters"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-        :rowsPerPageOptions="[6, 12, 18]"
+        :rowsPerPageOptions="[6, 12, 18, 30, 42, 54, 72, 96]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} configs"
         responsiveLayout="scroll"
     >
