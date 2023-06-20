@@ -46,12 +46,6 @@ onBeforeMount((): void => {
     initWorldSearchFilters();
     initPersonaSearchFilters();
     updateValues();
-
-    document.addEventListener('keydown', (e) => {
-        if (e.keyCode == 27) {
-            checkForChanges();
-        }
-    });
 });
 
 const canEdit: Ref<boolean> = ref(props.canEdit);
