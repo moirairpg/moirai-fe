@@ -87,7 +87,7 @@ const sendDeleteBulk = (): void => {
         :rows="10"
         :filters="searchFilters"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-        :rowsPerPageOptions="[5, 10, 25]"
+        :rowsPerPageOptions="[5, 10, 25, 50, 75, 100]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
         responsiveLayout="scroll"
         :rowStyle="({ id }) => (id === selectedWorld.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : '') as Object"
