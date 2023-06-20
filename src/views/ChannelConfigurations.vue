@@ -45,11 +45,8 @@ const maxTokens: Ref<number> = ref(200);
 const maxHistoryMessageNumber: Ref<number> = ref(10);
 const logitBiases: Ref<LogitBias[]> = ref([]);
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
     initChannelConfigSearchFilters();
-});
-
-onMounted(async () => {
     await channelConfigService.getAllChannelConfigs(loggedUser.id).then(async (data) => {
         const cfs = [];
 
@@ -94,7 +91,7 @@ onMounted(async () => {
         worlds.value = ws;
     });
 
-    personaService.getAllPersonas(loggedUser.id).then(async (data) => {
+    await personaService.getAllPersonas(loggedUser.id).then(async (data) => {
         const ps = [];
         if (data?.[0] !== undefined) {
             for (let p of data) {

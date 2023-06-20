@@ -34,11 +34,8 @@ const worlds: Ref<World[]> = ref([]);
 const selectedWorlds: Ref<World[]> = ref([]);
 const isWorldDialogVisible: Ref<boolean> = ref(false);
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
     initWorldSearchFilters();
-});
-
-onMounted(async () => {
     await worldService.getAllWorlds(loggedUser.id).then(async (data) => {
         const ws = [];
         if (data?.[0] !== undefined) {
