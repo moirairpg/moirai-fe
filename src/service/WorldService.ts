@@ -1,5 +1,6 @@
 import store from '@/resources/store';
 import webclient from '@/resources/webclient';
+import LorebookEntry from '@/types/world/LorebookEntry';
 import World from '@/types/world/World';
 
 const { authData } = store.getters;
@@ -34,7 +35,14 @@ class WorldService {
                     owner: world.owner,
                     visibility: world.visibility,
                     initial_prompt: world.initialPrompt,
-                    lorebook: world.lorebook
+                    lorebook: world.lorebook?.map((entry: LorebookEntry) => {
+                        return {
+                            id: entry.id ?? '',
+                            name: entry.name,
+                            regex: entry.regex,
+                            description: entry.description
+                        };
+                    })
                 },
                 headers: {
                     requester: requesterUserId,
@@ -60,7 +68,14 @@ class WorldService {
                     owner: world.owner,
                     visibility: world.visibility,
                     initial_prompt: world.initialPrompt,
-                    lorebook: world.lorebook
+                    lorebook: world.lorebook?.map((entry: LorebookEntry) => {
+                        return {
+                            id: entry.id ?? '',
+                            name: entry.name,
+                            regex: entry.regex,
+                            description: entry.description
+                        };
+                    })
                 },
                 headers: {
                     requester: requesterUserId,
