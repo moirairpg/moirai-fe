@@ -29,6 +29,21 @@ interface Props {
 const emit: any = defineEmits(['onSave', 'onDownload', 'onClone', 'onClose']);
 const props: Readonly<Props> = defineProps<Props>();
 
+const parseModel = (modelName: string): LabelItem => {
+    return modelsAvailable.value.find((model) => model.value === modelName) as LabelItem;
+};
+
+const modelsAvailable: Ref<LabelItem[]> = ref([
+    // { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
+    // { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
+    { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 },
+    { label: 'GPT-3.5 (ChatGPT 16K)', value: 'chatgpt16k', maxTokens: 16386 },
+    { label: 'GPT-3 (Davinci)', value: 'davinci', maxTokens: 4096 },
+    { label: 'GPT-3 (Babbage)', value: 'babbage', maxTokens: 2048 },
+    { label: 'GPT-3 (Curie)', value: 'curie', maxTokens: 2048 },
+    { label: 'GPT-3 (Ada)', value: 'ada', maxTokens: 2048 }
+]);
+
 watch(
     () => props.channelConfig,
     (selectedChannelConfiguration) => {
@@ -36,6 +51,7 @@ watch(
         personas.value = props.personas;
         worlds.value = props.worlds;
         canEdit.value = props.canEdit;
+        selectedModel.value = parseModel(selectedChannelConfiguration.modelSettings?.modelName ?? 'chatgpt');
         updateValues();
     }
 ),
@@ -66,7 +82,7 @@ const isPersonaDialogVisible: Ref<boolean> = ref(false);
 const isPendingChangePromptVisible: Ref<boolean> = ref(false);
 
 const logitBiases: Ref<LogitBias[]> = ref([]);
-const selectedModel: Ref<LabelItem> = ref({ label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 });
+const selectedModel: Ref<LabelItem> = ref(parseModel(channelConfig.value.modelSettings?.modelName ?? 'chatgpt'));
 const temperatureValue: Ref<number> = ref(0.8);
 const temperaturePercentage: Ref<number> = ref(40);
 const presPenValue: Ref<number> = ref(0);
@@ -77,16 +93,6 @@ const selectedLogitBias: Ref<LogitBias> = ref({});
 const logitBiasToken: Ref<string> = ref('');
 const logitBiasValue: Ref<number> = ref(0);
 const logitBiasPercentage: Ref<number> = ref(50);
-const modelsAvailable: Ref<LabelItem[]> = ref([
-    // { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
-    // { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
-    { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 },
-    { label: 'GPT-3.5 (ChatGPT 16K)', value: 'chatgpt16k', maxTokens: 16386 },
-    { label: 'GPT-3 (Davinci)', value: 'davinci', maxTokens: 4096 },
-    { label: 'GPT-3 (Babbage)', value: 'babbage', maxTokens: 2048 },
-    { label: 'GPT-3 (Curie)', value: 'curie', maxTokens: 2048 },
-    { label: 'GPT-3 (Ada)', value: 'ada', maxTokens: 2048 }
-]);
 
 const updateValues = () => {
     getTemperaturePercentage(channelConfig.value.modelSettings?.temperature as number);
@@ -95,6 +101,8 @@ const updateValues = () => {
     getTemperatureValue(temperaturePercentage.value as number);
     getPresPenValue(presPenPercentage.value as number);
     getFreqPenValue(freqPenPercentage.value as number);
+
+    logitBiases.value = [];
     for (var key in channelConfig.value.modelSettings?.logitBias) {
         if (channelConfig.value.modelSettings?.logitBias?.hasOwnProperty(key)) {
             const decodedToken = decodeSingleToken(Number(key));

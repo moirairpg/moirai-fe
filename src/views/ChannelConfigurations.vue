@@ -127,7 +127,7 @@ const createNewChannelConfig = () => {
             temperature: temperatureValue.value,
             presencePenalty: 0,
             frequencyPenalty: 0,
-            logitBias: []
+            logitBias: {}
         },
         moderationSettings: {
             id: 'PERMISSIVE'
