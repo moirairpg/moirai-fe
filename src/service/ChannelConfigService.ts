@@ -12,7 +12,7 @@ class ChannelConfigService {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
 
@@ -44,7 +44,7 @@ class ChannelConfigService {
                 },
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
 
@@ -76,7 +76,7 @@ class ChannelConfigService {
                 },
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
 
@@ -93,7 +93,7 @@ class ChannelConfigService {
                 method: 'DELETE',
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
         } catch (error: any) {
