@@ -12,20 +12,22 @@ const backendBaseUrl: string = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 class DiscordService {
     async retrieveToken(authCode: string): Promise<DiscordAuth> {
-        const response: any = await webclient({
+        const dataQuery: string = queryString.stringify({
+            client_id: clientId,
+            client_secret: clientSecret,
+            grant_type: 'authorization_code',
+            redirect_uri: redirectUrl,
+            scope: 'identify',
+            code: authCode
+        });
+
+        const response: any = await webclient(`${baseUrl}/oauth2/token`, {
             method: 'POST',
-            data: queryString.stringify({
-                client_id: clientId,
-                client_secret: clientSecret,
-                grant_type: 'authorization_code',
-                redirect_uri: redirectUrl,
-                scope: 'identify',
-                code: authCode
-            }),
+            data: dataQuery,
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-            },
-            url: `${baseUrl}/oauth2/token`
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                Accept: 'application/x-www-form-urlencoded; charset=UTF-8'
+            }
         }).catch((error) => {
             console.log(`Error calling Discord API -> ${JSON.stringify(error.response, null, 2)}`);
         });
@@ -38,12 +40,11 @@ class DiscordService {
     async retrieveSelfUserData(): Promise<DiscordUser> {
         try {
             const { authData } = store.getters;
-            const response: any = await webclient({
+            const response: any = await webclient(`${baseUrl}/users/@me`, {
                 method: 'GET',
                 headers: {
-                    Authorization: `Bearer ${authData.access_token}`
-                },
-                url: `${baseUrl}/users/@me`
+                    Authorization: `Bearer ${authData.accessToken}`
+                }
             });
 
             store.dispatch('setLoggedUser', response);

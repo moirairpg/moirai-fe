@@ -19,7 +19,7 @@ class LorebookService {
                 },
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
 
@@ -42,7 +42,7 @@ class LorebookService {
                 },
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
 
@@ -59,7 +59,7 @@ class LorebookService {
                 method: 'DELETE',
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.access_token}`
+                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
         } catch (error: any) {
