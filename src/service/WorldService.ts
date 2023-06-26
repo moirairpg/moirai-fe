@@ -83,7 +83,7 @@ class WorldService {
                 }
             });
 
-            return await response;
+            return await response.world;
         } catch (error: any) {
             console.error(`Error updating world with id ${world.id} -> ${error}`);
             throw error;
