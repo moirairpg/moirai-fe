@@ -40,7 +40,8 @@ const isPendingChangePromptVisible: Ref<boolean> = ref(false);
 
 const intents: Ref<LabelItem[]> = ref([
     { label: 'CHAT', value: 'chat' },
-    { label: 'RPG', value: 'rpg' }
+    { label: 'RPG', value: 'rpg' },
+    { label: 'AUTHOR', value: 'author' )
 ]);
 
 const roles: Ref<LabelItem[]> = ref([
