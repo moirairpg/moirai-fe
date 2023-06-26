@@ -58,7 +58,7 @@ export default {
                 <slot></slot>
             </div>
             <div v-if="blockView === BlockView.CODE">
-<CodeHighlight class="surface-card m-0">{{code}}</CodeHighlight>
+                <CodeHighlight class="surface-card m-0">{{ code }}</CodeHighlight>
             </div>
         </div>
     </div>

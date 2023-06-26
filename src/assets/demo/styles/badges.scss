@@ -28,14 +28,17 @@
     }
 }
 
+.selected-badge,
 .intent-badge,
 .visibility-badge {
+    &.selected-item,
     &.visibility-public,
     &.intent-rpg {
         background: #C8E6C9;
         color: #256029;
     }
 
+    &.available-item,
     &.visibility-private,
     &.intent-chat {
         background: #FEEDAF;

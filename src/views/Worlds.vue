@@ -1,84 +1,55 @@
-<script setup>
+<script setup lang="ts">
 import { FilterMatchMode } from 'primevue/api';
-import { ref, onMounted, onBeforeMount } from 'vue';
-import { decodeTokens } from '../resources/tokenizer';
+import { ref, onMounted, onBeforeMount, Ref } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { LocalDateTime, DateTimeFormatter } from '@js-joda/core';
+import { ToastServiceMethods } from 'primevue/toastservice';
 
-import WorldService from '@/service/WorldService';
-import LorebookService from '@/service/LorebookService';
-import DiscordService from '@/service/DiscordService';
-import store from '../resources/store';
+import WorldDialog from '@/components/world/WorldDialog.vue';
+import WorldImportDialog from '@/components/world/WorldImportDialog.vue';
+import WorldDeleteDialog from '@/components/world/WorldDeleteDialog.vue';
+import WorldDeleteBulkDialog from '@/components/world/WorldDeleteBulkDialog.vue';
+import WorldDataTable from '@/components/world/WorldDataTable.vue';
+import WorldDataView from '@/components/world/WorldDataView.vue';
 
-const worldService = new WorldService();
-const lorebookService = new LorebookService();
-const discordService = new DiscordService();
+import lorebookService from '@/service/LorebookService';
+import worldService from '@/service/WorldService';
+import discordService from '@/service/DiscordService';
+import store from '@/resources/store';
+import World from '@/types/world/World';
+import LorebookEntry from '@/types/world/LorebookEntry';
+
 const loggedUser = store.getters.loggedUser;
 
-const dt = ref(null);
-const toast = useToast();
+const toast: ToastServiceMethods = useToast();
 
-const world = ref({});
-const worlds = ref(null);
-const selectedWorlds = ref(null);
-const worldDialog = ref(false);
-const viewWorldDialog = ref(false);
-const deleteWorldDialog = ref(false);
-const deleteWorldsDialog = ref(false);
-const worldSearchFilters = ref({});
-const worldSubmitted = ref(false);
-const worldPromptTokens = ref(null);
-const worldImportDialog = ref(false);
+const isDeleteDialogVisible = ref(false);
+const isDeleteBulkDialogVisible = ref(false);
+const worldSearchFilters: Ref<any> = ref({});
+const isWorldSubmitted: Ref<boolean> = ref(false);
+const isImportDialogVisible: Ref<boolean> = ref(false);
 
-const lorebook = ref({});
-const lorebooks = ref(null);
-const lorebookDialog = ref(false);
-const lorebookSearchFilters = ref({});
+const world: Ref<World> = ref({});
+const worlds: Ref<World[]> = ref([]);
+const selectedWorlds: Ref<World[]> = ref([]);
+const isWorldDialogVisible: Ref<boolean> = ref(false);
 
-const visibilities = ref([
-    { label: 'PRIVATE', value: 'private' },
-    { label: 'PUBLIC', value: 'public' }
-]);
-
-const processWorldPromptTokens = (event) => {
-    worldPromptTokens.value = decodeTokens(event.target.value);
-};
-
-onBeforeMount(() => {
+onBeforeMount(async () => {
     initWorldSearchFilters();
-    initLorebookSearchFilters();
-});
-
-onMounted(async () => {
-    await lorebookService.getAllLorebooks(loggedUser.id).then(async (data) => {
-        const lbs = [];
-
-        if (data?.[0] !== undefined) {
-            for (let lb of data) {
-                const ownerData = await discordService.retrieveUserData(lb.owner);
-                if (lb.entries === undefined || lb.entries.length == 0) {
-                    lb.entries = [];
-                }
-
-                lb.ownerData = ownerData;
-                lbs.push(lb);
-            }
-        }
-
-        lorebooks.value = lbs;
-    });
-
     await worldService.getAllWorlds(loggedUser.id).then(async (data) => {
         const ws = [];
         if (data?.[0] !== undefined) {
             for (let w of data) {
                 let canEdit = false;
-                if (w.owner === loggedUser.id || w.writePermissions?.contains(loggedUser.id)) {
+                if (w.owner === loggedUser.id || w.writePermissions?.includes(loggedUser.id)) {
                     canEdit = true;
                 }
 
-                const ownerData = await discordService.retrieveUserData(w.owner);
-                w.lorebook = lorebooks.value.find((l) => w.lorebook.id === l.id);
+                if (w.lorebook === undefined || w.lorebook.length == 0) {
+                    w.lorebook = [];
+                }
+
+                const ownerData = await discordService.retrieveUserData(w.owner as string);
                 w.ownerData = ownerData;
                 w.canEdit = canEdit;
                 ws.push(w);
@@ -90,39 +61,36 @@ onMounted(async () => {
 });
 
 const importWorld = () => {
-    worldSubmitted.value = false;
-    worldImportDialog.value = true;
+    isWorldSubmitted.value = false;
+    isImportDialogVisible.value = true;
 };
 
 const createNewWorld = () => {
-    world.value = { lorebook: { id: '0' } };
-    worldSubmitted.value = false;
-    worldDialog.value = true;
+    world.value = { owner: loggedUser.id, ownerData: loggedUser, lorebook: [] };
+    isWorldSubmitted.value = false;
+    isWorldDialogVisible.value = true;
 };
 
 const hideWorldDialog = () => {
-    worldSubmitted.value = false;
-    worldDialog.value = false;
+    isWorldSubmitted.value = false;
+    isWorldDialogVisible.value = false;
 };
 
-const hideViewWorldDialog = () => {
-    viewWorldDialog.value = false;
-};
-
-const hideLorebookDialog = () => {
-    lorebookDialog.value = false;
-    lorebookSubmitted.value = false;
-};
-
-const saveWorld = async () => {
-    worldSubmitted.value = true;
-    if (world.value.name.trim() && world.value.description.trim() && world.value.visibility) {
-        if (world.value.id) {
+const saveWorld = async (savedWorld: World) => {
+    isWorldSubmitted.value = true;
+    if (savedWorld.name?.trim() && savedWorld.description?.trim() && savedWorld.visibility) {
+        if (savedWorld.id) {
             try {
-                world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
-                await worldService.updateWorld(world.value, loggedUser.id);
+                world.value.lorebook
+                    ?.filter((o1: LorebookEntry) => {
+                        return !savedWorld.lorebook?.some((o2: LorebookEntry) => o1.id === o2.id);
+                    })
+                    ?.forEach(async (entryToDelete) => {
+                        await lorebookService.deleteLorebookEntry(entryToDelete, loggedUser.id);
+                    });
 
-                worlds.value[findWorldIndexById(world.value.id)] = world.value;
+                await worldService.updateWorld(savedWorld, loggedUser.id);
+                worlds.value[findWorldIndexById(savedWorld.id)] = savedWorld;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World updated', life: 3000 });
             } catch (error) {
                 console.error(`An error ocurred while updating the world -> ${error}`);
@@ -130,10 +98,7 @@ const saveWorld = async () => {
             }
         } else {
             try {
-                world.value.visibility = world.value.visibility.value ? world.value.visibility.value : world.value.visibility;
-                world.value.owner = loggedUser.id;
-                const createdWorld = await worldService.createWorld(world.value, loggedUser.id);
-
+                const createdWorld = await worldService.createWorld(savedWorld, loggedUser.id);
                 createdWorld.canEdit = true;
                 createdWorld.ownerData = loggedUser;
                 worlds.value.push(createdWorld);
@@ -143,45 +108,27 @@ const saveWorld = async () => {
                 toast.add({ severity: 'error', summary: 'Error', detail: 'Error saving world', life: 3000 });
             }
         }
-        worldDialog.value = false;
-        world.value = {};
+        isWorldDialogVisible.value = false;
+        world.value = { owner: loggedUser.id, ownerData: loggedUser, lorebook: [] };
     }
 };
 
-const viewWorld = (editWorld) => {
+const viewWorld = (editWorld: World) => {
     world.value = { ...editWorld };
-    worldPromptTokens.value = decodeTokens(world.value.initial_prompt ?? '');
-    viewWorldDialog.value = true;
+    isWorldDialogVisible.value = true;
 };
 
-const editWorld = (editWorld) => {
-    world.value = { ...editWorld };
-    worldPromptTokens.value = decodeTokens(world.value.initial_prompt ?? '');
-    worldDialog.value = true;
-};
-
-const openLorebook = (selectedLorebook) => {
-    lorebook.value = { ...selectedLorebook };
-    lorebookDialog.value = true;
-};
-
-const selectLorebook = () => {
-    world.value.lorebook = lorebook.value;
-    lorebookDialog.value = false;
-    lorebook.value = {};
-};
-
-const confirmDeleteWorld = (editWorld) => {
+const confirmDeleteWorld = (editWorld: World) => {
     world.value = editWorld;
-    deleteWorldDialog.value = true;
+    isDeleteDialogVisible.value = true;
 };
 
 const deleteWorld = async () => {
     try {
         await worldService.deleteWorld(world.value, loggedUser.id);
         worlds.value = worlds.value.filter((val) => val.id !== world.value.id);
-        deleteWorldDialog.value = false;
-        world.value = {};
+        isDeleteDialogVisible.value = false;
+        world.value = { owner: loggedUser.id, ownerData: loggedUser, lorebook: [] };
         toast.add({ severity: 'success', summary: 'Success!', detail: 'World deleted', life: 3000 });
     } catch (error) {
         console.error(`An error ocurred while deleting the world -> ${error}`);
@@ -189,7 +136,7 @@ const deleteWorld = async () => {
     }
 };
 
-const findWorldIndexById = (id) => {
+const findWorldIndexById = (id: string) => {
     let index = -1;
     for (let i = 0; i < worlds.value.length; i++) {
         if (worlds.value[i].id === id) {
@@ -200,23 +147,24 @@ const findWorldIndexById = (id) => {
     return index;
 };
 
-const confirmDeleteSelectedWorlds = () => {
-    deleteWorldsDialog.value = true;
+const confirmDeleteSelectedWorlds = (deletedWorlds: World[]) => {
+    selectedWorlds.value = deletedWorlds;
+    isDeleteBulkDialogVisible.value = true;
 };
 
 const deleteSelectedWorlds = () => {
     worlds.value = worlds.value
-        .map((val) => {
+        .map((val): any => {
             if (!selectedWorlds.value.includes(val)) {
                 return val;
             }
 
-            return worldService.deleteWorld(val);
+            return worldService.deleteWorld(val, loggedUser.id);
         })
         .filter((val) => Object.keys(val).length !== 0);
 
-    deleteWorldsDialog.value = false;
-    selectedWorlds.value = null;
+    isDeleteBulkDialogVisible.value = false;
+    selectedWorlds.value = [];
     toast.add({ severity: 'success', summary: 'Success!', detail: 'Worlds selected deleted', life: 3000 });
 };
 
@@ -226,17 +174,9 @@ const initWorldSearchFilters = () => {
     };
 };
 
-const initLorebookSearchFilters = () => {
-    lorebookSearchFilters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-    };
-};
-
 const downloadWorld = () => {
     const worldToDownload = Object.assign({}, world.value);
-    worldToDownload.lorebook = Object.assign({}, world.value.lorebook);
     delete worldToDownload.ownerData;
-    delete worldToDownload.lorebook?.ownerData;
     delete worldToDownload.canEdit;
 
     const fileName = `world-${worldToDownload.id}-${LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyMMddHHmmss'))}-${worldToDownload.name}`;
@@ -246,40 +186,33 @@ const downloadWorld = () => {
     link.setAttribute('download', `${fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`);
     document.body.appendChild(link);
     link.click();
+
+    toast.add({ severity: 'success', summary: 'Success!', detail: 'World downloaded', life: 3000 });
 };
 
 const cloneWorld = async () => {
     try {
-        const worldToClone = Object.assign({}, world.value);
+        const worldToClone = JSON.parse(JSON.stringify(world.value));
         delete worldToClone.id;
         delete worldToClone.owner;
         delete worldToClone.ownerData;
         delete worldToClone.canEdit;
-        delete worldToClone.entries;
 
         if (worldToClone.lorebook === undefined) {
-            const createdLorebook = await lorebookService.createLorebook(
-                {
-                    name: worldToClone.name,
-                    description: worldToClone.description,
-                    visibility: 'private',
-                    owner: loggedUser.id,
-                    entries: []
-                },
-                loggedUser.id
-            );
-
-            createdLorebook.ownerData = loggedUser;
-            lorebooks.value.push(createdLorebook);
-            worldToClone.lorebook = createdLorebook;
+            worldToClone.lorebook = [];
         }
 
         worldToClone.owner = loggedUser.id;
+        worldToClone.name = `${worldToClone.name} - Copy`;
+        worldToClone.lorebook.forEach((entry: LorebookEntry) => delete entry.id);
         const createdWorld = await worldService.createWorld(worldToClone, loggedUser.id);
 
         createdWorld.canEdit = true;
         createdWorld.ownerData = loggedUser;
 
+        isWorldDialogVisible.value = true;
+
+        world.value = createdWorld;
         worlds.value.push(createdWorld);
         toast.add({ severity: 'success', summary: 'Success!', detail: 'World cloned', life: 3000 });
     } catch (error) {
@@ -288,29 +221,17 @@ const cloneWorld = async () => {
     }
 };
 
-const onImport = async (event) => {
-    event.files.forEach(async (file) => {
-        const reader = new FileReader();
-        reader.onload = async (res) => {
-            const worldToImport = JSON.parse(res.target.result);
-            worldToImport.owner = loggedUser.id;
+const uploadWorld = async (event: any) => {
+    const worldToImport: World = event.world;
+    worldToImport.owner = loggedUser.id;
 
-            const createdWorld = await worldService.createWorld(worldToImport, loggedUser.id);
-            createdWorld.canEdit = true;
-            createdWorld.ownerData = loggedUser;
+    const createdWorld: World = await worldService.createWorld(worldToImport, loggedUser.id);
+    createdWorld.canEdit = true;
+    createdWorld.ownerData = loggedUser;
+    worlds.value.push(createdWorld);
+    toast.add({ severity: 'success', summary: 'Success!', detail: `World imported (${event.file.name})`, life: 3000 });
 
-            worlds.value.push(createdWorld);
-            toast.add({ severity: 'success', summary: 'Success!', detail: `World imported (${file.name})`, life: 3000 });
-        };
-
-        reader.onerror = (err) => {
-            console.log(err);
-            toast.add({ severity: 'error', summary: 'Error', detail: `Error importing world (${file.name})`, life: 3000 });
-        };
-        reader.readAsText(file);
-    });
-
-    worldImportDialog.value = false;
+    isImportDialogVisible.value = false;
 };
 </script>
 
@@ -321,408 +242,17 @@ const onImport = async (event) => {
                 <Toast />
                 <TabView>
                     <TabPanel header="Card view">
-                        <Toolbar class="mb-4">
-                            <template v-slot:start>
-                                <div class="my-2">
-                                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
-                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importWorld" />
-                                </div>
-                            </template>
-                        </Toolbar>
-
-                        <DataView
-                            layout="grid"
-                            ref="dt"
-                            :value="worlds"
-                            dataKey="id"
-                            :paginator="true"
-                            :rows="6"
-                            :filters="worldSearchFilters"
-                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                            :rowsPerPageOptions="[6, 12, 18]"
-                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
-                            responsiveLayout="scroll"
-                        >
-                            <template #header>
-                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                    <h5 class="m-0">Worlds</h5>
-                                </div>
-                            </template>
-
-                            <template #empty>No worlds found.</template>
-
-                            <template #grid="slotProps">
-                                <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
-                                    <div class="p-4 border-1 surface-border surface-card border-round">
-                                        <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-                                            <div class="flex align-items-center gap-2">
-                                                <i class="pi pi-user"></i>
-                                                <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
-                                            </div>
-                                            <Tag :value="slotProps.data.visibility" :class="'visibility-badge visibility-' + (slotProps.data.visibility ? slotProps.data.visibility.toLowerCase() : '')"></Tag>
-                                        </div>
-                                        <div class="flex flex-column align-items-center gap-3 py-5">
-                                            <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
-                                        </div>
-                                        <p align="center" class="card-overflow">
-                                            {{ slotProps.data.description }}
-                                        </p>
-                                        <div class="flex align-items-center justify-content-between">
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
-                                            <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
-                                            <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewWorld(slotProps.data)" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </DataView>
+                        <WorldDataView :worlds="worlds" @onOpen="viewWorld" @onDelete="confirmDeleteWorld" @onCreate="createNewWorld" @onImport="importWorld" />
                     </TabPanel>
                     <TabPanel header="Table view">
-                        <Toolbar class="mb-4">
-                            <template v-slot:start>
-                                <div class="my-2">
-                                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createNewWorld" />
-                                    <Button label="Import" icon="pi pi-upload" class="p-button-help mr-2" @click="importWorld" />
-                                    <Button label="Delete" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteSelectedWorlds" :disabled="!selectedWorlds || !selectedWorlds.length" />
-                                </div>
-                            </template>
-                        </Toolbar>
-
-                        <DataTable
-                            ref="dt"
-                            :value="worlds"
-                            v-model:selection="selectedWorlds"
-                            dataKey="id"
-                            :paginator="true"
-                            :rows="10"
-                            :filters="worldSearchFilters"
-                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                            :rowsPerPageOptions="[5, 10, 25]"
-                            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} worlds"
-                            responsiveLayout="scroll"
-                            maxLength
-                        >
-                            <template #header>
-                                <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                    <h5 class="m-0">Worlds</h5>
-                                    <span class="block mt-2 md:mt-0 p-input-icon-left">
-                                        <i class="pi pi-search" />
-                                        <InputText v-model="worldSearchFilters['global'].value" placeholder="Search..." />
-                                    </span>
-                                </div>
-                            </template>
-
-                            <template #empty>No worlds found.</template>
-
-                            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                            <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Name</span>
-                                    <div class="table-column-overflow">{{ slotProps.data.name }}</div>
-                                </template>
-                            </Column>
-                            <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Description</span>
-                                    <div class="table-column-overflow">{{ slotProps.data.description }}</div>
-                                </template>
-                            </Column>
-                            <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Owner</span>
-                                    {{ slotProps.data.ownerData.username }}
-                                </template>
-                            </Column>
-                            <Column field="lorebook" header="Lorebook" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                <template #body="slotProps">
-                                    <span class="p-column-title">Lorebook</span>
-                                    {{ slotProps.data.name }}
-                                </template>
-                            </Column>
-                            <Column headerStyle="min-width:10rem;">
-                                <template #body="slotProps">
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editWorld(slotProps.data)" />
-                                    <Button v-if="slotProps.data.canEdit" icon="pi pi-trash" class="p-button-rounded p-button-danger mt-2" @click="confirmDeleteWorld(slotProps.data)" />
-                                    <Button v-if="!slotProps.data.canEdit" icon="pi pi-eye" class="p-button-rounded p-button-warning mt-2" @click="viewWorld(slotProps.data)" />
-                                </template>
-                            </Column>
-                        </DataTable>
+                        <WorldDataTable :worlds="worlds" @onOpen="viewWorld" @onDelete="confirmDeleteWorld" @onCreate="createNewWorld" @onImport="importWorld" @onDeleteBulk="confirmDeleteSelectedWorlds" />
                     </TabPanel>
                 </TabView>
 
-                <Dialog v-model:visible="viewWorldDialog" header="World" :modal="true" class="p-fluid">
-                    <div class="field">
-                        <label for="name">Name</label>
-                        <InputText disabled id="name" v-model="world.name" />
-                    </div>
-
-                    <div class="field">
-                        <label for="description">Description</label>
-                        <Textarea disabled id="description" v-model="world.description" rows="5" cols="20" />
-                    </div>
-
-                    <div class="field">
-                        <label for="initial_prompt" v-tooltip="`Text used to begin the adventure instanced from this world. Upon using the /start command on Discord, this text will be shown and reacted upon by the AI.`">
-                            Adventure start text <i class="pi pi-info-circle" />
-                        </label>
-                        <Textarea disabled id="initial_prompt" v-model="world.initial_prompt" rows="5" cols="20" />
-                        <div>
-                            <small>Tokens: {{ worldPromptTokens?.tokens && world.initial_prompt ? worldPromptTokens?.tokens : 0 }}</small>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="visibility" class="mb-3">Visibility</label>
-                        <InputText disabled id="visibility" v-model="world.visibility" placeholder="World visibility" />
-                    </div>
-
-                    <Card v-if="world.lorebook">
-                        <template #title>Lorebook</template>
-                        <template #content>
-                            <div class="col-12">
-                                <div class="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4">
-                                    <div class="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
-                                        <div class="flex flex-column align-items-center sm:align-items-start gap-3">
-                                            <div class="text-2xl font-bold text-900">{{ world.lorebook?.name }}</div>
-                                            <div class="flex align-items-center gap-3">
-                                                <span class="flex align-items-center gap-2">
-                                                    <i class="pi pi-user"></i>
-                                                    <span class="font-semibold">{{ world.lorebook?.ownerData?.username }}</span>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="flex sm:flex-column align-items-center sm:align-items-end gap-3 sm:gap-2">
-                                            <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(world.lorebook)" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </Card>
-
-                    <template #footer>
-                        <Toolbar class="mb-4">
-                            <template v-slot:start>
-                                <div class="my-2">
-                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideViewWorldDialog" />
-                                </div>
-                            </template>
-                            <template v-slot:end>
-                                <Button v-if="world.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="cloneWorld" />
-                                <Button v-if="world.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
-                            </template>
-                        </Toolbar>
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="worldDialog" header="World" :modal="true" class="p-fluid">
-                    <div class="field">
-                        <label for="name">Name</label>
-                        <InputText id="name" v-model="world.name" required="true" autofocus :class="{ 'p-invalid': worldSubmitted && !world.name }" />
-                        <small class="p-invalid" v-if="worldSubmitted && !world.name">Name is required.</small>
-                    </div>
-
-                    <div class="field">
-                        <label for="description">Description</label>
-                        <Textarea id="description" v-model="world.description" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.description }" />
-                        <small class="p-invalid" v-if="worldSubmitted && !world.description">Description is required.</small>
-                    </div>
-
-                    <div class="field">
-                        <label for="initial_prompt" v-tooltip="`Text used to begin the adventure instanced from this world. Upon using the /start command on Discord, this text will be shown and reacted upon by the AI.`">
-                            Adventure start text <i class="pi pi-info-circle" />
-                        </label>
-                        <Textarea id="initial_prompt" v-model="world.initial_prompt" required="true" rows="5" cols="20" :class="{ 'p-invalid': worldSubmitted && !world.initial_prompt }" @input="processWorldPromptTokens" />
-                        <small class="p-invalid" v-if="worldSubmitted && !world.initial_prompt">Prompt is required.</small>
-                        <div>
-                            <small>Tokens: {{ worldPromptTokens?.tokens && world.initial_prompt ? worldPromptTokens?.tokens : 0 }}</small>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="visibility" class="mb-3">Visibility</label>
-                        <Dropdown id="visibility" v-model="world.visibility" :options="visibilities" optionLabel="label" placeholder="World visibility" :class="{ 'p-invalid': worldSubmitted && !world.visibility }">
-                            <template #value="slotProps">
-                                <div v-if="slotProps.value && slotProps.value.value">
-                                    <span :class="'visibility-badge visibility-' + slotProps.value.value">{{ slotProps.value.label }}</span>
-                                </div>
-                                <div v-else-if="slotProps.value && !slotProps.value.value">
-                                    <span :class="'visibility-badge visibility-' + slotProps.value.toLowerCase()">{{ slotProps.value }}</span>
-                                </div>
-                                <span v-else>
-                                    {{ slotProps.placeholder }}
-                                </span>
-                            </template>
-                        </Dropdown>
-                        <small class="p-invalid" v-if="worldSubmitted && !world.visibility">Visibility is required.</small>
-                    </div>
-
-                    <div class="card" v-if="lorebooks">
-                        <TabView>
-                            <TabPanel header="Card view">
-                                <DataView
-                                    layout="grid"
-                                    ref="dt"
-                                    :value="lorebooks"
-                                    dataKey="id"
-                                    :paginator="true"
-                                    :rows="6"
-                                    :filters="lorebookSearchFilters"
-                                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                                    :rowsPerPageOptions="[6, 12, 18]"
-                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
-                                    responsiveLayout="scroll"
-                                    maxLength
-                                    :gridStyle="({ id }) => (id === world.lorebook.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
-                                >
-                                    <template #header>
-                                        <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                            <h5 class="m-0">Lorebooks</h5>
-                                        </div>
-                                    </template>
-
-                                    <template #empty>No lorebooks found.</template>
-
-                                    <template #grid="slotProps">
-                                        <div class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
-                                            <div class="p-4 border-1 surface-border surface-card border-round">
-                                                <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-                                                    <div class="flex align-items-center gap-2">
-                                                        <i class="pi pi-user"></i>
-                                                        <span class="font-semibold">{{ slotProps.data.ownerData.username }}</span>
-                                                    </div>
-                                                    <Tag :value="`${world.lorebook.id === slotProps.data.id ? 'SELECTED' : 'AVAILABLE'}`" :class="'visibility-badge'" />
-                                                </div>
-                                                <div class="flex flex-column align-items-center gap-3 py-5">
-                                                    <div class="text-2xl font-bold card-overflow-title">{{ slotProps.data.name }}</div>
-                                                </div>
-                                                <p align="center" class="card-overflow">
-                                                    {{ slotProps.data.description }}
-                                                </p>
-                                                <div class="flex align-items-center justify-content-between">
-                                                    <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(slotProps.data)" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </DataView>
-                            </TabPanel>
-                            <TabPanel header="Table view">
-                                <DataTable
-                                    ref="dt"
-                                    :value="lorebooks"
-                                    dataKey="id"
-                                    :paginator="true"
-                                    :rows="10"
-                                    :filters="lorebookSearchFilters"
-                                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                                    :rowsPerPageOptions="[5, 10, 25]"
-                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} lorebooks"
-                                    responsiveLayout="scroll"
-                                    :rowStyle="({ id }) => (id === world.lorebook.id ? 'color: var(--surface-0);background-color: var(--surface-500)' : null)"
-                                >
-                                    <template #header>
-                                        <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-                                            <h5 class="m-0">Lorebooks</h5>
-                                            <span class="block mt-2 md:mt-0 p-input-icon-left">
-                                                <i class="pi pi-search" />
-                                                <InputText v-model="lorebookSearchFilters['global'].value" placeholder="Search..." />
-                                            </span>
-                                        </div>
-                                    </template>
-
-                                    <template #empty>No lorebooks found.</template>
-
-                                    <Column field="name" header="Name" :sortable="true" headerStyle="width:14%; min-width:10rem;">
-                                        <template #body="slotProps">
-                                            <span class="p-column-title">Name</span>
-                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.name }}</div>
-                                        </template>
-                                    </Column>
-                                    <Column field="description" header="Description" :sortable="true" headerStyle="width:14%; min-width:8rem;">
-                                        <template #body="slotProps">
-                                            <span class="p-column-title">Description</span>
-                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.description }}</div>
-                                        </template>
-                                    </Column>
-                                    <Column field="owner" header="Owner" :sortable="true" headerStyle="width:14%; min-width:8rem;">
-                                        <template #body="slotProps">
-                                            <span class="p-column-title">Owner</span>
-                                            <div class="table-column-overflow table-column-overflow-subitem">{{ slotProps.data.ownerData.username }}</div>
-                                        </template>
-                                    </Column>
-                                    <Column headerStyle="min-width:10rem;">
-                                        <template #body="slotProps">
-                                            <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="openLorebook(slotProps.data)" />
-                                        </template>
-                                    </Column>
-                                </DataTable>
-                            </TabPanel>
-                        </TabView>
-                    </div>
-
-                    <template #footer>
-                        <Toolbar class="mb-4">
-                            <template v-slot:start>
-                                <div class="my-2">
-                                    <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="hideWorldDialog" />
-                                </div>
-                            </template>
-                            <template v-slot:end>
-                                <Button v-if="world.id" label="Clone" icon="pi pi-copy" class="p-button-text" @click="cloneWorld" />
-                                <Button v-if="world.id" label="Download" icon="pi pi-download" class="p-button-text" @click="downloadWorld" />
-                                <Button label="Save" icon="pi pi-check" class="p-button-primary" @click="saveWorld" />
-                            </template>
-                        </Toolbar>
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="lorebookDialog" header="Lorebook" :modal="true" class="p-fluid">
-                    <div class="field">
-                        <label for="name">Name</label>
-                        <InputText id="name" v-model="lorebook.name" disabled />
-                    </div>
-                    <div class="field">
-                        <label for="description">Description</label>
-                        <Textarea id="description" v-model="lorebook.description" rows="3" cols="20" disabled />
-                    </div>
-                    <template #footer>
-                        <Button label="Close" icon="pi pi-times" class="p-button-danger" @click="hideLorebookDialog" />
-                        <Button v-if="worldDialog" label="Select" icon="pi pi-check" class="p-button-primary" @click="selectLorebook" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="worldImportDialog" header="Import" :modal="true">
-                    <FileUpload name="import[]" :customUpload="true" @uploader="onImport" :multiple="true" accept="application/json" :maxFileSize="1000000" label="Import" chooseLabel="Import" class="mr-2 inline-block" />
-                    <template #footer>
-                        <Button label="Cancel" icon="pi pi-times" class="p-button-danger" @click="worldImportDialog = false" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="deleteWorldDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
-                    <div class="flex align-items-center justify-content-center">
-                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                        <span v-if="world">
-                            Are you sure you want to delete <b>{{ world.name }}</b
-                            >?
-                        </span>
-                    </div>
-                    <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteWorldDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteWorld" />
-                    </template>
-                </Dialog>
-
-                <Dialog v-model:visible="deleteWorldsDialog" :style="{ width: '450px !important' }" header="Confirm" :modal="true">
-                    <div class="flex align-items-center justify-content-center">
-                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                        <span v-if="world">Are you sure you want to delete the selected worlds?</span>
-                    </div>
-                    <template #footer>
-                        <Button label="No" icon="pi pi-times" class="p-button-danger" @click="deleteWorldsDialog = false" />
-                        <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteSelectedWorlds" />
-                    </template>
-                </Dialog>
+                <WorldDialog v-model:visible="isWorldDialogVisible" :world="world" :canEdit="world.owner === loggedUser.id" @onClose="hideWorldDialog" @onSave="saveWorld" @onDownload="downloadWorld" @onClone="cloneWorld" />
+                <WorldImportDialog v-model:visible="isImportDialogVisible" @onImport="uploadWorld" />
+                <WorldDeleteDialog v-model:visible="isDeleteDialogVisible" :world="world" @onConfirm="deleteWorld" @onCancel="isDeleteDialogVisible = false" />
+                <WorldDeleteBulkDialog v-model:visible="isDeleteBulkDialogVisible" @onConfirm="deleteSelectedWorlds" @onCancel="isDeleteBulkDialogVisible = false" />
             </div>
         </div>
     </div>
