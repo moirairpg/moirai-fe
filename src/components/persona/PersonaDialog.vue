@@ -92,6 +92,10 @@ const sendClose = (): void => {
     emit('onClose');
 };
 
+const onMultiplayerToggle = (event: any) => {
+    persona.value.isMultiplayer = event;
+};
+
 const processPersonaNameTokens = (event: any) => {
     personaNameTokens.value = decodeTokens(event.target.value);
 };
@@ -180,6 +184,21 @@ const processPersonaBumpTokens = (event: any) => {
                 </template>
             </Dropdown>
             <small class="p-invalid" v-if="personaSubmitted && !persona.intent">Intent is required.</small>
+            <div v-if="persona.intent === 'rpg'" class="col-12 md:col-4">
+                <div class="field-checkbox mb-0">
+                    <Checkbox :disabled="!canEdit" binary id="multiplayer-optimization" name="multiplayer-optimization" :model-value="persona.isMultiplayer" @input="onMultiplayerToggle" />
+                    <label
+                        for="multiplayer-optimization"
+                        v-tooltip="
+                            `When checked, tagging the bot will be required in order for it to respond to messages.
+
+                            This optimizes gameplay for multiple players, as it prevents the bot from replying to messages all the time when characters are interacting with each other.`
+                        "
+                    >
+                        Optimize for multiplayer <i class="pi pi-info-circle" />
+                    </label>
+                </div>
+            </div>
         </div>
 
         <div class="field">

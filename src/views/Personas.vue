@@ -60,7 +60,7 @@ const importPersona = (): void => {
 };
 
 const createNewPersona = (): void => {
-    persona.value = { canEdit: true, owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
+    persona.value = { isMultiplayer: false, canEdit: true, owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
 
     isPersonaSubmitted.value = false;
     isPersonaDialogVisible.value = true;
