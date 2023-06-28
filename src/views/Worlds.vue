@@ -89,8 +89,10 @@ const saveWorld = async (savedWorld: World) => {
                         await lorebookService.deleteLorebookEntry(entryToDelete, loggedUser.id);
                     });
 
-                await worldService.updateWorld(savedWorld, loggedUser.id);
-                worlds.value[findWorldIndexById(savedWorld.id)] = savedWorld;
+                const updatedWorld: World = await worldService.updateWorld(savedWorld, loggedUser.id);
+                updatedWorld.canEdit = true;
+                updatedWorld.ownerData = loggedUser;
+                worlds.value[findWorldIndexById(updatedWorld.id as string)] = updatedWorld;
                 toast.add({ severity: 'success', summary: 'Success!', detail: 'World updated', life: 3000 });
             } catch (error) {
                 console.error(`An error ocurred while updating the world -> ${error}`);
@@ -98,7 +100,7 @@ const saveWorld = async (savedWorld: World) => {
             }
         } else {
             try {
-                const createdWorld = await worldService.createWorld(savedWorld, loggedUser.id);
+                const createdWorld: World = await worldService.createWorld(savedWorld, loggedUser.id);
                 createdWorld.canEdit = true;
                 createdWorld.ownerData = loggedUser;
                 worlds.value.push(createdWorld);
