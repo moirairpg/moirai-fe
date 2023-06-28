@@ -34,6 +34,7 @@ class PersonaService {
                     personality: persona.personality,
                     owner: persona.owner,
                     visibility: persona.visibility,
+                    isMultiplayer: persona.isMultiplayer,
                     nudge: persona.nudge,
                     bump: persona.bump
                 },
@@ -61,6 +62,7 @@ class PersonaService {
                     personality: persona.personality,
                     owner: persona.owner,
                     visibility: persona.visibility,
+                    isMultiplayer: persona.isMultiplayer,
                     nudge: persona.nudge,
                     bump: persona.bump
                 },
