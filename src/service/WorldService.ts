@@ -12,7 +12,7 @@ class WorldService {
             const response: any = await webclient(`${baseUrl}/world`, {
                 method: 'GET',
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
 
@@ -44,7 +44,7 @@ class WorldService {
                     })
                 },
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
 
@@ -76,7 +76,7 @@ class WorldService {
                     })
                 },
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
 
@@ -92,7 +92,7 @@ class WorldService {
             await webclient(`${baseUrl}/world/${world.id}`, {
                 method: 'DELETE',
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
         } catch (error: any) {

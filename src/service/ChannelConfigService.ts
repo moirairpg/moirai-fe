@@ -11,7 +11,7 @@ class ChannelConfigService {
             const response: any = await webclient(`${baseUrl}/channel-config`, {
                 method: 'GET',
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
 
@@ -42,7 +42,7 @@ class ChannelConfigService {
                     modelSettings: channelConfig.modelSettings
                 },
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
 
@@ -73,7 +73,7 @@ class ChannelConfigService {
                     modelSettings: channelConfig.modelSettings
                 },
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
 
@@ -89,7 +89,7 @@ class ChannelConfigService {
             await webclient(`${baseUrl}/channel-config/${channelConfig.id}`, {
                 method: 'DELETE',
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
         } catch (error: any) {

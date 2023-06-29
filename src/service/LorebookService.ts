@@ -18,7 +18,7 @@ class LorebookService {
                     regex: entry.regex
                 },
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
 
@@ -40,7 +40,7 @@ class LorebookService {
                     regex: entry.regex
                 },
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
 
@@ -56,7 +56,7 @@ class LorebookService {
             await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
                 method: 'DELETE',
                 headers: {
-                    requester: requesterUserId,
+                    requester: requesterUserId
                 }
             });
         } catch (error: any) {
