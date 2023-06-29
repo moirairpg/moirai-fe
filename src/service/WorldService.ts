@@ -13,7 +13,6 @@ class WorldService {
                 method: 'GET',
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
 
@@ -46,7 +45,6 @@ class WorldService {
                 },
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
 
@@ -79,7 +77,6 @@ class WorldService {
                 },
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
 
@@ -96,7 +93,6 @@ class WorldService {
                 method: 'DELETE',
                 headers: {
                     requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
                 }
             });
         } catch (error: any) {
