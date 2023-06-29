@@ -6,7 +6,6 @@ export default {
         const urlParams = new URLSearchParams(window.location.search);
         const authCode = urlParams.get('code');
         await discordService.retrieveToken(authCode);
-        await discordService.retrieveSelfUserData();
 
         this.$router.push('/');
     }
