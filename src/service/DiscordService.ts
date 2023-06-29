@@ -6,7 +6,7 @@ import DiscordUser from '@/types/discord/DiscordUser';
 const backendBaseUrl: string = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
 class DiscordService {
-    async retrieveToken(authCode: string): Promise<DiscordAuth> {
+    async authenticate(authCode: string): Promise<DiscordAuth> {
         const response: any = await webclient(`${backendBaseUrl}/discord/auth/${authCode}`, {
             method: 'POST'
         }).catch((error) => {
