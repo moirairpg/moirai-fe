@@ -11,8 +11,7 @@ class PersonaService {
             const response: any = await webclient(`${baseUrl}/persona`, {
                 method: 'GET',
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
 
@@ -39,8 +38,7 @@ class PersonaService {
                     bump: persona.bump
                 },
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
 
@@ -67,8 +65,7 @@ class PersonaService {
                     bump: persona.bump
                 },
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
 
@@ -84,8 +81,7 @@ class PersonaService {
             await webclient(`${baseUrl}/persona/${persona.id}`, {
                 method: 'DELETE',
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
         } catch (error: any) {

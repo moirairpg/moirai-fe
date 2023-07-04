@@ -11,14 +11,9 @@ const ls = new SecureLS({
 const store = createStore({
     state: {
         loggedIn: false,
-        authData: null,
         loggedUserData: null
     },
     mutations: {
-        UPDATE_AUTH_DATA(state, payload) {
-            ls.set('authData', payload);
-            state.authData = payload;
-        },
         UPDATE_LOGGED_IN(state, payload) {
             ls.set('loggedIn', payload);
             state.loggedIn = payload;
@@ -29,11 +24,6 @@ const store = createStore({
         }
     },
     actions: {
-        setAuthData(context, payload) {
-            let { authData } = context.state;
-            authData = payload;
-            context.commit('UPDATE_AUTH_DATA', authData);
-        },
         setLoggedIn(context, payload) {
             let { loggedIn } = context.state;
             loggedIn = payload;
@@ -53,10 +43,6 @@ const store = createStore({
         loggedUser: (state) => {
             const loggedUserData = ls.get('loggedUserData');
             return loggedUserData !== undefined ? loggedUserData : state.loggedUserData;
-        },
-        authData: (state) => {
-            const authData = ls.get('authData');
-            return authData !== undefined ? authData : state.authData;
         }
     }
 });

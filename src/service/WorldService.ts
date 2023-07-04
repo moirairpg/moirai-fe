@@ -12,8 +12,7 @@ class WorldService {
             const response: any = await webclient(`${baseUrl}/world`, {
                 method: 'GET',
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
 
@@ -45,8 +44,7 @@ class WorldService {
                     })
                 },
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
 
@@ -78,8 +76,7 @@ class WorldService {
                     })
                 },
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
 
@@ -95,8 +92,7 @@ class WorldService {
             await webclient(`${baseUrl}/world/${world.id}`, {
                 method: 'DELETE',
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
         } catch (error: any) {

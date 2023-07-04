@@ -18,8 +18,7 @@ class LorebookService {
                     regex: entry.regex
                 },
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
 
@@ -41,8 +40,7 @@ class LorebookService {
                     regex: entry.regex
                 },
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
 
@@ -58,8 +56,7 @@ class LorebookService {
             await webclient(`${baseUrl}/lore/entry/${entry.id}`, {
                 method: 'DELETE',
                 headers: {
-                    requester: requesterUserId,
-                    Authorization: `Bearer ${authData.accessToken}`
+                    requester: requesterUserId
                 }
             });
         } catch (error: any) {
