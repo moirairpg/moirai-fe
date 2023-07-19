@@ -34,8 +34,8 @@ const parseModel = (modelName: string): LabelItem => {
 };
 
 const modelsAvailable: Ref<LabelItem[]> = ref([
-    // { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
-    // { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
+    { label: 'GPT-4 (32K)', value: 'gpt432k', maxTokens: 32768 },
+    { label: 'GPT-4 (8K)', value: 'gpt4', maxTokens: 8192 },
     { label: 'GPT-3.5 (ChatGPT)', value: 'chatgpt', maxTokens: 4096 },
     { label: 'GPT-3.5 (ChatGPT 16K)', value: 'chatgpt16k', maxTokens: 16386 },
     { label: 'GPT-3 (Davinci)', value: 'davinci', maxTokens: 4096 },
