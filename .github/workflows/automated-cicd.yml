@@ -24,11 +24,8 @@ jobs:
         run: npm run build
         env:
           CHATRPG_COOKIE_ENCRYPTION_KEY: "${{ secrets.CHATRPG_COOKIE_ENCRYPTION_KEY }}"
-          CHATRPG_DISCORD_CLIENT_ID: "${{ secrets.CHATRPG_DISCORD_CLIENT_ID }}"
-          CHATRPG_DISCORD_CLIENT_SECRET: "${{ secrets.CHATRPG_DISCORD_CLIENT_SECRET }}"
           CHATRPG_DISCORD_LOGIN_URL: "${{ vars.CHATRPG_DISCORD_LOGIN_URL }}"
           CHATRPG_BACKEND_API_URL: "${{ vars.CHATRPG_BACKEND_API_URL }}"
-          CHATRPG_DISCORD_REDIRECT_URL: "${{ vars.CHATRPG_DISCORD_REDIRECT_URL }}"
       - name: Build and push image to GitLab Container Registry
         if: github.ref == 'refs/heads/master'
         run: |
