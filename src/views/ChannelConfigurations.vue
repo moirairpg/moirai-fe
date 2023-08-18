@@ -359,7 +359,7 @@ const onImport = async (event: any) => {
             </div>
         </div>
 
-        <ChannelConfigImportDialog @onImport="onImport" @onCancel="channelConfigImportDialog = false" />
+        <ChannelConfigImportDialog v-model:visible="channelConfigImportDialog" @onImport="onImport" @onCancel="channelConfigImportDialog = false" />
         <ChannelConfigDeleteDialog v-model:visible="deleteChannelConfigDialog" :channelConfig="channelConfig" @onConfirm="deleteChannelConfig" @onCancel="deleteChannelConfigDialog = false" />
         <ChannelConfigDeleteBulkDialog v-model:visible="deleteChannelConfigsDialog" @onConfirm="deleteSelectedChannelConfigs" @onCancel="deleteChannelConfigsDialog = false" />
         <ChannelConfigDialogVue
