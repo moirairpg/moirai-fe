@@ -7,7 +7,7 @@ export default interface Persona {
     name?: string;
     intent?: string;
     personality?: string;
-    owner?: string;
+    ownerDiscordId?: string;
     visibility?: string;
     nudge?: Nudge;
     bump?: Bump;

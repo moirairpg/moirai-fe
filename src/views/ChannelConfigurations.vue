@@ -52,9 +52,9 @@ onBeforeMount(async () => {
 
         if (data?.[0] !== undefined) {
             for (let cf of data) {
-                const ownerData = await discordService.retrieveUserData(cf.owner as string);
+                const ownerData = await discordService.retrieveUserData(cf.ownerDiscordId as string);
                 let canEdit = false;
-                if (cf.owner === loggedUser.id || cf.writePermissions?.includes(loggedUser.id)) {
+                if (cf.ownerDiscordId === loggedUser.id || cf.writePermissions?.includes(loggedUser.id)) {
                     canEdit = true;
                 }
 
@@ -62,8 +62,8 @@ onBeforeMount(async () => {
                 cf.ownerData = ownerData;
                 cf.canEdit = canEdit;
 
-                cf.persona!.ownerData = await discordService.retrieveUserData(cf.persona?.owner as string);
-                cf.world!.ownerData = await discordService.retrieveUserData(cf.world?.owner as string);
+                cf.persona!.ownerData = await discordService.retrieveUserData(cf.persona?.ownerDiscordId as string);
+                cf.world!.ownerData = await discordService.retrieveUserData(cf.world?.ownerDiscordId as string);
 
                 cfs.push(cf);
             }
@@ -77,11 +77,11 @@ onBeforeMount(async () => {
         if (data?.[0] !== undefined) {
             for (let w of data) {
                 let canEdit = false;
-                if (w.owner === loggedUser.id || w.writePermissions?.includes(loggedUser.id)) {
+                if (w.ownerDiscordId === loggedUser.id || w.writePermissions?.includes(loggedUser.id)) {
                     canEdit = true;
                 }
 
-                const ownerData = await discordService.retrieveUserData(w.owner as string);
+                const ownerData = await discordService.retrieveUserData(w.ownerDiscordId as string);
                 w.ownerData = ownerData;
                 w.canEdit = canEdit;
                 ws.push(w);
@@ -96,8 +96,8 @@ onBeforeMount(async () => {
         if (data?.[0] !== undefined) {
             for (let p of data) {
                 let canEdit = false;
-                const ownerData = await discordService.retrieveUserData(p.owner as string);
-                if (p.owner === loggedUser.id || p.writePermissions?.includes(loggedUser.id)) {
+                const ownerData = await discordService.retrieveUserData(p.ownerDiscordId as string);
+                if (p.ownerDiscordId === loggedUser.id || p.writePermissions?.includes(loggedUser.id)) {
                     canEdit = true;
                 }
 
@@ -133,7 +133,7 @@ const createNewChannelConfig = () => {
             id: 'PERMISSIVE'
         },
         ownerData: loggedUser,
-        owner: loggedUser.id,
+        ownerDiscordId: loggedUser.id,
         canEdit: true
     };
 
@@ -284,7 +284,7 @@ const cloneChannelConfig = async () => {
         delete channelConfigToClone.modelSettings?.id;
         delete channelConfigToClone.moderationSettings?.isStrict;
 
-        channelConfigToClone.owner = loggedUser.id;
+        channelConfigToClone.ownerDiscordId = loggedUser.id;
         channelConfigToClone.name = `${channelConfigToClone.name} - Copy`;
         channelConfigToClone.persona = {
             id: channelConfig.value.persona?.id

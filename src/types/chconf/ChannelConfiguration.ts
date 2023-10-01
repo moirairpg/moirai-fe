@@ -7,7 +7,7 @@ import World from '@/types/world/World';
 export default interface ChannelConfiguration {
     id?: string;
     name?: string;
-    owner?: string;
+    ownerDiscordId?: string;
     world?: World;
     persona?: Persona;
     modelSettings?: ModelSettings;

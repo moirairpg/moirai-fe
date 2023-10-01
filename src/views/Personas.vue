@@ -39,8 +39,8 @@ onBeforeMount(async (): Promise<void> => {
         if (data?.[0] !== undefined) {
             for (let p of data) {
                 let canEdit: boolean = false;
-                const ownerData = await discordService.retrieveUserData(p.owner as string);
-                if (p.owner === loggedUser.id || p.writePermissions?.includes(loggedUser.id)) {
+                const ownerData = await discordService.retrieveUserData(p.ownerDiscordId as string);
+                if (p.ownerDiscordId === loggedUser.id || p.writePermissions?.includes(loggedUser.id)) {
                     canEdit = true;
                 }
 
@@ -60,7 +60,7 @@ const importPersona = (): void => {
 };
 
 const createNewPersona = (): void => {
-    persona.value = { isMultiplayer: false, canEdit: true, owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
+    persona.value = { isMultiplayer: false, canEdit: true, ownerDiscordId: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
 
     isPersonaSubmitted.value = false;
     isPersonaDialogVisible.value = true;
@@ -96,7 +96,7 @@ const savePersona = async (savedPersona: Persona): Promise<void> => {
             }
         }
         isPersonaDialogVisible.value = false;
-        persona.value = { canEdit: true, owner: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
+        persona.value = { canEdit: true, ownerDiscordId: loggedUser.id, ownerData: loggedUser, nudge: { role: '' }, bump: { role: '' } };
     }
 };
 
@@ -181,11 +181,11 @@ const clonePersona = async (): Promise<void> => {
     try {
         const personaToClone: Persona = Object.assign({}, persona.value);
         delete personaToClone.id;
-        delete personaToClone.owner;
+        delete personaToClone.ownerDiscordId;
         delete personaToClone.ownerData;
         delete personaToClone.canEdit;
 
-        personaToClone.owner = loggedUser.id;
+        personaToClone.ownerDiscordId = loggedUser.id;
         personaToClone.name = `${personaToClone.name} - Copy`;
         const createdPersona: Persona = await personaService.createPersona(personaToClone, loggedUser.id);
 
@@ -203,7 +203,7 @@ const clonePersona = async (): Promise<void> => {
 
 const uploadPersona = async (event: any) => {
     const personaToImport: Persona = event.persona;
-    personaToImport.owner = loggedUser.id;
+    personaToImport.ownerDiscordId = loggedUser.id;
 
     const createdPersona: Persona = await personaService.createPersona(personaToImport, loggedUser.id);
     createdPersona.canEdit = true;

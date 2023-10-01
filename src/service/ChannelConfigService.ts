@@ -2,6 +2,8 @@ import store from '@/resources/store';
 import webclient from '@/resources/webclient';
 import ChannelConfiguration from '@/types/chconf/ChannelConfiguration';
 
+
+
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
@@ -29,7 +31,7 @@ class ChannelConfigService {
                 data: {
                     id: channelConfig.id,
                     name: channelConfig.name,
-                    owner: channelConfig.owner,
+                    ownerDiscordId: channelConfig.ownerDiscordId,
                     persona: {
                         id: channelConfig.persona?.id
                     },
@@ -60,7 +62,7 @@ class ChannelConfigService {
                 data: {
                     id: channelConfig.id,
                     name: channelConfig.name,
-                    owner: channelConfig.owner,
+                    ownerDiscordId: channelConfig.ownerDiscordId,
                     persona: {
                         id: channelConfig.persona?.id
                     },

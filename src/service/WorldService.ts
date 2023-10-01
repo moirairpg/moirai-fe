@@ -3,6 +3,8 @@ import webclient from '@/resources/webclient';
 import LorebookEntry from '@/types/world/LorebookEntry';
 import World from '@/types/world/World';
 
+
+
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
@@ -31,7 +33,7 @@ class WorldService {
                     id: world.id,
                     name: world.name,
                     description: world.description,
-                    owner: world.owner,
+                    ownerDiscordId: world.ownerDiscordId,
                     visibility: world.visibility,
                     initial_prompt: world.initialPrompt,
                     lorebook: world.lorebook?.map((entry: LorebookEntry) => {
@@ -63,7 +65,7 @@ class WorldService {
                     id: world.id,
                     name: world.name,
                     description: world.description,
-                    owner: world.owner,
+                    ownerDiscordId: world.ownerDiscordId,
                     visibility: world.visibility,
                     initial_prompt: world.initialPrompt,
                     lorebook: world.lorebook?.map((entry: LorebookEntry) => {

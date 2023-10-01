@@ -41,7 +41,7 @@ onBeforeMount(async () => {
         if (data?.[0] !== undefined) {
             for (let w of data) {
                 let canEdit = false;
-                if (w.owner === loggedUser.id || w.writePermissions?.includes(loggedUser.id)) {
+                if (w.ownerDiscordId === loggedUser.id || w.writePermissions?.includes(loggedUser.id)) {
                     canEdit = true;
                 }
 
@@ -49,7 +49,7 @@ onBeforeMount(async () => {
                     w.lorebook = [];
                 }
 
-                const ownerData = await discordService.retrieveUserData(w.owner as string);
+                const ownerData = await discordService.retrieveUserData(w.ownerDiscordId as string);
                 w.ownerData = ownerData;
                 w.canEdit = canEdit;
                 ws.push(w);
@@ -66,7 +66,7 @@ const importWorld = () => {
 };
 
 const createNewWorld = () => {
-    world.value = { owner: loggedUser.id, ownerData: loggedUser, lorebook: [] };
+    world.value = { ownerDiscordId: loggedUser.id, ownerData: loggedUser, lorebook: [] };
     isWorldSubmitted.value = false;
     isWorldDialogVisible.value = true;
 };
@@ -111,7 +111,7 @@ const saveWorld = async (savedWorld: World) => {
             }
         }
         isWorldDialogVisible.value = false;
-        world.value = { owner: loggedUser.id, ownerData: loggedUser, lorebook: [] };
+        world.value = { ownerDiscordId: loggedUser.id, ownerData: loggedUser, lorebook: [] };
     }
 };
 
@@ -130,7 +130,7 @@ const deleteWorld = async () => {
         await worldService.deleteWorld(world.value, loggedUser.id);
         worlds.value = worlds.value.filter((val) => val.id !== world.value.id);
         isDeleteDialogVisible.value = false;
-        world.value = { owner: loggedUser.id, ownerData: loggedUser, lorebook: [] };
+        world.value = { ownerDiscordId: loggedUser.id, ownerData: loggedUser, lorebook: [] };
         toast.add({ severity: 'success', summary: 'Success!', detail: 'World deleted', life: 3000 });
     } catch (error) {
         console.error(`An error ocurred while deleting the world -> ${error}`);
@@ -225,7 +225,7 @@ const cloneWorld = async () => {
 
 const uploadWorld = async (event: any) => {
     const worldToImport: World = event.world;
-    worldToImport.owner = loggedUser.id;
+    worldToImport.ownerDiscordId = loggedUser.id;
 
     const createdWorld: World = await worldService.createWorld(worldToImport, loggedUser.id);
     createdWorld.canEdit = true;

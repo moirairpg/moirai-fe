@@ -5,7 +5,7 @@ export default interface World {
     id?: string;
     name?: string;
     description?: string;
-    owner?: string;
+    ownerDiscordId?: string;
     visibility?: string;
     initialPrompt?: string;
     lorebook?: LorebookEntry[];

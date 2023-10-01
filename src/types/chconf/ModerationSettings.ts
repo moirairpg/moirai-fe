@@ -1,6 +1,6 @@
 export default interface ModerationSettings {
     id?: string;
-    owner?: string;
+    ownerDiscordId?: string;
     absolute?: boolean;
     isStrict?: boolean;
 }
