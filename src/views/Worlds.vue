@@ -204,7 +204,7 @@ const cloneWorld = async () => {
             worldToClone.lorebook = [];
         }
 
-        worldToClone.owner = loggedUser.id;
+        worldToClone.ownerDiscordId = loggedUser.id;
         worldToClone.name = `${worldToClone.name} - Copy`;
         worldToClone.lorebook.forEach((entry: LorebookEntry) => delete entry.id);
         const createdWorld = await worldService.createWorld(worldToClone, loggedUser.id);
@@ -251,7 +251,7 @@ const uploadWorld = async (event: any) => {
                     </TabPanel>
                 </TabView>
 
-                <WorldDialog v-model:visible="isWorldDialogVisible" :world="world" :canEdit="world.owner === loggedUser.id" @onClose="hideWorldDialog" @onSave="saveWorld" @onDownload="downloadWorld" @onClone="cloneWorld" />
+                <WorldDialog v-model:visible="isWorldDialogVisible" :world="world" :canEdit="world.ownerDiscordId === loggedUser.id" @onClose="hideWorldDialog" @onSave="saveWorld" @onDownload="downloadWorld" @onClone="cloneWorld" />
                 <WorldImportDialog v-model:visible="isImportDialogVisible" @onImport="uploadWorld" />
                 <WorldDeleteDialog v-model:visible="isDeleteDialogVisible" :world="world" @onConfirm="deleteWorld" @onCancel="isDeleteDialogVisible = false" />
                 <WorldDeleteBulkDialog v-model:visible="isDeleteBulkDialogVisible" @onConfirm="deleteSelectedWorlds" @onCancel="isDeleteBulkDialogVisible = false" />

@@ -314,7 +314,7 @@ const onImport = async (event: any) => {
         const reader = new FileReader();
         reader.onload = async (res) => {
             const channelConfigToImport = JSON.parse(res.target?.result as string);
-            channelConfigToImport.owner = loggedUser.id;
+            channelConfigToImport.ownerDiscordId = loggedUser.id;
 
             const createdChannelConfig = await channelConfigService.createChannelConfig(channelConfigToImport, loggedUser.id);
             createdChannelConfig.canEdit = true;
