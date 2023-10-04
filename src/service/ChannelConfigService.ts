@@ -2,8 +2,6 @@ import store from '@/resources/store';
 import webclient from '@/resources/webclient';
 import ChannelConfiguration from '@/types/chconf/ChannelConfiguration';
 
-
-
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
@@ -29,9 +27,8 @@ class ChannelConfigService {
             const response: any = await webclient(`${baseUrl}/channel-config`, {
                 method: 'POST',
                 data: {
-                    id: channelConfig.id,
                     name: channelConfig.name,
-                    ownerDiscordId: channelConfig.ownerDiscordId,
+                    ownerDiscordId: requesterUserId,
                     persona: {
                         id: channelConfig.persona?.id
                     },

@@ -2,6 +2,7 @@ import store from '@/resources/store';
 import webclient from '@/resources/webclient';
 import Persona from '@/types/persona/Persona';
 
+
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
@@ -27,11 +28,10 @@ class PersonaService {
             const response: any = await webclient(`${baseUrl}/persona`, {
                 method: 'POST',
                 data: {
-                    id: persona.id,
                     name: persona.name,
                     intent: persona.intent,
                     personality: persona.personality,
-                    ownerDiscordId: persona.ownerDiscordId,
+                    ownerDiscordId: requesterUserId,
                     visibility: persona.visibility,
                     isMultiplayer: persona.isMultiplayer,
                     nudge: persona.nudge,

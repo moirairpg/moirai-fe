@@ -12,7 +12,6 @@ class LorebookService {
             const response: any = await webclient(`${baseUrl}/lore/entry/${world.id}`, {
                 method: 'POST',
                 data: {
-                    id: entry.id,
                     name: entry.name,
                     description: entry.description,
                     regex: entry.regex

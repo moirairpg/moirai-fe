@@ -5,6 +5,7 @@ import World from '@/types/world/World';
 
 
 
+
 const { authData } = store.getters;
 const baseUrl = import.meta.env.VITE_CHATRPG_API_BASEURL;
 
@@ -30,10 +31,9 @@ class WorldService {
             const response: any = await webclient(`${baseUrl}/world`, {
                 method: 'POST',
                 data: {
-                    id: world.id,
                     name: world.name,
                     description: world.description,
-                    ownerDiscordId: world.ownerDiscordId,
+                    ownerDiscordId: requesterUserId,
                     visibility: world.visibility,
                     initial_prompt: world.initialPrompt,
                     lorebook: world.lorebook?.map((entry: LorebookEntry) => {
