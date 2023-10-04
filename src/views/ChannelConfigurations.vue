@@ -309,28 +309,16 @@ const cloneChannelConfig = async () => {
     }
 };
 
-const onImport = async (event: any) => {
-    event.files.forEach(async (file: File) => {
-        const reader = new FileReader();
-        reader.onload = async (res) => {
-            const channelConfigToImport = JSON.parse(res.target?.result as string);
-            channelConfigToImport.ownerDiscordId = loggedUser.id;
+const uploadChannelConfiguration = async (event: any) => {
+    const channelConfigurationToImport: ChannelConfiguration = event.channelConfiguration;
+    channelConfigurationToImport.ownerDiscordId = loggedUser.id;
+    delete channelConfigurationToImport.modelSettings?.id;
 
-            const createdChannelConfig = await channelConfigService.createChannelConfig(channelConfigToImport, loggedUser.id);
-            createdChannelConfig.canEdit = true;
-            createdChannelConfig.ownerData = loggedUser;
-            createdChannelConfig.moderationSettings!.isStrict = createdChannelConfig.moderationSettings?.id === 'STRICT';
-
-            channelConfigs.value.push(createdChannelConfig);
-            toast.add({ severity: 'success', summary: 'Success!', detail: `Channel configuration imported (${file.name})`, life: 3000 });
-        };
-
-        reader.onerror = (err) => {
-            console.log(err);
-            toast.add({ severity: 'error', summary: 'Error', detail: `Error importing channel configuration (${file.name})`, life: 3000 });
-        };
-        reader.readAsText(file);
-    });
+    const createdChannelConfiguration: ChannelConfiguration = await channelConfigService.createChannelConfig(channelConfigurationToImport, loggedUser.id);
+    createdChannelConfiguration.canEdit = true;
+    createdChannelConfiguration.ownerData = loggedUser;
+    channelConfigs.value.push(createdChannelConfiguration);
+    toast.add({ severity: 'success', summary: 'Success!', detail: `Channel configuration imported (${event.file.name})`, life: 3000 });
 
     channelConfigImportDialog.value = false;
 };
@@ -359,7 +347,7 @@ const onImport = async (event: any) => {
             </div>
         </div>
 
-        <ChannelConfigImportDialog v-model:visible="channelConfigImportDialog" @onImport="onImport" @onCancel="channelConfigImportDialog = false" />
+        <ChannelConfigImportDialog v-model:visible="channelConfigImportDialog" @onImport="uploadChannelConfiguration" @onCancel="channelConfigImportDialog = false" />
         <ChannelConfigDeleteDialog v-model:visible="deleteChannelConfigDialog" :channelConfig="channelConfig" @onConfirm="deleteChannelConfig" @onCancel="deleteChannelConfigDialog = false" />
         <ChannelConfigDeleteBulkDialog v-model:visible="deleteChannelConfigsDialog" @onConfirm="deleteSelectedChannelConfigs" @onCancel="deleteChannelConfigsDialog = false" />
         <ChannelConfigDialogVue

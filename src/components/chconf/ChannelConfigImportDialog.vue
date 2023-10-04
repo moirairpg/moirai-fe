@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import World from '@/types/world/World';
+import ChannelConfiguration from '@/types/chconf/ChannelConfiguration';
 
 const emit: any = defineEmits(['onImport', 'onCancel']);
 
@@ -8,14 +8,14 @@ const upload = async (event: any): Promise<void> => {
         const reader: FileReader = new FileReader();
         reader.onload = async (res: ProgressEvent<FileReader>) => {
             try {
-                const world: World = JSON.parse(res?.target?.result as string);
-                if (!world) {
-                    console.error('An error occured while uploading world');
+                const channelConfiguration: ChannelConfiguration = JSON.parse(res?.target?.result as string);
+                if (!channelConfiguration) {
+                    console.error('An error occured while uploading channel configuration');
                 }
 
-                await emit('onImport', { world, file });
+                await emit('onImport', { channelConfiguration: channelConfiguration, file });
             } catch (error: any) {
-                console.error(`An error occured while parsing JSON file for world upload -> ${JSON.stringify(error, null, 2)}`);
+                console.error(`An error occured while parsing JSON file for channel configuration upload -> ${JSON.stringify(error, null, 2)}`);
             }
         };
 
