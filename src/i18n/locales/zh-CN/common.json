@@ -5,5 +5,13 @@
     }
   },
   "darkModeToggle": "切换深色模式",
-  "selectAdventure": "选择一个冒险以开始。"
+  "selectAdventure": "选择一个冒险以开始。",
+  "imageBanner": {
+    "dragHint": "点击并按住以拖动和重新定位图像",
+    "viewImage": "查看图像",
+    "uploadImage": "上传新图像",
+    "removeImage": "移除图像",
+    "generateImage": "生成图像",
+    "generating": "正在生成图像…"
+  }
 }

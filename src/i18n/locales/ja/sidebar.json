@@ -18,6 +18,8 @@
     "adventures": "アドベンチャー",
     "createAdventure": "アドベンチャー作成",
     "worlds": "ワールド",
-    "createWorld": "ワールド作成"
+    "createWorld": "ワールド作成",
+    "characters": "キャラクター",
+    "createCharacter": "キャラクター作成"
   }
 }

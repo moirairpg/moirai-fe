@@ -18,6 +18,8 @@
     "adventures": "어드벤처",
     "createAdventure": "어드벤처 만들기",
     "worlds": "세계",
-    "createWorld": "세계 만들기"
+    "createWorld": "세계 만들기",
+    "characters": "캐릭터",
+    "createCharacter": "캐릭터 생성"
   }
 }

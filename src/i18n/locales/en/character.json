@@ -1,0 +1,30 @@
+{
+  "form": {
+    "title": {
+      "new": "Create Character",
+      "edit": "Edit Character",
+      "fallback": "Character"
+    },
+    "sections": {
+      "basicData": "Basic Data"
+    },
+    "fields": {
+      "name": "Name",
+      "class": "Class",
+      "personality": "Personality",
+      "physicalDescription": "Physical Description"
+    },
+    "classPlaceholder": "Select a class",
+    "actions": {
+      "back": "Back",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "loadFailed": "Failed to load character.",
+      "saveFailed": "Failed to save character."
+    },
+    "loading": "Loading..."
+  }
+}

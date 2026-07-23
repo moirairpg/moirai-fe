@@ -29,14 +29,25 @@ type WorldCardProps = {
   onDelete: (id: string) => void;
 };
 
-type EntityCardProps = AdventureCardProps | WorldCardProps;
+type CharacterCardProps = {
+  kind: 'character';
+  id: string;
+  name: string;
+  classLabel: string | null;
+  imageUrl?: string | null;
+  onView: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+};
+
+type EntityCardProps = AdventureCardProps | WorldCardProps | CharacterCardProps;
 
 export function EntityCard(props: EntityCardProps) {
   const [hovered, setHovered] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const { t } = useTranslation('collection');
 
-  const bodyText = props.description;
+  const bodyText = props.kind === 'character' ? null : props.description;
 
   const handleDeleteClick = () => setIsConfirming(true);
   const handleConfirmDelete = () => { setIsConfirming(false); props.onDelete(props.id); };
@@ -85,7 +96,17 @@ export function EntityCard(props: EntityCardProps) {
               </button>
             )}
 
-            {props.canWrite ? (
+            {props.kind === 'character' && (
+              <button
+                onClick={() => props.onView(props.id)}
+                className="flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent/80"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                {t('card.actions.view')}
+              </button>
+            )}
+
+            {props.kind === 'character' || props.canWrite ? (
               <>
                 <button
                   onClick={() => props.onEdit(props.id)}
@@ -117,10 +138,16 @@ export function EntityCard(props: EntityCardProps) {
 
       <div className="flex flex-col gap-1.5 p-3">
         <p className="truncate text-sm font-semibold text-foreground">{props.name}</p>
-        <p className="line-clamp-2 text-xs text-muted-foreground">{bodyText}</p>
-        <span className="mt-1 inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-          {props.visibility}
-        </span>
+        {bodyText !== null && <p className="line-clamp-2 text-xs text-muted-foreground">{bodyText}</p>}
+        {props.kind === 'character' ? (
+          <span className="mt-1 inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            {props.classLabel ?? t('card.noClass')}
+          </span>
+        ) : (
+          <span className="mt-1 inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            {props.visibility}
+          </span>
+        )}
       </div>
     </div>
   );

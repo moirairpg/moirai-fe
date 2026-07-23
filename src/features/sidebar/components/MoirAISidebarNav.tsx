@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, ChevronRight, Globe } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronRight, Globe, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../components/auth';
@@ -15,6 +15,7 @@ export type MoirAISidebarNavProps = {
   adventureBasePath: string;
   createWorldPath: string;
   browseWorldsPath: string;
+  createCharacterPath: string;
 };
 
 export function MoirAISidebarNav({
@@ -26,6 +27,7 @@ export function MoirAISidebarNav({
   adventureBasePath,
   createWorldPath,
   browseWorldsPath,
+  createCharacterPath,
 }: MoirAISidebarNavProps) {
   const { t } = useTranslation('sidebar');
   const { user } = useAuth();
@@ -112,6 +114,15 @@ export function MoirAISidebarNav({
         browsePath={browseWorldsPath}
         createLabel={t('nav.createWorld')}
         browseLabel={t('nav.explore')}
+      />
+
+      <NavSection
+        label={t('nav.characters')}
+        icon={<Users className="h-4 w-4 text-muted-foreground" />}
+        isExpanded={expanded.has('characters')}
+        onToggle={() => toggle('characters')}
+        createPath={createCharacterPath}
+        createLabel={t('nav.createCharacter')}
       />
     </div>
   );

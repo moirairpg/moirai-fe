@@ -1,0 +1,40 @@
+{
+  "form": {
+    "title": {
+      "new": "创建角色",
+      "edit": "编辑角色",
+      "fallback": "角色"
+    },
+    "sections": {
+      "basicData": "基本信息"
+    },
+    "fields": {
+      "name": "名称",
+      "class": "职业",
+      "personality": "性格",
+      "physicalDescription": "外貌描述"
+    },
+    "classPlaceholder": "选择职业",
+    "actions": {
+      "back": "返回",
+      "save": "保存",
+      "saving": "保存中...",
+      "cancel": "取消"
+    },
+    "errors": {
+      "loadFailed": "加载角色失败。",
+      "saveFailed": "保存角色失败。"
+    },
+    "loading": "加载中..."
+  },
+  "classes": {
+    "BARD": "吟游诗人",
+    "RANGER": "游侠",
+    "BARBARIAN": "野蛮人",
+    "PALADIN": "圣武士",
+    "MAGE": "法师",
+    "CLERIC": "牧师",
+    "ROGUE": "游荡者",
+    "WITCH": "巫师"
+  }
+}

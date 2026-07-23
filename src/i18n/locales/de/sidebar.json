@@ -18,6 +18,8 @@
     "adventures": "Abenteuer",
     "createAdventure": "Abenteuer erstellen",
     "worlds": "Welten",
-    "createWorld": "Welt erstellen"
+    "createWorld": "Welt erstellen",
+    "characters": "Charaktere",
+    "createCharacter": "Charakter erstellen"
   }
 }

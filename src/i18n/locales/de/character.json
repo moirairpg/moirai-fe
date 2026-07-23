@@ -1,0 +1,40 @@
+{
+  "form": {
+    "title": {
+      "new": "Charakter erstellen",
+      "edit": "Charakter bearbeiten",
+      "fallback": "Charakter"
+    },
+    "sections": {
+      "basicData": "Grunddaten"
+    },
+    "fields": {
+      "name": "Name",
+      "class": "Klasse",
+      "personality": "Persönlichkeit",
+      "physicalDescription": "Körperliche Beschreibung"
+    },
+    "classPlaceholder": "Klasse auswählen",
+    "actions": {
+      "back": "Zurück",
+      "save": "Speichern",
+      "saving": "Wird gespeichert...",
+      "cancel": "Abbrechen"
+    },
+    "errors": {
+      "loadFailed": "Charakter konnte nicht geladen werden.",
+      "saveFailed": "Charakter konnte nicht gespeichert werden."
+    },
+    "loading": "Wird geladen..."
+  },
+  "classes": {
+    "BARD": "Barde",
+    "RANGER": "Waldläufer",
+    "BARBARIAN": "Barbar",
+    "PALADIN": "Paladin",
+    "MAGE": "Magier",
+    "CLERIC": "Kleriker",
+    "ROGUE": "Schurke",
+    "WITCH": "Hexer"
+  }
+}

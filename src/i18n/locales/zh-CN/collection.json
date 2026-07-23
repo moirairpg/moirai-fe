@@ -12,6 +12,7 @@
     "tabs": {
       "adventures": "冒险",
       "worlds": "世界",
+      "characters": "角色",
       "personas": "角色"
     }
   },
@@ -26,7 +27,8 @@
       "view": "查看",
       "cancel": "取消"
     },
-    "confirm": "确定吗？"
+    "confirm": "确定吗？",
+    "noClass": "无职业"
   },
   "grid": {
     "loading": "加载中...",

@@ -5,5 +5,13 @@
     }
   },
   "darkModeToggle": "Alternar modo escuro",
-  "selectAdventure": "Selecione uma aventura para começar."
+  "selectAdventure": "Selecione uma aventura para começar.",
+  "imageBanner": {
+    "dragHint": "Clique e segure para arrastar e reposicionar a imagem",
+    "viewImage": "Ver imagem",
+    "uploadImage": "Enviar nova imagem",
+    "removeImage": "Remover imagem",
+    "generateImage": "Gerar imagem",
+    "generating": "Gerando imagem…"
+  }
 }

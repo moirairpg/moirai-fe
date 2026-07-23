@@ -5,5 +5,13 @@
     }
   },
   "darkModeToggle": "Toggle dark mode",
-  "selectAdventure": "Select an adventure to begin."
+  "selectAdventure": "Select an adventure to begin.",
+  "imageBanner": {
+    "dragHint": "Click and hold to drag and reposition image",
+    "viewImage": "View image",
+    "uploadImage": "Upload new image",
+    "removeImage": "Remove image",
+    "generateImage": "Generate image",
+    "generating": "Generating image…"
+  }
 }

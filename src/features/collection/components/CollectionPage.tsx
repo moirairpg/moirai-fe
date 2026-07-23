@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../utils/api';
 import { useAdventureCollection } from '../hooks/useAdventureCollection';
 import { useWorldCollection } from '../hooks/useWorldCollection';
+import { useCharacterCollection } from '../hooks/useCharacterCollection';
+import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
 import { CardGrid } from './CardGrid';
 import { EntityCard } from './EntityCard';
 import type { CollectionView, CollectionTab } from '../types';
@@ -47,6 +49,30 @@ function WorldTab({ view }: TabProps) {
   );
 }
 
+function CharacterTab() {
+  const navigate = useNavigate();
+  const { t } = useTranslation('character');
+  const { items, isLoading, hasMore, loadMore, removeItem } = useCharacterCollection();
+  const { labelOf } = useCharacterClasses();
+
+  const handleView = (id: string) => navigate(`/character/${id}/view`);
+  const handleEdit = (id: string) => navigate(`/character/${id}/edit`);
+  const handleDelete = (id: string) => apiFetch(`/api/player-characters/${id}`, { method: 'DELETE' }).then((res) => { if (res.ok) removeItem(id); }).catch(() => {});
+
+  const classLabelOf = (characterClass: string | null) => {
+    const resolved = labelOf(characterClass);
+    return resolved === null ? null : t(`classes.${characterClass}`, { defaultValue: resolved });
+  };
+
+  return (
+    <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
+      {items.map((c) => (
+        <EntityCard key={c.id} kind="character" id={c.id} name={c.name} classLabel={classLabelOf(c.characterClass)} imageUrl={c.imageUrl} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
+      ))}
+    </CardGrid>
+  );
+}
+
 type CollectionPageProps = { view: CollectionView };
 
 export default function CollectionPage({ view }: CollectionPageProps) {
@@ -58,6 +84,7 @@ export default function CollectionPage({ view }: CollectionPageProps) {
   const TABS: { id: CollectionTab; label: string }[] = [
     { id: 'adventures', label: t('myStuff.tabs.adventures') },
     { id: 'worlds', label: t('myStuff.tabs.worlds') },
+    ...(view === 'MY_STUFF' ? [{ id: 'characters' as const, label: t('myStuff.tabs.characters') }] : []),
   ];
 
   return (
@@ -82,6 +109,7 @@ export default function CollectionPage({ view }: CollectionPageProps) {
 
       {activeTab === 'adventures' && <AdventureTab view={view} />}
       {activeTab === 'worlds' && <WorldTab view={view} />}
+      {activeTab === 'characters' && view === 'MY_STUFF' && <CharacterTab />}
     </div>
   );
 }

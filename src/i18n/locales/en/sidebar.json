@@ -18,6 +18,8 @@
     "adventures": "Adventures",
     "createAdventure": "Create adventure",
     "worlds": "Worlds",
-    "createWorld": "Create world"
+    "createWorld": "Create world",
+    "characters": "Characters",
+    "createCharacter": "Create character"
   }
 }

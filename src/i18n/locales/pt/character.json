@@ -1,0 +1,40 @@
+{
+  "form": {
+    "title": {
+      "new": "Criar personagem",
+      "edit": "Editar personagem",
+      "fallback": "Personagem"
+    },
+    "sections": {
+      "basicData": "Dados básicos"
+    },
+    "fields": {
+      "name": "Nome",
+      "class": "Classe",
+      "personality": "Personalidade",
+      "physicalDescription": "Descrição física"
+    },
+    "classPlaceholder": "Selecione uma classe",
+    "actions": {
+      "back": "Voltar",
+      "save": "Salvar",
+      "saving": "Salvando...",
+      "cancel": "Cancelar"
+    },
+    "errors": {
+      "loadFailed": "Falha ao carregar o personagem.",
+      "saveFailed": "Falha ao salvar o personagem."
+    },
+    "loading": "Carregando..."
+  },
+  "classes": {
+    "BARD": "Bardo",
+    "RANGER": "Patrulheiro",
+    "BARBARIAN": "Bárbaro",
+    "PALADIN": "Paladino",
+    "MAGE": "Mago",
+    "CLERIC": "Clérigo",
+    "ROGUE": "Ladino",
+    "WITCH": "Bruxo"
+  }
+}

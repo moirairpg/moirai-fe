@@ -10,6 +10,7 @@ import enAdventure from './locales/en/adventure.json';
 import enWorld from './locales/en/world.json';
 import enCollection from './locales/en/collection.json';
 import enNotifications from './locales/en/notifications.json';
+import enCharacter from './locales/en/character.json';
 
 import koCommon from './locales/ko/common.json';
 import koSettings from './locales/ko/settings.json';
@@ -19,6 +20,7 @@ import koAdventure from './locales/ko/adventure.json';
 import koWorld from './locales/ko/world.json';
 import koCollection from './locales/ko/collection.json';
 import koNotifications from './locales/ko/notifications.json';
+import koCharacter from './locales/ko/character.json';
 
 import zhCommon from './locales/zh-CN/common.json';
 import zhSettings from './locales/zh-CN/settings.json';
@@ -28,6 +30,7 @@ import zhAdventure from './locales/zh-CN/adventure.json';
 import zhWorld from './locales/zh-CN/world.json';
 import zhCollection from './locales/zh-CN/collection.json';
 import zhNotifications from './locales/zh-CN/notifications.json';
+import zhCharacter from './locales/zh-CN/character.json';
 
 import jaCommon from './locales/ja/common.json';
 import jaSettings from './locales/ja/settings.json';
@@ -37,6 +40,7 @@ import jaAdventure from './locales/ja/adventure.json';
 import jaWorld from './locales/ja/world.json';
 import jaCollection from './locales/ja/collection.json';
 import jaNotifications from './locales/ja/notifications.json';
+import jaCharacter from './locales/ja/character.json';
 
 import ruCommon from './locales/ru/common.json';
 import ruSettings from './locales/ru/settings.json';
@@ -46,6 +50,7 @@ import ruAdventure from './locales/ru/adventure.json';
 import ruWorld from './locales/ru/world.json';
 import ruCollection from './locales/ru/collection.json';
 import ruNotifications from './locales/ru/notifications.json';
+import ruCharacter from './locales/ru/character.json';
 
 import deCommon from './locales/de/common.json';
 import deSettings from './locales/de/settings.json';
@@ -55,6 +60,7 @@ import deAdventure from './locales/de/adventure.json';
 import deWorld from './locales/de/world.json';
 import deCollection from './locales/de/collection.json';
 import deNotifications from './locales/de/notifications.json';
+import deCharacter from './locales/de/character.json';
 
 import ptCommon from './locales/pt/common.json';
 import ptSettings from './locales/pt/settings.json';
@@ -64,6 +70,7 @@ import ptAdventure from './locales/pt/adventure.json';
 import ptWorld from './locales/pt/world.json';
 import ptCollection from './locales/pt/collection.json';
 import ptNotifications from './locales/pt/notifications.json';
+import ptCharacter from './locales/pt/character.json';
 
 import { languages } from './languages.js';
 
@@ -93,6 +100,7 @@ i18n
         world: enWorld,
         collection: enCollection,
         notifications: enNotifications,
+        character: enCharacter,
       },
       ko: {
         common: koCommon,
@@ -103,6 +111,7 @@ i18n
         world: koWorld,
         collection: koCollection,
         notifications: koNotifications,
+        character: koCharacter,
       },
       'zh-CN': {
         common: zhCommon,
@@ -113,6 +122,7 @@ i18n
         world: zhWorld,
         collection: zhCollection,
         notifications: zhNotifications,
+        character: zhCharacter,
       },
       ja: {
         common: jaCommon,
@@ -123,6 +133,7 @@ i18n
         world: jaWorld,
         collection: jaCollection,
         notifications: jaNotifications,
+        character: jaCharacter,
       },
       ru: {
         common: ruCommon,
@@ -133,6 +144,7 @@ i18n
         world: ruWorld,
         collection: ruCollection,
         notifications: ruNotifications,
+        character: ruCharacter,
       },
       de: {
         common: deCommon,
@@ -143,6 +155,7 @@ i18n
         world: deWorld,
         collection: deCollection,
         notifications: deNotifications,
+        character: deCharacter,
       },
       pt: {
         common: ptCommon,
@@ -153,6 +166,7 @@ i18n
         world: ptWorld,
         collection: ptCollection,
         notifications: ptNotifications,
+        character: ptCharacter,
       },
     },
 
@@ -162,7 +176,7 @@ i18n
 
     debug: import.meta.env.DEV,
 
-    ns: ['common', 'settings', 'sidebar', 'auth', 'adventure', 'world', 'collection', 'notifications'],
+    ns: ['common', 'settings', 'sidebar', 'auth', 'adventure', 'world', 'collection', 'notifications', 'character'],
     defaultNS: 'common',
 
     keySeparator: '.',

@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Info, Pencil, Plus, Trash2 } from 'lucide-react';
-import type { AdventureDetails, ModelConfiguration, ContextAttributes } from '../../sidebar/types';
+import type { AdventureDetails, ModelConfiguration, ContextAttributes, Permission } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
+import { useAuth } from '../../../components/auth';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
 import { useJsonImport, parseAdventureJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
@@ -208,7 +209,9 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const location = useLocation();
   const { adventureId } = useParams<{ adventureId: string }>();
   const { t } = useTranslation('adventure');
+  const { user } = useAuth();
   const [form, setForm] = useState<FormState>(EMPTY);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [worlds, setWorlds] = useState<SelectOption[]>([]);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
   const [createLorebook, setCreateLorebook] = useState<LorebookEntry[]>([]);
@@ -233,6 +236,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const [lorebookFilter, setLorebookFilter] = useState('');
 
   const readOnly = mode === 'view';
+  const canEdit = mode === 'view' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
   const errorBorder = (value: string, required = true) => required && submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
 
@@ -288,6 +292,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             setImageUrl(data.imageUrl ?? null);
             setUiImagePositionX(data.uiImagePositionX ?? 0.5);
             setUiImagePositionY(data.uiImagePositionY ?? 0.5);
+            setPermissions(data.permissions ?? []);
           })
       );
     }
@@ -441,9 +446,12 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
 
   const handleImageGenerate = async () => {
     const prompt = buildImagePrompt({
-      name: form.name,
-      description: form.description,
-      adventureStart: form.adventureStart,
+      subject: 'adventure',
+      fields: [
+        { label: 'Name', value: form.name },
+        { label: 'Description', value: form.description },
+        { label: 'Adventure Start', value: form.adventureStart },
+      ],
     });
     const blob = await api.imageGenerations.generate(prompt);
     const file = new File([blob], 'generated.png', { type: 'image/png' });
@@ -494,9 +502,12 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         } else {
           const prompt = buildImagePrompt({
-            name: form.name,
-            description: form.description,
-            adventureStart: form.adventureStart,
+            subject: 'adventure',
+            fields: [
+              { label: 'Name', value: form.name },
+              { label: 'Description', value: form.description },
+              { label: 'Adventure Start', value: form.adventureStart },
+            ],
           });
           const blob = await api.imageGenerations.generate(prompt);
           const file = new File([blob], 'generated.png', { type: 'image/png' });
@@ -562,6 +573,12 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                   {t('form.actions.importJson')}
                   <input type="file" accept=".json" className="sr-only" onChange={handleJsonImport} />
                 </label>
+              )}
+              {canEdit && (
+                <button type="button" onClick={() => navigate(`/adventure/${adventureId}/edit`)} className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                  <Pencil className="h-3.5 w-3.5" />
+                  {t('card.actions.edit', { ns: 'collection' })}
+                </button>
               )}
               <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
                 {t('form.actions.back')}

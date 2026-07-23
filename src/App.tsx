@@ -9,6 +9,7 @@ import CollectionPage from './features/collection/components/CollectionPage';
 import BrowsePage from './features/collection/components/BrowsePage';
 import AdventureFormPage from './features/adventure/components/AdventureFormPage';
 import WorldFormPage from './features/world/components/WorldFormPage';
+import CharacterFormPage from './features/character/components/CharacterFormPage';
 import { AdminNotificationPage, NotificationPanelProvider } from './features/notifications';
 import i18n from './i18n/config.js';
 
@@ -36,6 +37,9 @@ export default function App() {
                         <Route path="/world/new" element={<AppContent><WorldFormPage mode="create" /></AppContent>} />
                         <Route path="/world/:worldId/edit" element={<AppContent><WorldFormPage mode="edit" /></AppContent>} />
                         <Route path="/world/:worldId/view" element={<AppContent><WorldFormPage mode="view" /></AppContent>} />
+                        <Route path="/character/new" element={<AppContent><CharacterFormPage mode="create" /></AppContent>} />
+                        <Route path="/character/:characterId/edit" element={<AppContent><CharacterFormPage mode="edit" /></AppContent>} />
+                        <Route path="/character/:characterId/view" element={<AppContent><CharacterFormPage mode="view" /></AppContent>} />
                         <Route path="/admin/notifications" element={
                           <AdminRoute>
                             <AppContent><AdminNotificationPage /></AppContent>

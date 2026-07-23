@@ -1,0 +1,40 @@
+{
+  "form": {
+    "title": {
+      "new": "Создать персонажа",
+      "edit": "Редактировать персонажа",
+      "fallback": "Персонаж"
+    },
+    "sections": {
+      "basicData": "Основные данные"
+    },
+    "fields": {
+      "name": "Имя",
+      "class": "Класс",
+      "personality": "Характер",
+      "physicalDescription": "Внешность"
+    },
+    "classPlaceholder": "Выберите класс",
+    "actions": {
+      "back": "Назад",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "cancel": "Отмена"
+    },
+    "errors": {
+      "loadFailed": "Не удалось загрузить персонажа.",
+      "saveFailed": "Не удалось сохранить персонажа."
+    },
+    "loading": "Загрузка..."
+  },
+  "classes": {
+    "BARD": "Бард",
+    "RANGER": "Следопыт",
+    "BARBARIAN": "Варвар",
+    "PALADIN": "Паладин",
+    "MAGE": "Волшебник",
+    "CLERIC": "Жрец",
+    "ROGUE": "Плут",
+    "WITCH": "Колдун"
+  }
+}

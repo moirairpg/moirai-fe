@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-type Section = 'adventures' | 'worlds' | 'personas' | 'admin';
+type Section = 'adventures' | 'worlds' | 'characters' | 'personas' | 'admin';
 
 function loadExpanded(): Set<Section> {
   try {

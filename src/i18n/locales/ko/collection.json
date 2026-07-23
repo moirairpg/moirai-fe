@@ -12,6 +12,7 @@
     "tabs": {
       "adventures": "어드벤처",
       "worlds": "세계",
+      "characters": "캐릭터",
       "personas": "페르소나"
     }
   },
@@ -26,7 +27,8 @@
       "view": "보기",
       "cancel": "취소"
     },
-    "confirm": "확실합니까?"
+    "confirm": "확실합니까?",
+    "noClass": "클래스 없음"
   },
   "grid": {
     "loading": "로딩 중...",

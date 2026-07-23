@@ -5,5 +5,13 @@
     }
   },
   "darkModeToggle": "ダークモードを切り替える",
-  "selectAdventure": "アドベンチャーを選んで始めてください。"
+  "selectAdventure": "アドベンチャーを選んで始めてください。",
+  "imageBanner": {
+    "dragHint": "クリックして長押しで画像をドラッグして位置を調整",
+    "viewImage": "画像を表示",
+    "uploadImage": "新しい画像をアップロード",
+    "removeImage": "画像を削除",
+    "generateImage": "画像を生成",
+    "generating": "画像を生成中…"
+  }
 }

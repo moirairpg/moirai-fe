@@ -50,4 +50,13 @@ export const api = {
     removeImage: (id) =>
       apiFetch(`/api/adventures/${id}/image`, { method: 'DELETE' }),
   },
+  character: {
+    uploadImage: (id, file) => {
+      const form = new FormData();
+      form.append('file', file);
+      return apiFetch(`/api/player-characters/${id}/image`, { method: 'PUT', body: form });
+    },
+    removeImage: (id) =>
+      apiFetch(`/api/player-characters/${id}/image`, { method: 'DELETE' }),
+  },
 };

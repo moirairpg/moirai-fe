@@ -12,6 +12,7 @@
     "tabs": {
       "adventures": "Aventuras",
       "worlds": "Mundos",
+      "characters": "Personagens",
       "personas": "Personas"
     }
   },
@@ -26,7 +27,8 @@
       "view": "Ver",
       "cancel": "Cancelar"
     },
-    "confirm": "Tem certeza?"
+    "confirm": "Tem certeza?",
+    "noClass": "Sem classe"
   },
   "grid": {
     "loading": "Carregando...",

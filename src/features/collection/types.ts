@@ -20,6 +20,14 @@ export type WorldSummary = {
   canWrite: boolean;
 };
 
+export type PlayerCharacterSummary = {
+  id: string;
+  ownerUsername: string;
+  name: string;
+  characterClass: string | null;
+  imageUrl: string | null;
+};
+
 export type PaginatedResult<T> = {
   data: T[];
   items: number;
@@ -29,4 +37,4 @@ export type PaginatedResult<T> = {
 };
 
 export type CollectionView = 'MY_STUFF' | 'SHARED_WITH_ME' | 'EXPLORE';
-export type CollectionTab = 'adventures' | 'worlds';
+export type CollectionTab = 'adventures' | 'worlds' | 'characters';
