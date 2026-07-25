@@ -7,6 +7,7 @@ import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { useAuth } from '../../../components/auth';
 import { useCharacterClasses } from '../hooks/useCharacterClasses';
+import { useCharacterAdventures } from '../hooks/useCharacterAdventures';
 import type { CharacterFormInput, PlayerCharacterDetails } from '../types';
 
 type CharacterFormPageProps = { mode: 'view' | 'edit' | 'create' };
@@ -41,6 +42,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
 
   const readOnly = mode === 'view';
   const canEdit = mode === 'view' && ownerUsername !== null && ownerUsername === user?.username;
+  const registeredAdventures = useCharacterAdventures(characterId, mode === 'view');
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
   const errorBorder = (value: string) => submitted && !value.trim() ? ' border-red-500' : '';
 
@@ -243,6 +245,23 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
               <textarea rows={4} value={form.physicalDescription} onChange={set('physicalDescription')} disabled={readOnly} className={`${TEXTAREA_CLASS}${errorBorder(form.physicalDescription)}`} />
             </div>
           </div>
+
+          {mode === 'view' && registeredAdventures.length > 0 && (
+            <div className="flex flex-col gap-3 rounded-md border border-border p-4">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.registeredIn')}</span>
+              <div className="flex flex-col gap-1.5">
+                {registeredAdventures.map((adventure) => (
+                  <a
+                    key={adventure.publicId}
+                    href={`/adventure/${adventure.publicId}/view`}
+                    className="truncate rounded-md border border-border px-3 py-2 text-sm text-primary underline-offset-2 hover:underline"
+                  >
+                    {adventure.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

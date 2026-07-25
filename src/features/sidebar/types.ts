@@ -44,8 +44,18 @@ export type AdventureDetails = {
   contextAttributes: ContextAttributes;
   permissions: Permission[];
   lorebook: AdventureLorebookEntry[];
+  registeredCharacters: AdventureRosterSummary[];
   uiImagePositionX: number | null;
   uiImagePositionY: number | null;
+};
+
+export type AdventureRosterSummary = {
+  playerCharacterId: string;
+  playerId: string;
+  playerUsername: string;
+  name: string;
+  characterClass: string | null;
+  imageUrl: string | null;
 };
 
 export type WorldLorebookEntry = {

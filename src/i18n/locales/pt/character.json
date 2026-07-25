@@ -6,7 +6,8 @@
       "fallback": "Personagem"
     },
     "sections": {
-      "basicData": "Dados básicos"
+      "basicData": "Dados básicos",
+      "registeredIn": "Registrado em"
     },
     "fields": {
       "name": "Nome",

@@ -6,7 +6,8 @@
       "fallback": "Character"
     },
     "sections": {
-      "basicData": "Basic Data"
+      "basicData": "Basic Data",
+      "registeredIn": "Registered in"
     },
     "fields": {
       "name": "Name",

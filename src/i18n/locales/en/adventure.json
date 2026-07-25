@@ -52,7 +52,8 @@
     "empty": {
       "noWorlds": "No worlds found. Create one first.",
       "noPersonas": "No personas found. Create one first.",
-      "noLorebook": "No lorebook entries."
+      "noLorebook": "No lorebook entries.",
+      "noRegisteredCharacters": "No characters have joined yet."
     },
     "actions": {
       "back": "Back",
@@ -71,7 +72,8 @@
       "basicData": "Basic Data",
       "storyNarration": "Story Narration",
       "visibilityControl": "Visibility & Control",
-      "lorebook": "Lorebook"
+      "lorebook": "Lorebook",
+      "registeredCharacters": "Registered characters ({{count}}/{{max}})"
     },
     "player": "Player: ",
     "errors": {
@@ -98,5 +100,15 @@
       "The threads of destiny intertwine...",
       "Ancient forces stir..."
     ]
+  },
+  "invite": {
+    "title": "Invite players",
+    "placeholder": "Type usernames, comma-separated",
+    "action": "Invite",
+    "sending": "Inviting...",
+    "invited": "Invited: ",
+    "errors": {
+      "failed": "Failed to send invitations."
+    }
   }
 }

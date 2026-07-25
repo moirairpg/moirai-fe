@@ -2,18 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Info, Pencil, Plus, Trash2 } from 'lucide-react';
-import type { AdventureDetails, ModelConfiguration, ContextAttributes, Permission } from '../../sidebar/types';
+import type { AdventureDetails, ModelConfiguration, ContextAttributes, Permission, AdventureRosterSummary } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { useAuth } from '../../../components/auth';
+import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
+import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm';
+import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseAdventureJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
+import { InvitePlayersField } from './InvitePlayersField';
 
 type AdventureFormPageProps = { mode: 'view' | 'edit' | 'create' };
 
 type SelectOption = { id: string; name: string; description?: string; visibility?: string; imageUrl?: string | null };
-
-type LorebookEntry = { id?: string; name: string; description: string; playerId: string };
 
 type FormState = {
   name: string;
@@ -43,7 +45,6 @@ const EMPTY: FormState = {
   contextAttributes: { nudge: '', bump: '', bumpFrequency: 0 },
 };
 
-const EMPTY_ENTRY: LorebookEntry = { name: '', description: '', playerId: '' };
 
 function CardPicker({
   options,
@@ -147,71 +148,16 @@ function CardPicker({
 const INPUT_CLASS = 'rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50';
 const TEXTAREA_CLASS = `resize-y ${INPUT_CLASS}`;
 
-function LorebookEntryForm({
-  value,
-  onChange,
-  onDone,
-  onCancel,
-  namePlaceholder,
-  descriptionPlaceholder,
-  playerIdPlaceholder,
-  doneLabel,
-  cancelLabel,
-}: {
-  value: LorebookEntry;
-  onChange: (entry: LorebookEntry) => void;
-  onDone: () => void;
-  onCancel: () => void;
-  namePlaceholder: string;
-  descriptionPlaceholder: string;
-  playerIdPlaceholder: string;
-  doneLabel: string;
-  cancelLabel: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2 rounded-md border border-border p-4">
-      <input
-        type="text"
-        placeholder={namePlaceholder}
-        value={value.name}
-        onChange={(e) => onChange({ ...value, name: e.target.value })}
-        className={INPUT_CLASS}
-        autoFocus
-      />
-      <textarea
-        rows={3}
-        placeholder={descriptionPlaceholder}
-        value={value.description}
-        onChange={(e) => onChange({ ...value, description: e.target.value })}
-        className={TEXTAREA_CLASS}
-      />
-      <input
-        type="text"
-        placeholder={playerIdPlaceholder}
-        value={value.playerId}
-        onChange={(e) => onChange({ ...value, playerId: e.target.value })}
-        className={INPUT_CLASS}
-      />
-      <div className="flex gap-2">
-        <button type="button" onClick={onDone} disabled={!value.name.trim() || !value.description.trim()} className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-          {doneLabel}
-        </button>
-        <button type="button" onClick={onCancel} className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
-          {cancelLabel}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { adventureId } = useParams<{ adventureId: string }>();
   const { t } = useTranslation('adventure');
   const { user } = useAuth();
+  const { labelOf } = useCharacterClasses();
   const [form, setForm] = useState<FormState>(EMPTY);
   const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [registeredCharacters, setRegisteredCharacters] = useState<AdventureRosterSummary[]>([]);
   const [worlds, setWorlds] = useState<SelectOption[]>([]);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
   const [createLorebook, setCreateLorebook] = useState<LorebookEntry[]>([]);
@@ -287,12 +233,12 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               id: e.id,
               name: e.name,
               description: e.description,
-              playerId: e.playerId ?? '',
             })));
             setImageUrl(data.imageUrl ?? null);
             setUiImagePositionX(data.uiImagePositionX ?? 0.5);
             setUiImagePositionY(data.uiImagePositionY ?? 0.5);
             setPermissions(data.permissions ?? []);
+            setRegisteredCharacters(data.registeredCharacters ?? []);
           })
       );
     }
@@ -358,10 +304,9 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           narratorName: world.narratorName ?? '',
           narratorPersonality: world.narratorPersonality ?? '',
         }));
-        setCreateLorebook((world.lorebook ?? []).map((e: { name: string; description: string; playerId?: string }) => ({
+        setCreateLorebook((world.lorebook ?? []).map((e: { name: string; description: string }) => ({
           name: e.name,
           description: e.description,
-          playerId: e.playerId ?? '',
         })));
         setImageUrl(world.imageUrl ?? null);
         setImageFile(null);
@@ -389,7 +334,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
       ...(data.modelConfiguration && { modelConfiguration: { ...prev.modelConfiguration, ...data.modelConfiguration } }),
       ...(data.contextAttributes && { contextAttributes: { ...prev.contextAttributes, ...data.contextAttributes } }),
     }));
-    if (data.lorebook.length) setCreateLorebook(data.lorebook.map((e) => ({ name: e.name, description: e.description, playerId: e.playerId ?? '' })));
+    if (data.lorebook.length) setCreateLorebook(data.lorebook.map((e) => ({ name: e.name, description: e.description })));
   });
 
   const commitNew = () => {
@@ -481,7 +426,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           lorebook: createLorebook.map((e) => ({
             name: e.name,
             description: e.description,
-            playerId: e.playerId || null,
           })),
           uiImagePositionX,
           uiImagePositionY,
@@ -526,7 +470,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           moderation: form.moderation,
           isMultiplayer: false,
           adventureStart: form.adventureStart,
-          permissions: [],
+          permissions,
           modelConfiguration: form.modelConfiguration,
           contextAttributes: form.contextAttributes,
           uiImagePositionX,
@@ -539,10 +483,10 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             ...body,
             lorebookEntriesToAdd: lorebook
               .filter((e) => !e.id)
-              .map(({ name, description, playerId }) => ({ name, description, playerId: playerId || null })),
+              .map(({ name, description }) => ({ name, description })),
             lorebookEntriesToUpdate: lorebook
               .filter((e) => !!e.id)
-              .map(({ id, name, description, playerId }) => ({ id, name, description, playerId: playerId || null })),
+              .map(({ id, name, description }) => ({ id, name, description })),
             lorebookEntriesToDelete: deletedIds,
           }),
         });
@@ -600,6 +544,41 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             onRemove={handleImageRemove}
             onGenerate={handleImageGenerate}
           />
+
+          {mode === 'view' && (
+            <div className="flex flex-col gap-4 rounded-md border border-border p-4">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t('form.sections.registeredCharacters', { count: registeredCharacters.length, max: 5 })}
+              </span>
+
+              {registeredCharacters.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t('form.empty.noRegisteredCharacters')}</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {registeredCharacters.map((member) => (
+                    <a
+                      key={member.playerCharacterId}
+                      href={`/character/${member.playerCharacterId}/view`}
+                      className="flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/50"
+                    >
+                      <div className="relative h-32 flex-shrink-0 bg-muted">
+                        {member.imageUrl && (
+                          <img src={member.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-1 p-3">
+                        <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
+                        <span className="inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                          {member.characterClass ? labelOf(member.characterClass) : t('card.noClass', { ns: 'collection' })}
+                        </span>
+                        <p className="truncate text-xs text-muted-foreground">@{member.playerUsername}</p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-5 rounded-md border border-border p-4">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.basicData')}</span>
@@ -800,7 +779,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                 onCancel={() => { setAddingNew(false); setNewDraft(EMPTY_ENTRY); }}
                 namePlaceholder={t('form.placeholders.name')}
                 descriptionPlaceholder={t('form.placeholders.description')}
-                playerIdPlaceholder={t('form.placeholders.playerId')}
                 doneLabel={t('form.actions.done')}
                 cancelLabel={t('form.actions.cancel')}
               />
@@ -821,7 +799,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                     onCancel={() => setEditingIndex(null)}
                     namePlaceholder={t('form.placeholders.name')}
                     descriptionPlaceholder={t('form.placeholders.description')}
-                    playerIdPlaceholder={t('form.placeholders.playerId')}
                     doneLabel={t('form.actions.done')}
                     cancelLabel={t('form.actions.cancel')}
                   />
@@ -830,9 +807,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="truncate text-sm font-medium text-foreground">{entry.name}</span>
                       <span className="line-clamp-2 text-sm text-muted-foreground">{entry.description}</span>
-                      {entry.playerId && (
-                        <span className="text-xs text-muted-foreground">{t('form.player')}{entry.playerId}</span>
-                      )}
                     </div>
                     {!readOnly && (
                       <div className="flex shrink-0 gap-1">
@@ -849,6 +823,8 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               )}
             </div>
           </div>
+
+          {mode === 'edit' && adventureId && <InvitePlayersField adventureId={adventureId} />}
 
           <div className="flex flex-col gap-3">
             <button

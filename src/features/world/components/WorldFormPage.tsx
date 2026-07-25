@@ -6,12 +6,12 @@ import type { WorldDetails, Permission } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { useAuth } from '../../../components/auth';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
+import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm';
+import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseWorldJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 
 type WorldFormPageProps = { mode: 'view' | 'edit' | 'create' };
-
-type LorebookEntry = { id?: string; name: string; description: string };
 
 type FormState = {
   name: string;
@@ -23,58 +23,9 @@ type FormState = {
 };
 
 const EMPTY: FormState = { name: '', description: '', adventureStart: '', visibility: 'PRIVATE', narratorName: '', narratorPersonality: '' };
-const EMPTY_ENTRY: LorebookEntry = { name: '', description: '' };
 
 const INPUT_CLASS = 'rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50';
 const TEXTAREA_CLASS = `resize-y ${INPUT_CLASS}`;
-
-function LorebookEntryForm({
-  value,
-  onChange,
-  onDone,
-  onCancel,
-  namePlaceholder,
-  descriptionPlaceholder,
-  doneLabel,
-  cancelLabel,
-}: {
-  value: LorebookEntry;
-  onChange: (entry: LorebookEntry) => void;
-  onDone: () => void;
-  onCancel: () => void;
-  namePlaceholder: string;
-  descriptionPlaceholder: string;
-  doneLabel: string;
-  cancelLabel: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2 rounded-md border border-border p-4">
-      <input
-        type="text"
-        placeholder={namePlaceholder}
-        value={value.name}
-        onChange={(e) => onChange({ ...value, name: e.target.value })}
-        className={INPUT_CLASS}
-        autoFocus
-      />
-      <textarea
-        rows={3}
-        placeholder={descriptionPlaceholder}
-        value={value.description}
-        onChange={(e) => onChange({ ...value, description: e.target.value })}
-        className={TEXTAREA_CLASS}
-      />
-      <div className="flex gap-2">
-        <button type="button" onClick={onDone} disabled={!value.name.trim() || !value.description.trim()} className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-          {doneLabel}
-        </button>
-        <button type="button" onClick={onCancel} className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
-          {cancelLabel}
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const navigate = useNavigate();
@@ -226,7 +177,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         visibility: form.visibility,
         narratorName: form.narratorName || null,
         narratorPersonality: form.narratorPersonality || null,
-        permissions: [],
+        permissions: mode === 'create' ? [] : permissions,
         uiImagePositionX,
         uiImagePositionY,
       };

@@ -49,8 +49,26 @@ export const api = {
     },
     removeImage: (id) =>
       apiFetch(`/api/adventures/${id}/image`, { method: 'DELETE' }),
+    invite: (adventureId, usernames) =>
+      apiFetch(`/api/adventures/${adventureId}/invitations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usernames }),
+      }),
+  },
+  adventureInvitations: {
+    join: (invitationId, playerCharacterId) =>
+      apiFetch(`/api/adventures/invitations/${invitationId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerCharacterId }),
+      }),
+    decline: (invitationId) =>
+      apiFetch(`/api/adventures/invitations/${invitationId}/decline`, { method: 'POST' }),
   },
   character: {
+    search: (name) =>
+      apiFetch(`/api/player-characters/search?name=${encodeURIComponent(name ?? '')}`),
     uploadImage: (id, file) => {
       const form = new FormData();
       form.append('file', file);

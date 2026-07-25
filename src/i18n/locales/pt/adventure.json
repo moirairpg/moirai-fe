@@ -52,7 +52,8 @@
     "empty": {
       "noWorlds": "Nenhum mundo encontrado. Crie um primeiro.",
       "noPersonas": "Nenhuma persona encontrada. Crie uma primeiro.",
-      "noLorebook": "Nenhuma entrada no livro de lore."
+      "noLorebook": "Nenhuma entrada no livro de lore.",
+      "noRegisteredCharacters": "Nenhum personagem entrou ainda."
     },
     "actions": {
       "back": "Voltar",
@@ -71,7 +72,8 @@
       "basicData": "Dados Básicos",
       "storyNarration": "Narração",
       "visibilityControl": "Visibilidade e Controle",
-      "lorebook": "Livro de Lore"
+      "lorebook": "Livro de Lore",
+      "registeredCharacters": "Personagens registrados ({{count}}/{{max}})"
     },
     "player": "Jogador: ",
     "errors": {
@@ -98,5 +100,15 @@
       "Os fios do destino se entrelaçam...",
       "Forças ancestrais despertam..."
     ]
+  },
+  "invite": {
+    "title": "Convidar jogadores",
+    "placeholder": "Digite nomes de usuário separados por vírgula",
+    "action": "Convidar",
+    "sending": "Convidando...",
+    "invited": "Convidados: ",
+    "errors": {
+      "failed": "Falha ao enviar os convites."
+    }
   }
 }
