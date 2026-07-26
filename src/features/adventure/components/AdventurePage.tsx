@@ -17,10 +17,14 @@ type AdventurePageProps = {
   adventureId: string;
 };
 
-const saidPrefixRegex = /^.+? said[,:]?\s*/;
+const saidPrefixRegex = /^(.+?) said[,:]?\s*/;
 
 function stripSaidPrefix(content: string): string {
   return content.replace(saidPrefixRegex, '');
+}
+
+function extractSaidName(content: string): string | undefined {
+  return content.match(saidPrefixRegex)?.[1];
 }
 
 type FormatButton = {
@@ -112,6 +116,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     loadError,
     narratorName,
     adventureStart,
+    registeredCharacters,
     appendMessage,
     fetchMore,
     hasMore,
@@ -121,20 +126,23 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesFromIdInclusive,
   } = useAdventureMessages(adventureId);
 
+  const myCharacterName = registeredCharacters.find((m) => m.playerUsername === user?.username)?.name;
+
   const { sendMessage, lastMessage } = useAdventureWebSocket(adventureId);
   const { handleInput } = useAdventureCommands(adventureId, adventureStart, narratorName, messages, removeMessage);
 
   useEffect(() => {
     if (!lastMessage) return;
-    const isUser = lastMessage.role === 'USER';
+    const isUser = lastMessage.role === 'user';
     const msg: AdventureMessage = {
       id: lastMessage.id,
       role: isUser ? 'user' : 'narrator',
       content: stripSaidPrefix(lastMessage.content),
       narratorName: !isUser ? narratorName : undefined,
+      authorName: isUser ? extractSaidName(lastMessage.content) : undefined,
     };
     appendMessage(msg);
-    setIsGenerating(false);
+    setIsGenerating(isUser);
   }, [lastMessage, appendMessage, narratorName]);
 
   const submit = useCallback(() => {
@@ -148,9 +156,8 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     if (handled) return;
 
     setIsGenerating(true);
-    appendMessage({ id: crypto.randomUUID(), role: 'user', content: trimmed, authorUsername: user?.username });
     sendMessage(trimmed);
-  }, [input, isGenerating, appendMessage, sendMessage, handleInput]);
+  }, [input, isGenerating, sendMessage, handleInput]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -244,6 +251,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
       <AdventureMessagesPane
         adventureId={adventureId}
         messages={messages}
+        currentCharacterName={myCharacterName}
         isGenerating={isGenerating}
         hasMore={hasMore}
         isFetchingMore={isFetchingMore}

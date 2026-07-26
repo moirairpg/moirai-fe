@@ -12,7 +12,8 @@
     "deleteAdventure": "Delete this adventure? This cannot be undone.",
     "deleteWorld": "Delete this world? This cannot be undone.",
     "deleteCharacter": "Delete this character? This cannot be undone.",
-    "removeCharacter": "Remove this character from the adventure?"
+    "removeCharacter": "Remove this character from the adventure?",
+    "leaveAdventure": "Leave this adventure?"
   },
   "imageBanner": {
     "dragHint": "Click and hold to drag and reposition image",

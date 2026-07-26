@@ -205,7 +205,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
 
     const fresh = systemNotifications.filter((n) => {
       const kind = n.metadata?.kind;
-      return (kind === 'ADVENTURE_INVITE_RESPONSE' || kind === 'ADVENTURE_MEMBER_REMOVED')
+      return (kind === 'ADVENTURE_INVITE_RESPONSE' || kind === 'ADVENTURE_MEMBER_REMOVED' || kind === 'ADVENTURE_MEMBER_LEFT')
         && n.metadata?.adventureId === adventureId
         && !processedNotificationsRef.current.has(n.publicId);
     });
@@ -223,6 +223,19 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     if (!adventureId) return;
     const res = await api.adventure.removeCharacter(adventureId, playerCharacterId);
     if (res.ok) refreshRoster();
+  };
+
+  const myMembership = registeredCharacters.find((m) => m.playerUsername === user?.username);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
+
+  const handleLeave = async () => {
+    setConfirmingLeave(false);
+    if (!adventureId || !myMembership) return;
+    const res = await api.adventure.removeCharacter(adventureId, myMembership.playerCharacterId);
+    if (res.ok) {
+      window.dispatchEvent(new Event('adventure-list-changed'));
+      navigate('/my-stuff');
+    }
   };
 
   const canDelete = mode === 'edit' && canManage;
@@ -578,6 +591,11 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                 <button type="button" onClick={() => navigate(`/adventure/${adventureId}/edit`)} className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                   <Pencil className="h-3.5 w-3.5" />
                   {t('card.actions.edit', { ns: 'collection' })}
+                </button>
+              )}
+              {mode === 'view' && myMembership && (
+                <button type="button" onClick={() => setConfirmingLeave(true)} className="rounded-md border border-destructive px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                  {t('form.actions.leave')}
                 </button>
               )}
               <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
@@ -1001,6 +1019,15 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           confirmLabel={t('form.actions.removeCharacter')}
           onConfirm={() => handleRemoveCharacter(confirmingRemoveId)}
           onClose={() => setConfirmingRemoveId(null)}
+        />
+      )}
+
+      {confirmingLeave && (
+        <ConfirmDialog
+          message={t('confirm.leaveAdventure', { ns: 'common' })}
+          confirmLabel={t('form.actions.leave')}
+          onConfirm={handleLeave}
+          onClose={() => setConfirmingLeave(false)}
         />
       )}
     </form>

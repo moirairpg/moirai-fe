@@ -66,7 +66,8 @@
       "importJson": "Import JSON",
       "clearWorld": "Clear World",
       "clearLorebook": "Clear Lorebook",
-      "removeCharacter": "Remove from adventure"
+      "removeCharacter": "Remove from adventure",
+      "leave": "Leave adventure"
     },
     "optional": "optional",
     "sections": {

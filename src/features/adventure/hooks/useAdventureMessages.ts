@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../../../utils/api';
 import type { AdventureMessage } from '../types';
+import type { AdventureRosterSummary } from '../../sidebar/types';
 
 type AdventureData = {
   narratorName: string | null;
   adventureStart: string | null;
+  registeredCharacters: AdventureRosterSummary[] | null;
 };
 
 type MessageSummary = {
@@ -26,6 +28,7 @@ type UseAdventureMessagesResult = {
   loadError: boolean;
   narratorName: string | undefined;
   adventureStart: string | undefined;
+  registeredCharacters: AdventureRosterSummary[];
   appendMessage: (message: AdventureMessage) => void;
   fetchMore: () => void;
   hasMore: boolean;
@@ -35,10 +38,14 @@ type UseAdventureMessagesResult = {
   removeMessagesFromIdInclusive: (id: string) => void;
 };
 
-const saidPrefixRegex = /^.+? said[,:]?\s*/;
+const saidPrefixRegex = /^(.+?) said[,:]?\s*/;
 
 function stripSaidPrefix(content: string): string {
   return content.replace(saidPrefixRegex, '');
+}
+
+function extractSaidName(content: string): string | undefined {
+  return content.match(saidPrefixRegex)?.[1];
 }
 
 function toAdventureMessage(m: MessageSummary, narratorName: string | undefined): AdventureMessage {
@@ -47,6 +54,7 @@ function toAdventureMessage(m: MessageSummary, narratorName: string | undefined)
     role: m.role === 'user' ? 'user' : 'narrator',
     content: stripSaidPrefix(m.content),
     narratorName: m.role !== 'user' ? narratorName : undefined,
+    authorName: m.role === 'user' ? extractSaidName(m.content) : undefined,
     authorUsername: m.authorUsername ?? undefined,
   };
 }
@@ -54,6 +62,7 @@ function toAdventureMessage(m: MessageSummary, narratorName: string | undefined)
 export function useAdventureMessages(adventureId: string): UseAdventureMessagesResult {
   const [narratorName, setNarratorName] = useState<string | undefined>(undefined);
   const [adventureStart, setAdventureStart] = useState<string | undefined>(undefined);
+  const [registeredCharacters, setRegisteredCharacters] = useState<AdventureRosterSummary[]>([]);
   const [messages, setMessages] = useState<AdventureMessage[]>([]);
   const [loadError, setLoadError] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -66,6 +75,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     setHasMore(false);
     setNarratorName(undefined);
     setAdventureStart(undefined);
+    setRegisteredCharacters([]);
     setLoadError(false);
     knownIds.current = new Set();
 
@@ -79,6 +89,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
         const start = adv.adventureStart ?? undefined;
         setNarratorName(name);
         setAdventureStart(start);
+        setRegisteredCharacters(adv.registeredCharacters ?? []);
         narratorNameRef.current = name;
 
         return apiFetch(`/api/adventures/${adventureId}/messages?size=50`)
@@ -156,6 +167,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     loadError,
     narratorName,
     adventureStart,
+    registeredCharacters,
     appendMessage,
     fetchMore,
     hasMore,
