@@ -85,6 +85,24 @@ export function parseAdventureJson(raw: unknown): AdventureImport {
   };
 }
 
+type CharacterImport = {
+  name: string;
+  characterClass: string;
+  personality: string;
+  physicalDescription: string;
+};
+
+export function parseCharacterJson(raw: unknown): CharacterImport {
+  if (typeof raw !== 'object' || raw === null) return { name: '', characterClass: '', personality: '', physicalDescription: '' };
+  const j = raw as Record<string, unknown>;
+  return {
+    name: str(j.name),
+    characterClass: str(j.characterClass),
+    personality: str(j.personality),
+    physicalDescription: str(j.physicalDescription),
+  };
+}
+
 export function useJsonImport(onImport: (raw: unknown) => void) {
   return (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

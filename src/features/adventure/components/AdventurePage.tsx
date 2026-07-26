@@ -109,6 +109,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
   const {
     messages,
+    loadError,
     narratorName,
     adventureStart,
     appendMessage,
@@ -226,6 +227,17 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
       })
       .catch(() => setIsGenerating(false));
   };
+
+  if (loadError) {
+    return (
+      <div className="flex h-full flex-1 items-center justify-center p-8 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-lg font-semibold text-foreground">{t('page.noAccess.title')}</p>
+          <p className="text-sm text-muted-foreground">{t('page.noAccess.description')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">

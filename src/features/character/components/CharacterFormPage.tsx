@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Pencil } from 'lucide-react';
+import { Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { useAuth } from '../../../components/auth';
 import { useCharacterClasses } from '../hooks/useCharacterClasses';
 import { useCharacterAdventures } from '../hooks/useCharacterAdventures';
+import { useJsonImport, parseCharacterJson } from '../../../utils/jsonImport';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import type { CharacterFormInput, PlayerCharacterDetails } from '../types';
 
 type CharacterFormPageProps = { mode: 'view' | 'edit' | 'create' };
@@ -42,8 +44,28 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
 
   const readOnly = mode === 'view';
   const canEdit = mode === 'view' && ownerUsername !== null && ownerUsername === user?.username;
+  const canDelete = mode === 'edit' && ownerUsername !== null && ownerUsername === user?.username;
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const handleDelete = async () => {
+    setConfirmingDelete(false);
+    const res = await apiFetch(`/api/player-characters/${characterId}`, { method: 'DELETE' });
+    if (res.ok) navigate('/my-stuff');
+  };
   const registeredAdventures = useCharacterAdventures(characterId, mode === 'view');
+  const adventuresTrackRef = useRef<HTMLDivElement>(null);
+  const scrollAdventures = (direction: number) => adventuresTrackRef.current?.scrollBy({ left: direction * 240, behavior: 'smooth' });
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
+
+  const handleJsonImport = useJsonImport((raw) => {
+    const data = parseCharacterJson(raw);
+    setForm({
+      name: data.name,
+      characterClass: data.characterClass,
+      personality: data.personality,
+      physicalDescription: data.physicalDescription,
+    });
+  });
   const errorBorder = (value: string) => submitted && !value.trim() ? ' border-red-500' : '';
 
   useEffect(() => {
@@ -188,6 +210,12 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold text-foreground">{title}</h1>
             <div className="flex items-center gap-2">
+              {mode === 'create' && (
+                <label className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
+                  {t('form.actions.importJson')}
+                  <input type="file" accept=".json" className="sr-only" onChange={handleJsonImport} />
+                </label>
+              )}
               {canEdit && (
                 <button type="button" onClick={() => navigate(`/character/${characterId}/edit`)} className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                   <Pencil className="h-3.5 w-3.5" />
@@ -249,16 +277,41 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           {mode === 'view' && registeredAdventures.length > 0 && (
             <div className="flex flex-col gap-3 rounded-md border border-border p-4">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.registeredIn')}</span>
-              <div className="flex flex-col gap-1.5">
-                {registeredAdventures.map((adventure) => (
-                  <a
-                    key={adventure.publicId}
-                    href={`/adventure/${adventure.publicId}/view`}
-                    className="truncate rounded-md border border-border px-3 py-2 text-sm text-primary underline-offset-2 hover:underline"
-                  >
-                    {adventure.name}
-                  </a>
-                ))}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => scrollAdventures(-1)}
+                  className="flex-shrink-0 rounded-full border border-border p-1 text-foreground hover:bg-muted"
+                  aria-label={t('form.actions.scrollLeft')}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                <div ref={adventuresTrackRef} className="flex flex-1 gap-3 overflow-x-auto scroll-smooth py-1">
+                  {registeredAdventures.map((adventure) => (
+                    <a
+                      key={adventure.publicId}
+                      href={`/adventure/${adventure.publicId}/view`}
+                      className="flex w-40 flex-shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/50"
+                    >
+                      <div className="relative h-28 flex-shrink-0 bg-muted">
+                        {adventure.imageUrl && (
+                          <img src={adventure.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                        )}
+                      </div>
+                      <p className="truncate p-3 text-sm font-semibold text-foreground">{adventure.name}</p>
+                    </a>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => scrollAdventures(1)}
+                  className="flex-shrink-0 rounded-full border border-border p-1 text-foreground hover:bg-muted"
+                  aria-label={t('form.actions.scrollRight')}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
           )}
@@ -274,8 +327,21 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
               {t('form.actions.cancel')}
             </button>
+            {canDelete && (
+              <button type="button" onClick={() => setConfirmingDelete(true)} className="ml-auto rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
+                {t('confirm.confirm', { ns: 'common' })}
+              </button>
+            )}
           </div>
         </div>
+      )}
+
+      {confirmingDelete && (
+        <ConfirmDialog
+          message={t('confirm.deleteCharacter', { ns: 'common' })}
+          onConfirm={handleDelete}
+          onClose={() => setConfirmingDelete(false)}
+        />
       )}
     </form>
   );

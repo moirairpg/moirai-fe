@@ -20,7 +20,10 @@
       "back": "Voltar",
       "save": "Salvar",
       "saving": "Salvando...",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "scrollLeft": "Rolar para a esquerda",
+      "scrollRight": "Rolar para a direita",
+      "importJson": "Importar JSON"
     },
     "errors": {
       "loadFailed": "Falha ao carregar o personagem.",

@@ -6,6 +6,14 @@
   },
   "darkModeToggle": "Toggle dark mode",
   "selectAdventure": "Select an adventure to begin.",
+  "confirm": {
+    "confirm": "Delete",
+    "cancel": "Cancel",
+    "deleteAdventure": "Delete this adventure? This cannot be undone.",
+    "deleteWorld": "Delete this world? This cannot be undone.",
+    "deleteCharacter": "Delete this character? This cannot be undone.",
+    "removeCharacter": "Remove this character from the adventure?"
+  },
   "imageBanner": {
     "dragHint": "Click and hold to drag and reposition image",
     "viewImage": "View image",

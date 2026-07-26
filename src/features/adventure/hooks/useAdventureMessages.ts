@@ -23,6 +23,7 @@ type CursorResult<T> = {
 
 type UseAdventureMessagesResult = {
   messages: AdventureMessage[];
+  loadError: boolean;
   narratorName: string | undefined;
   adventureStart: string | undefined;
   appendMessage: (message: AdventureMessage) => void;
@@ -54,6 +55,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   const [narratorName, setNarratorName] = useState<string | undefined>(undefined);
   const [adventureStart, setAdventureStart] = useState<string | undefined>(undefined);
   const [messages, setMessages] = useState<AdventureMessage[]>([]);
+  const [loadError, setLoadError] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const knownIds = useRef(new Set<string>());
@@ -64,10 +66,14 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     setHasMore(false);
     setNarratorName(undefined);
     setAdventureStart(undefined);
+    setLoadError(false);
     knownIds.current = new Set();
 
     apiFetch(`/api/adventures/${adventureId}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Adventure not accessible');
+        return res.json();
+      })
       .then((adv: AdventureData) => {
         const name = adv.narratorName ?? undefined;
         const start = adv.adventureStart ?? undefined;
@@ -87,7 +93,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
             setMessages(mapped);
           });
       })
-      .catch(() => {});
+      .catch(() => setLoadError(true));
   }, [adventureId]);
 
   const fetchMore = useCallback(() => {
@@ -147,6 +153,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
 
   return {
     messages,
+    loadError,
     narratorName,
     adventureStart,
     appendMessage,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Info, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -11,6 +11,8 @@ import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm'
 import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseAdventureJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
+import { useSystemNotificationsWebSocket } from '../../notifications/hooks/useSystemNotificationsWebSocket';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { InvitePlayersField } from './InvitePlayersField';
 
 type AdventureFormPageProps = { mode: 'view' | 'edit' | 'create' };
@@ -182,9 +184,58 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const [lorebookFilter, setLorebookFilter] = useState('');
 
   const readOnly = mode === 'view';
-  const canEdit = mode === 'view' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
+  const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
+  const canEdit = mode === 'view' && canManage;
   const errorBorder = (value: string, required = true) => required && submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
+
+  const { systemNotifications } = useSystemNotificationsWebSocket();
+  const processedNotificationsRef = useRef<Set<string>>(new Set());
+
+  const refreshRoster = useCallback(() => {
+    if (!adventureId) return;
+    apiFetch(`/api/adventures/${adventureId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: AdventureDetails | null) => { if (data) setRegisteredCharacters(data.registeredCharacters ?? []); })
+      .catch(() => {});
+  }, [adventureId]);
+
+  useEffect(() => {
+    if (mode === 'create' || !adventureId) return;
+
+    const fresh = systemNotifications.filter((n) => {
+      const kind = n.metadata?.kind;
+      return (kind === 'ADVENTURE_INVITE_RESPONSE' || kind === 'ADVENTURE_MEMBER_REMOVED')
+        && n.metadata?.adventureId === adventureId
+        && !processedNotificationsRef.current.has(n.publicId);
+    });
+
+    if (fresh.length > 0) {
+      fresh.forEach((n) => processedNotificationsRef.current.add(n.publicId));
+      refreshRoster();
+    }
+  }, [systemNotifications, mode, adventureId, refreshRoster]);
+
+  const [confirmingRemoveId, setConfirmingRemoveId] = useState<string | null>(null);
+
+  const handleRemoveCharacter = async (playerCharacterId: string) => {
+    setConfirmingRemoveId(null);
+    if (!adventureId) return;
+    const res = await api.adventure.removeCharacter(adventureId, playerCharacterId);
+    if (res.ok) refreshRoster();
+  };
+
+  const canDelete = mode === 'edit' && canManage;
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const handleDelete = async () => {
+    setConfirmingDelete(false);
+    const res = await apiFetch(`/api/adventures/${adventureId}`, { method: 'DELETE' });
+    if (res.ok) {
+      window.dispatchEvent(new Event('adventure-list-changed'));
+      navigate('/my-stuff');
+    }
+  };
 
   useEffect(() => {
     setSaving(false);
@@ -444,6 +495,11 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
         if (imageFile) {
           const uploadRes = await api.adventure.uploadImage(id, imageFile);
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
+        } else if (imageUrl) {
+          const blob = await (await fetch(imageUrl)).blob();
+          const file = new File([blob], 'world-image.png', { type: blob.type || 'image/png' });
+          const uploadRes = await api.adventure.uploadImage(id, file);
+          if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         } else {
           const prompt = buildImagePrompt({
             subject: 'adventure',
@@ -545,35 +601,48 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             onGenerate={handleImageGenerate}
           />
 
-          {mode === 'view' && (
+          {mode !== 'create' && (
             <div className="flex flex-col gap-4 rounded-md border border-border p-4">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {t('form.sections.registeredCharacters', { count: registeredCharacters.length, max: 5 })}
               </span>
+
+              {canManage && adventureId && <InvitePlayersField adventureId={adventureId} />}
 
               {registeredCharacters.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t('form.empty.noRegisteredCharacters')}</p>
               ) : (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {registeredCharacters.map((member) => (
-                    <a
-                      key={member.playerCharacterId}
-                      href={`/character/${member.playerCharacterId}/view`}
-                      className="flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/50"
-                    >
-                      <div className="relative h-32 flex-shrink-0 bg-muted">
-                        {member.imageUrl && (
-                          <img src={member.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-1 p-3">
-                        <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
-                        <span className="inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                          {member.characterClass ? labelOf(member.characterClass) : t('card.noClass', { ns: 'collection' })}
-                        </span>
-                        <p className="truncate text-xs text-muted-foreground">@{member.playerUsername}</p>
-                      </div>
-                    </a>
+                    <div key={member.playerCharacterId} className="relative">
+                      <a
+                        href={`/character/${member.playerCharacterId}/view`}
+                        className="flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/50"
+                      >
+                        <div className="relative h-32 flex-shrink-0 bg-muted">
+                          {member.imageUrl && (
+                            <img src={member.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-1 p-3">
+                          <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
+                          <span className="inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            {member.characterClass ? labelOf(member.characterClass) : t('card.noClass', { ns: 'collection' })}
+                          </span>
+                          <p className="truncate text-xs text-muted-foreground">@{member.playerUsername}</p>
+                        </div>
+                      </a>
+                      {canManage && (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingRemoveId(member.playerCharacterId)}
+                          className="absolute right-2 top-2 rounded-full bg-background/80 p-1 text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                          aria-label={t('form.actions.removeCharacter')}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -824,8 +893,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             </div>
           </div>
 
-          {mode === 'edit' && adventureId && <InvitePlayersField adventureId={adventureId} />}
-
           <div className="flex flex-col gap-3">
             <button
               type="button"
@@ -911,8 +978,30 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
               {t('form.actions.cancel')}
             </button>
+            {canDelete && (
+              <button type="button" onClick={() => setConfirmingDelete(true)} className="ml-auto rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
+                {t('confirm.confirm', { ns: 'common' })}
+              </button>
+            )}
           </div>
         </div>
+      )}
+
+      {confirmingDelete && (
+        <ConfirmDialog
+          message={t('confirm.deleteAdventure', { ns: 'common' })}
+          onConfirm={handleDelete}
+          onClose={() => setConfirmingDelete(false)}
+        />
+      )}
+
+      {confirmingRemoveId && (
+        <ConfirmDialog
+          message={t('confirm.removeCharacter', { ns: 'common' })}
+          confirmLabel={t('form.actions.removeCharacter')}
+          onConfirm={() => handleRemoveCharacter(confirmingRemoveId)}
+          onClose={() => setConfirmingRemoveId(null)}
+        />
       )}
     </form>
   );

@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useSystemNotificationsWebSocket } from '../hooks/useSystemNotificationsWebSocket';
 
 type NotificationPanelContextValue = {
   isPanelOpen: boolean;
@@ -20,6 +21,19 @@ type NotificationPanelProviderProps = {
 
 export function NotificationPanelProvider({ children }: NotificationPanelProviderProps) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const { systemNotifications } = useSystemNotificationsWebSocket();
+  const handledRemovalsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const removals = systemNotifications.filter(
+      (n) => n.metadata?.kind === 'ADVENTURE_MEMBER_REMOVED' && !handledRemovalsRef.current.has(n.publicId),
+    );
+
+    if (removals.length > 0) {
+      removals.forEach((n) => handledRemovalsRef.current.add(n.publicId));
+      window.dispatchEvent(new Event('adventure-list-changed'));
+    }
+  }, [systemNotifications]);
 
   const togglePanel = useCallback(() => setIsPanelOpen((prev) => !prev), []);
 

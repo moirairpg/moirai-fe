@@ -6,6 +6,14 @@
   },
   "darkModeToggle": "Alternar modo escuro",
   "selectAdventure": "Selecione uma aventura para começar.",
+  "confirm": {
+    "confirm": "Excluir",
+    "cancel": "Cancelar",
+    "deleteAdventure": "Excluir esta aventura? Esta ação não pode ser desfeita.",
+    "deleteWorld": "Excluir este mundo? Esta ação não pode ser desfeita.",
+    "deleteCharacter": "Excluir este personagem? Esta ação não pode ser desfeita.",
+    "removeCharacter": "Remover este personagem da aventura?"
+  },
   "imageBanner": {
     "dragHint": "Clique e segure para arrastar e reposicionar a imagem",
     "viewImage": "Ver imagem",

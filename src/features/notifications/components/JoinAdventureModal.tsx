@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
@@ -58,13 +59,14 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
       setJoiningId(null);
       return;
     }
+    window.dispatchEvent(new Event('adventure-list-changed'));
     onJoined();
   };
 
   const scroll = (direction: number) => trackRef.current?.scrollBy({ left: direction * 240, behavior: 'smooth' });
   const noCharactersAtAll = !searching && query.trim() === '' && results.length === 0;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
         className="flex max-h-[85vh] w-full max-w-2xl flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-xl"
@@ -203,6 +205,7 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

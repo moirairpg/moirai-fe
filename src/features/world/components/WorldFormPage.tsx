@@ -7,6 +7,7 @@ import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { useAuth } from '../../../components/auth';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
 import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseWorldJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
@@ -52,6 +53,15 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
 
   const readOnly = mode === 'view';
   const canEdit = mode === 'view' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
+  const canDelete = mode === 'edit' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const handleDelete = async () => {
+    setConfirmingDelete(false);
+    const res = await apiFetch(`/api/worlds/${worldId}`, { method: 'DELETE' });
+    if (res.ok) navigate('/my-stuff');
+  };
+
   const isValid = form.name.trim() !== '' && form.description.trim() !== '' && form.adventureStart.trim() !== '';
   const errorBorder = (value: string) => submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
@@ -437,8 +447,21 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
               {t('form.actions.cancel')}
             </button>
+            {canDelete && (
+              <button type="button" onClick={() => setConfirmingDelete(true)} className="ml-auto rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
+                {t('confirm.confirm', { ns: 'common' })}
+              </button>
+            )}
           </div>
         </div>
+      )}
+
+      {confirmingDelete && (
+        <ConfirmDialog
+          message={t('confirm.deleteWorld', { ns: 'common' })}
+          onConfirm={handleDelete}
+          onClose={() => setConfirmingDelete(false)}
+        />
       )}
     </form>
   );

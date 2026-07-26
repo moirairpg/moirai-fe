@@ -94,6 +94,15 @@ export function MoirAISidebarNav({
       <div className="my-1.5 h-px bg-border/40" />
 
       <NavSection
+        label={t('nav.characters')}
+        icon={<Users className="h-4 w-4 text-muted-foreground" />}
+        isExpanded={expanded.has('characters')}
+        onToggle={() => toggle('characters')}
+        createPath={createCharacterPath}
+        createLabel={t('nav.createCharacter')}
+      />
+
+      <NavSection
         label={t('nav.adventures')}
         icon={<BookOpen className="h-4 w-4 text-muted-foreground" />}
         isExpanded={expanded.has('adventures')}
@@ -114,15 +123,6 @@ export function MoirAISidebarNav({
         browsePath={browseWorldsPath}
         createLabel={t('nav.createWorld')}
         browseLabel={t('nav.explore')}
-      />
-
-      <NavSection
-        label={t('nav.characters')}
-        icon={<Users className="h-4 w-4 text-muted-foreground" />}
-        isExpanded={expanded.has('characters')}
-        onToggle={() => toggle('characters')}
-        createPath={createCharacterPath}
-        createLabel={t('nav.createCharacter')}
       />
     </div>
   );

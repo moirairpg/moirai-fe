@@ -55,6 +55,8 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usernames }),
       }),
+    removeCharacter: (adventureId, playerCharacterId) =>
+      apiFetch(`/api/adventures/${adventureId}/characters/${playerCharacterId}`, { method: 'DELETE' }),
   },
   adventureInvitations: {
     join: (invitationId, playerCharacterId) =>

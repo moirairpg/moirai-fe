@@ -20,7 +20,10 @@
       "back": "Back",
       "save": "Save",
       "saving": "Saving...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "scrollLeft": "Scroll left",
+      "scrollRight": "Scroll right",
+      "importJson": "Import JSON"
     },
     "errors": {
       "loadFailed": "Failed to load character.",

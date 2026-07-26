@@ -65,7 +65,8 @@
       "advanced": "Advanced",
       "importJson": "Import JSON",
       "clearWorld": "Clear World",
-      "clearLorebook": "Clear Lorebook"
+      "clearLorebook": "Clear Lorebook",
+      "removeCharacter": "Remove from adventure"
     },
     "optional": "optional",
     "sections": {
@@ -85,6 +86,10 @@
     "inputPlaceholder": "What do you do? (Enter to send, Shift+Enter for newline)",
     "send": "Send",
     "loading": "Loading...",
+    "noAccess": {
+      "title": "You don't have access to this adventure",
+      "description": "You may have been removed, or you no longer have permission to view it."
+    },
     "formatting": {
       "bold": "Bold",
       "italic": "Italic",

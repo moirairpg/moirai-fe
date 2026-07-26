@@ -22,6 +22,10 @@ export function NotificationPanel() {
 
   const unreadCount = systemNotifications.filter((n) => !readIds.has(n.publicId)).length;
 
+  const orderedNotifications = [...systemNotifications].sort(
+    (a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime(),
+  );
+
   const handleRead = (publicId: string) => {
     void markRead(publicId);
     setReadIds((prev) => new Set(prev).add(publicId));
@@ -54,10 +58,10 @@ export function NotificationPanel() {
 
       {isPanelOpen && (
         <div className="absolute right-0 top-full z-20 mt-1 w-56 max-h-80 overflow-y-auto rounded-md border border-border bg-background shadow-lg">
-          {systemNotifications.length === 0 ? (
+          {orderedNotifications.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">{t('panel.empty')}</p>
           ) : (
-            systemNotifications.map((n) => {
+            orderedNotifications.map((n) => {
               const isRead = readIds.has(n.publicId);
 
               if (n.isInteractable && n.metadata?.kind === 'ADVENTURE_INVITE') {

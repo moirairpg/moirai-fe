@@ -27,4 +27,5 @@ export type CharacterClassOption = {
 export type CharacterAdventureSummary = {
   publicId: string;
   name: string;
+  imageUrl: string | null;
 };
