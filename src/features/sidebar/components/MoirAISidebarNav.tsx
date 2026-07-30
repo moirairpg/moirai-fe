@@ -16,6 +16,7 @@ export type MoirAISidebarNavProps = {
   createWorldPath: string;
   browseWorldsPath: string;
   createCharacterPath: string;
+  browseCharactersPath: string;
 };
 
 export function MoirAISidebarNav({
@@ -28,6 +29,7 @@ export function MoirAISidebarNav({
   createWorldPath,
   browseWorldsPath,
   createCharacterPath,
+  browseCharactersPath,
 }: MoirAISidebarNavProps) {
   const { t } = useTranslation('sidebar');
   const { user } = useAuth();
@@ -99,7 +101,9 @@ export function MoirAISidebarNav({
         isExpanded={expanded.has('characters')}
         onToggle={() => toggle('characters')}
         createPath={createCharacterPath}
+        browsePath={browseCharactersPath}
         createLabel={t('nav.createCharacter')}
+        browseLabel={t('nav.myCharacters')}
       />
 
       <NavSection

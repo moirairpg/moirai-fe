@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Info, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Info, Pencil, Play, Plus, Trash2, Loader2 } from 'lucide-react';
 import type { AdventureDetails, ModelConfiguration, ContextAttributes, Permission, AdventureRosterSummary } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { useAuth } from '../../../components/auth';
@@ -575,7 +575,12 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const activeLorebook = mode === 'create' ? createLorebook : lorebook;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+    <form onSubmit={handleSubmit} className="relative flex flex-1 flex-col overflow-hidden">
+      {saving && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto px-6 py-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
           <div className="flex items-center justify-between">
@@ -587,8 +592,14 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                   <input type="file" accept=".json" className="sr-only" onChange={handleJsonImport} />
                 </label>
               )}
+              {mode === 'view' && (
+                <button type="button" onClick={() => navigate(`/adventure/play/${adventureId}`)} className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                  <Play className="h-3.5 w-3.5" />
+                  {t('card.actions.play', { ns: 'collection' })}
+                </button>
+              )}
               {canEdit && (
-                <button type="button" onClick={() => navigate(`/adventure/${adventureId}/edit`)} className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                <button type="button" onClick={() => navigate(`/adventure/${adventureId}/edit`)} className="flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
                   <Pencil className="h-3.5 w-3.5" />
                   {t('card.actions.edit', { ns: 'collection' })}
                 </button>

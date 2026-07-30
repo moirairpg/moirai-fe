@@ -20,6 +20,7 @@
     "worlds": "Worlds",
     "createWorld": "Create world",
     "characters": "Characters",
-    "createCharacter": "Create character"
+    "createCharacter": "Create character",
+    "myCharacters": "My characters"
   }
 }

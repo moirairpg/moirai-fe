@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../utils/api';
 import { useAdventureCollection } from '../hooks/useAdventureCollection';
@@ -76,10 +75,11 @@ function CharacterTab() {
 type CollectionPageProps = { view: CollectionView };
 
 export default function CollectionPage({ view }: CollectionPageProps) {
-  const [activeTab, setActiveTab] = useState<CollectionTab>('adventures');
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation('collection');
 
   const title = view === 'MY_STUFF' ? t('myStuff.title') : t('sharedWithMe.title');
+  const basePath = view === 'MY_STUFF' ? '/my-stuff' : '/shared-with-me';
 
   const TABS: { id: CollectionTab; label: string }[] = [
     { id: 'adventures', label: t('myStuff.tabs.adventures') },
@@ -87,15 +87,18 @@ export default function CollectionPage({ view }: CollectionPageProps) {
     ...(view === 'MY_STUFF' ? [{ id: 'characters' as const, label: t('myStuff.tabs.characters') }] : []),
   ];
 
+  const raw = searchParams.get('tab');
+  const activeTab: CollectionTab = TABS.some((tab) => tab.id === raw) ? (raw as CollectionTab) : 'adventures';
+
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
       <h1 className="text-xl font-semibold text-foreground">{title}</h1>
 
       <div className="flex gap-1 border-b border-border">
         {TABS.map((tab) => (
-          <button
+          <Link
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            to={`${basePath}?tab=${tab.id}`}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.id
                 ? 'border-b-2 border-primary text-foreground'
@@ -103,7 +106,7 @@ export default function CollectionPage({ view }: CollectionPageProps) {
             }`}
           >
             {tab.label}
-          </button>
+          </Link>
         ))}
       </div>
 

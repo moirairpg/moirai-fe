@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bold, Italic, Strikethrough } from 'lucide-react';
+import { Bold, Italic, Strikethrough, Pencil, Eye } from 'lucide-react';
 import { AdventureMessagesPane } from './AdventureMessagesPane';
 import { AdventureMessageContextMenu } from './AdventureMessageContextMenu';
 import { CommandPicker } from './CommandPicker';
@@ -77,10 +78,12 @@ type ContextMenuState = {
   messageId: string;
   canEdit: boolean;
   canRetry: boolean;
+  canDelete: boolean;
 } | null;
 
 export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const { t } = useTranslation('adventure');
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -117,6 +120,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     narratorName,
     adventureStart,
     registeredCharacters,
+    permissions,
     appendMessage,
     fetchMore,
     hasMore,
@@ -126,7 +130,9 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesFromIdInclusive,
   } = useAdventureMessages(adventureId);
 
-  const myCharacterName = registeredCharacters.find((m) => m.playerUsername === user?.username)?.name;
+  const myMembership = registeredCharacters.find((m) => m.playerUsername === user?.username);
+  const myCharacterName = myMembership?.name;
+  const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
 
   const { sendMessage, lastMessage } = useAdventureWebSocket(adventureId);
   const { handleInput } = useAdventureCommands(adventureId, adventureStart, narratorName, messages, removeMessage);
@@ -179,12 +185,18 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
   const handleContextMenu = (e: React.MouseEvent, message: AdventureMessage) => {
     e.preventDefault();
+
+    if (!canManage) {
+      return;
+    }
+
     setContextMenu({
       x: e.clientX,
       y: e.clientY,
       messageId: message.id,
-      canEdit: message.authorUsername === user?.username,
+      canEdit: true,
       canRetry: message.role === 'narrator',
+      canDelete: true,
     });
   };
 
@@ -248,6 +260,28 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
   return (
     <div className="flex h-full flex-col">
+      <div className="flex items-center justify-end border-b border-border/50 px-4 py-2">
+        {canManage ? (
+          <button
+            type="button"
+            onClick={() => navigate(`/adventure/${adventureId}/edit`)}
+            className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            {t('card.actions.edit', { ns: 'collection' })}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => navigate(`/adventure/${adventureId}/view`)}
+            className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            {t('card.actions.view', { ns: 'collection' })}
+          </button>
+        )}
+      </div>
+
       <AdventureMessagesPane
         adventureId={adventureId}
         messages={messages}
@@ -269,12 +303,14 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
             y={contextMenu.y}
             canEdit={contextMenu.canEdit}
             canRetry={contextMenu.canRetry}
+            canDelete={contextMenu.canDelete}
             onAction={(action) => handleContextAction(action, contextMenu.messageId)}
             onDismiss={() => setContextMenu(null)}
           />,
           document.body,
         )}
 
+      {myMembership && (
       <div className="border-t border-border/50 p-4">
         <div className="flex gap-1 mb-1.5">
           {FORMAT_BUTTONS.map(({ icon: Icon, marker, titleKey }) => (
@@ -323,6 +359,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
           </button>
         </form>
       </div>
+      )}
     </div>
   );
 }

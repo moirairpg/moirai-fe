@@ -26,6 +26,7 @@ export default function AppContent({ children }: AppContentProps) {
     createWorldPath: '/world/new',
     browseWorldsPath: '/explore?tab=worlds',
     createCharacterPath: '/character/new',
+    browseCharactersPath: '/my-stuff?tab=characters',
   };
 
   const content = children ?? (adventureId

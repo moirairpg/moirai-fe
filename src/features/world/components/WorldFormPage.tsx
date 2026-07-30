@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Info, Pencil, Trash2, Plus } from 'lucide-react';
+import { Info, Pencil, Trash2, Plus, Loader2 } from 'lucide-react';
 import type { WorldDetails, Permission } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { useAuth } from '../../../components/auth';
@@ -248,7 +248,12 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+    <form onSubmit={handleSubmit} className="relative flex flex-1 flex-col overflow-hidden">
+      {saving && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto px-6 py-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
           <div className="flex items-center justify-between">

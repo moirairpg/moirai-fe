@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../../../utils/api';
 import type { AdventureMessage } from '../types';
-import type { AdventureRosterSummary } from '../../sidebar/types';
+import type { AdventureRosterSummary, Permission } from '../../sidebar/types';
 
 type AdventureData = {
   narratorName: string | null;
   adventureStart: string | null;
   registeredCharacters: AdventureRosterSummary[] | null;
+  permissions: Permission[] | null;
 };
 
 type MessageSummary = {
@@ -29,6 +30,7 @@ type UseAdventureMessagesResult = {
   narratorName: string | undefined;
   adventureStart: string | undefined;
   registeredCharacters: AdventureRosterSummary[];
+  permissions: Permission[];
   appendMessage: (message: AdventureMessage) => void;
   fetchMore: () => void;
   hasMore: boolean;
@@ -63,6 +65,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   const [narratorName, setNarratorName] = useState<string | undefined>(undefined);
   const [adventureStart, setAdventureStart] = useState<string | undefined>(undefined);
   const [registeredCharacters, setRegisteredCharacters] = useState<AdventureRosterSummary[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [messages, setMessages] = useState<AdventureMessage[]>([]);
   const [loadError, setLoadError] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -76,6 +79,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     setNarratorName(undefined);
     setAdventureStart(undefined);
     setRegisteredCharacters([]);
+    setPermissions([]);
     setLoadError(false);
     knownIds.current = new Set();
 
@@ -90,6 +94,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
         setNarratorName(name);
         setAdventureStart(start);
         setRegisteredCharacters(adv.registeredCharacters ?? []);
+        setPermissions(adv.permissions ?? []);
         narratorNameRef.current = name;
 
         return apiFetch(`/api/adventures/${adventureId}/messages?size=50`)
@@ -168,6 +173,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     narratorName,
     adventureStart,
     registeredCharacters,
+    permissions,
     appendMessage,
     fetchMore,
     hasMore,

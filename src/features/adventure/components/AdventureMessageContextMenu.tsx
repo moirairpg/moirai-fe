@@ -7,6 +7,7 @@ type AdventureMessageContextMenuProps = {
   y: number;
   canEdit: boolean;
   canRetry: boolean;
+  canDelete: boolean;
   onAction: (action: ContextMenuAction) => void;
   onDismiss: () => void;
 };
@@ -16,6 +17,7 @@ export function AdventureMessageContextMenu({
   y,
   canEdit,
   canRetry,
+  canDelete,
   onAction,
   onDismiss,
 }: AdventureMessageContextMenuProps) {
@@ -63,13 +65,15 @@ export function AdventureMessageContextMenu({
           Retry
         </button>
       )}
-      <button
-        type="button"
-        onClick={() => { onAction('delete'); onDismiss(); }}
-        className="w-full px-3 py-1.5 text-left text-sm text-destructive hover:bg-accent"
-      >
-        Delete
-      </button>
+      {canDelete && (
+        <button
+          type="button"
+          onClick={() => { onAction('delete'); onDismiss(); }}
+          className="w-full px-3 py-1.5 text-left text-sm text-destructive hover:bg-accent"
+        >
+          Delete
+        </button>
+      )}
     </div>
   );
 }
