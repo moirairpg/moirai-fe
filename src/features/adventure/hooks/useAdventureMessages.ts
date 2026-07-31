@@ -4,6 +4,7 @@ import type { AdventureMessage } from '../types';
 import type { AdventureRosterSummary, Permission } from '../../sidebar/types';
 
 type AdventureData = {
+  name: string | null;
   narratorName: string | null;
   adventureStart: string | null;
   registeredCharacters: AdventureRosterSummary[] | null;
@@ -27,6 +28,7 @@ type CursorResult<T> = {
 type UseAdventureMessagesResult = {
   messages: AdventureMessage[];
   loadError: boolean;
+  adventureName: string | undefined;
   narratorName: string | undefined;
   adventureStart: string | undefined;
   registeredCharacters: AdventureRosterSummary[];
@@ -62,6 +64,7 @@ function toAdventureMessage(m: MessageSummary, narratorName: string | undefined)
 }
 
 export function useAdventureMessages(adventureId: string): UseAdventureMessagesResult {
+  const [adventureName, setAdventureName] = useState<string | undefined>(undefined);
   const [narratorName, setNarratorName] = useState<string | undefined>(undefined);
   const [adventureStart, setAdventureStart] = useState<string | undefined>(undefined);
   const [registeredCharacters, setRegisteredCharacters] = useState<AdventureRosterSummary[]>([]);
@@ -76,6 +79,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   useEffect(() => {
     setMessages([]);
     setHasMore(false);
+    setAdventureName(undefined);
     setNarratorName(undefined);
     setAdventureStart(undefined);
     setRegisteredCharacters([]);
@@ -83,7 +87,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     setLoadError(false);
     knownIds.current = new Set();
 
-    apiFetch(`/api/adventures/${adventureId}`)
+    apiFetch(`/api/adventures/${adventureId}`, { silent: true })
       .then((res) => {
         if (!res.ok) throw new Error('Adventure not accessible');
         return res.json();
@@ -91,6 +95,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
       .then((adv: AdventureData) => {
         const name = adv.narratorName ?? undefined;
         const start = adv.adventureStart ?? undefined;
+        setAdventureName(adv.name ?? undefined);
         setNarratorName(name);
         setAdventureStart(start);
         setRegisteredCharacters(adv.registeredCharacters ?? []);
@@ -170,6 +175,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   return {
     messages,
     loadError,
+    adventureName,
     narratorName,
     adventureStart,
     registeredCharacters,

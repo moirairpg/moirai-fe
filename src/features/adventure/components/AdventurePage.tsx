@@ -117,6 +117,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const {
     messages,
     loadError,
+    adventureName,
     narratorName,
     adventureStart,
     registeredCharacters,
@@ -260,7 +261,15 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-end border-b border-border/50 px-4 py-2">
+      <div className="flex items-center justify-between gap-3 border-b border-border/50 px-4 py-2">
+        <div className="flex min-w-0 items-center gap-1.5 text-sm">
+          <span className="truncate font-semibold text-foreground">
+            {adventureName ?? t('page.loading')}
+          </span>
+          <span className="flex-shrink-0 text-muted-foreground">/</span>
+          <span className="flex-shrink-0 text-muted-foreground">{t('page.playing')}</span>
+        </div>
+
         {canManage ? (
           <button
             type="button"

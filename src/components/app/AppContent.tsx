@@ -5,7 +5,7 @@ import Sidebar from '../sidebar/view/Sidebar';
 import AdventurePage from '../../features/adventure/components/AdventurePage';
 import { useDeviceSettings } from '../../hooks/useDeviceSettings';
 import type { MoirAISidebarNavProps } from '../../features/sidebar/components/MoirAISidebarNav';
-import { BroadcastRibbon } from '../../features/notifications';
+import { BroadcastRibbon, ToastHost } from '../../features/notifications';
 
 type AppContentProps = {
   children?: ReactNode;
@@ -40,6 +40,7 @@ export default function AppContent({ children }: AppContentProps) {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       <BroadcastRibbon />
+      <ToastHost />
       <div className="flex flex-1 min-h-0">
         <div className="h-full flex-shrink-0 border-r border-border/50">
           <Sidebar navProps={navProps} isMobile={isMobile} />

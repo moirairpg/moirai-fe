@@ -87,6 +87,7 @@
     "inputPlaceholder": "O que você faz? (Enter para enviar, Shift+Enter para nova linha)",
     "send": "Enviar",
     "loading": "Carregando...",
+    "playing": "Jogando",
     "noAccess": {
       "title": "Você não tem acesso a esta aventura",
       "description": "Você pode ter sido removido ou não tem mais permissão para visualizá-la."
@@ -113,6 +114,7 @@
     "action": "Convidar",
     "sending": "Convidando...",
     "invited": "Convidados: ",
+    "notFound": "Estes usuários não existem: ",
     "errors": {
       "failed": "Falha ao enviar os convites."
     }

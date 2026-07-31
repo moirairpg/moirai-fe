@@ -1,7 +1,8 @@
-const apiFetch = (url, options = {}) =>
-  fetch(url, { ...options, credentials: 'include' });
+export const TOAST_EVENT = 'app-toast';
 
-export { apiFetch };
+export const notifyError = (message) => {
+  window.dispatchEvent(new CustomEvent(TOAST_EVENT, { detail: { message: message ?? null } }));
+};
 
 export const extractApiError = async (res) => {
   try {
@@ -15,15 +16,35 @@ export const extractApiError = async (res) => {
   }
 };
 
+const apiFetch = async (url, options = {}) => {
+  const { silent = false, ...init } = options;
+
+  try {
+    const res = await fetch(url, { ...init, credentials: 'include' });
+
+    if (!res.ok && !silent) {
+      notifyError(await extractApiError(res.clone()));
+    }
+
+    return res;
+  } catch (error) {
+    if (!silent) notifyError(null);
+    throw error;
+  }
+};
+
+export { apiFetch };
+
 export const api = {
   auth: {
-    user: () => apiFetch('/api/auth/user'),
-    refresh: () => apiFetch('/api/auth/refresh', { method: 'POST' }),
-    logout: () => apiFetch('/api/auth/logout', { method: 'POST' }),
+    user: () => apiFetch('/api/auth/user', { silent: true }),
+    refresh: () => apiFetch('/api/auth/refresh', { method: 'POST', silent: true }),
+    logout: () => apiFetch('/api/auth/logout', { method: 'POST', silent: true }),
   },
   imageGenerations: {
-    generate: async (prompt) => {
+    generate: async (prompt, options = {}) => {
       const res = await apiFetch('/api/image-generations', {
+        ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
@@ -33,24 +54,25 @@ export const api = {
     },
   },
   world: {
-    uploadImage: (id, file) => {
+    uploadImage: (id, file, options = {}) => {
       const form = new FormData();
       form.append('file', file);
-      return apiFetch(`/api/worlds/${id}/image`, { method: 'PUT', body: form });
+      return apiFetch(`/api/worlds/${id}/image`, { ...options, method: 'PUT', body: form });
     },
     removeImage: (id) =>
       apiFetch(`/api/worlds/${id}/image`, { method: 'DELETE' }),
   },
   adventure: {
-    uploadImage: (id, file) => {
+    uploadImage: (id, file, options = {}) => {
       const form = new FormData();
       form.append('file', file);
-      return apiFetch(`/api/adventures/${id}/image`, { method: 'PUT', body: form });
+      return apiFetch(`/api/adventures/${id}/image`, { ...options, method: 'PUT', body: form });
     },
     removeImage: (id) =>
       apiFetch(`/api/adventures/${id}/image`, { method: 'DELETE' }),
-    invite: (adventureId, usernames) =>
+    invite: (adventureId, usernames, options = {}) =>
       apiFetch(`/api/adventures/${adventureId}/invitations`, {
+        ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usernames }),
@@ -71,10 +93,10 @@ export const api = {
   character: {
     search: (name) =>
       apiFetch(`/api/player-characters/search?name=${encodeURIComponent(name ?? '')}`),
-    uploadImage: (id, file) => {
+    uploadImage: (id, file, options = {}) => {
       const form = new FormData();
       form.append('file', file);
-      return apiFetch(`/api/player-characters/${id}/image`, { method: 'PUT', body: form });
+      return apiFetch(`/api/player-characters/${id}/image`, { ...options, method: 'PUT', body: form });
     },
     removeImage: (id) =>
       apiFetch(`/api/player-characters/${id}/image`, { method: 'DELETE' }),

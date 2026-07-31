@@ -5,6 +5,10 @@
     }
   },
   "darkModeToggle": "Toggle dark mode",
+  "toast": {
+    "unexpectedError": "Something went wrong. Please try again.",
+    "dismiss": "Dismiss"
+  },
   "selectAdventure": "Select an adventure to begin.",
   "confirm": {
     "confirm": "Delete",

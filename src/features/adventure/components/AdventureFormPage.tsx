@@ -258,6 +258,11 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     setWorldPage(1);
     setWorldTotalPages(1);
     setLorebookFilter('');
+    setDeletedIds([]);
+    setLorebook([]);
+    setCreateLorebook([]);
+    setPermissions([]);
+    setRegisteredCharacters([]);
     let restoredFromSnapshot = false;
 
     if (mode === 'create') {
@@ -501,17 +506,18 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          silent: true,
         });
         if (!res.ok) throw new Error(await extractApiError(res) ?? t('form.errors.saveFailed'));
         const data = await res.json();
         const id = data.id;
         if (imageFile) {
-          const uploadRes = await api.adventure.uploadImage(id, imageFile);
+          const uploadRes = await api.adventure.uploadImage(id, imageFile, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         } else if (imageUrl) {
           const blob = await (await fetch(imageUrl)).blob();
           const file = new File([blob], 'world-image.png', { type: blob.type || 'image/png' });
-          const uploadRes = await api.adventure.uploadImage(id, file);
+          const uploadRes = await api.adventure.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         } else {
           const prompt = buildImagePrompt({
@@ -522,9 +528,9 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               { label: 'Adventure Start', value: form.adventureStart },
             ],
           });
-          const blob = await api.imageGenerations.generate(prompt);
+          const blob = await api.imageGenerations.generate(prompt, { silent: true });
           const file = new File([blob], 'generated.png', { type: 'image/png' });
-          const uploadRes = await api.adventure.uploadImage(id, file);
+          const uploadRes = await api.adventure.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
         window.dispatchEvent(new Event('adventure-list-changed'));
@@ -548,6 +554,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
         const updateRes = await apiFetch(`/api/adventures/${adventureId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          silent: true,
           body: JSON.stringify({
             ...body,
             lorebookEntriesToAdd: lorebook

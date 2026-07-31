@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UsernameChipInput } from '../../notifications/components/UsernameChipInput';
 import { api, extractApiError } from '../../../utils/api';
@@ -10,8 +10,17 @@ export function InvitePlayersField({ adventureId }: InvitePlayersFieldProps) {
   const [chips, setChips] = useState<string[]>([]);
   const [text, setText] = useState('');
   const [invited, setInvited] = useState<string[]>([]);
+  const [notFound, setNotFound] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setChips([]);
+    setText('');
+    setInvited([]);
+    setNotFound([]);
+    setError('');
+  }, [adventureId]);
 
   const usernames = text.trim() ? [...chips, text.trim()] : chips;
 
@@ -19,12 +28,15 @@ export function InvitePlayersField({ adventureId }: InvitePlayersFieldProps) {
     if (usernames.length === 0) return;
     setSubmitting(true);
     setError('');
+    setNotFound([]);
 
     try {
-      const res = await api.adventure.invite(adventureId, usernames);
+      const res = await api.adventure.invite(adventureId, usernames, { silent: true });
       if (!res.ok) throw new Error(await extractApiError(res) ?? t('invite.errors.failed'));
       const data = await res.json();
-      setInvited(data.invited ?? []);
+      const accepted: string[] = data.invited ?? [];
+      setInvited(accepted);
+      setNotFound(usernames.filter((u) => !accepted.includes(u)));
       setChips([]);
       setText('');
     } catch (e) {
@@ -47,6 +59,10 @@ export function InvitePlayersField({ adventureId }: InvitePlayersFieldProps) {
       />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
+
+      {notFound.length > 0 && (
+        <p className="text-sm text-destructive">{t('invite.notFound')}{notFound.join(', ')}</p>
+      )}
 
       {invited.length > 0 && (
         <p className="text-sm text-muted-foreground">{t('invite.invited')}{invited.join(', ')}</p>

@@ -71,6 +71,8 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     setSubmitted(false);
     setError('');
     setLorebookFilter('');
+    setDeletedIds([]);
+    setPermissions([]);
     if (mode === 'create') {
       setForm(EMPTY);
       setLorebook([]);
@@ -197,12 +199,13 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...baseBody, lorebook: lorebook.map(({ name, description }) => ({ name, description })) }),
+          silent: true,
         });
         if (!res.ok) throw new Error(await extractApiError(res) ?? t('form.errors.saveFailed'));
         const data = await res.json();
         const id = data.id;
         if (imageFile) {
-          const uploadRes = await api.world.uploadImage(id, imageFile);
+          const uploadRes = await api.world.uploadImage(id, imageFile, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         } else {
           const prompt = buildImagePrompt({
@@ -213,9 +216,9 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
               { label: 'Adventure Start', value: form.adventureStart },
             ],
           });
-          const blob = await api.imageGenerations.generate(prompt);
+          const blob = await api.imageGenerations.generate(prompt, { silent: true });
           const file = new File([blob], 'generated.png', { type: 'image/png' });
-          const uploadRes = await api.world.uploadImage(id, file);
+          const uploadRes = await api.world.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
         navigate(`/world/${id}/view`);
@@ -233,6 +236,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
               .map(({ id, name, description }) => ({ id, name, description })),
             lorebookEntriesToDelete: deletedIds,
           }),
+          silent: true,
         });
         if (!updateRes.ok) throw new Error(await extractApiError(updateRes) ?? t('form.errors.saveFailed'));
         navigate(`/world/${worldId}/view`);

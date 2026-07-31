@@ -87,6 +87,7 @@
     "inputPlaceholder": "What do you do? (Enter to send, Shift+Enter for newline)",
     "send": "Send",
     "loading": "Loading...",
+    "playing": "Playing",
     "noAccess": {
       "title": "You don't have access to this adventure",
       "description": "You may have been removed, or you no longer have permission to view it."
@@ -113,6 +114,7 @@
     "action": "Invite",
     "sending": "Inviting...",
     "invited": "Invited: ",
+    "notFound": "These users don't exist: ",
     "errors": {
       "failed": "Failed to send invitations."
     }

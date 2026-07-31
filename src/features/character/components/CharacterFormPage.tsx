@@ -165,16 +165,17 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          silent: true,
         });
         if (!res.ok) throw new Error(await extractApiError(res) ?? t('form.errors.saveFailed'));
         const data = await res.json();
         const id = data.id;
 
         const file = imageFile ?? await (async () => {
-          const blob = await api.imageGenerations.generate(buildPrompt());
+          const blob = await api.imageGenerations.generate(buildPrompt(), { silent: true });
           return new File([blob], 'generated.png', { type: 'image/png' });
         })();
-        const uploadRes = await api.character.uploadImage(id, file);
+        const uploadRes = await api.character.uploadImage(id, file, { silent: true });
         if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
 
         navigate(`/character/${id}/view`);
@@ -183,11 +184,12 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          silent: true,
         });
         if (!res.ok) throw new Error(await extractApiError(res) ?? t('form.errors.saveFailed'));
 
         if (imageFile) {
-          const uploadRes = await api.character.uploadImage(characterId!, imageFile);
+          const uploadRes = await api.character.uploadImage(characterId!, imageFile, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
 

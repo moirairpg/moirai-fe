@@ -5,6 +5,10 @@
     }
   },
   "darkModeToggle": "Alternar modo escuro",
+  "toast": {
+    "unexpectedError": "Algo deu errado. Tente novamente.",
+    "dismiss": "Dispensar"
+  },
   "selectAdventure": "Selecione uma aventura para começar.",
   "confirm": {
     "confirm": "Excluir",
