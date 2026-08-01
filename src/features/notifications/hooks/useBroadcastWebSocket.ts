@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useWebSocket } from '../../../contexts/WebSocketContext';
+import type { NotificationMetadata } from '../constants';
 
 type BroadcastNotification = {
   publicId: string;
@@ -7,7 +8,7 @@ type BroadcastNotification = {
   level: string;
   targetUsernames: string[];
   isInteractable: boolean;
-  metadata: Record<string, unknown> | null;
+  metadata: NotificationMetadata;
   creationDate: string;
 };
 

@@ -13,6 +13,7 @@ import { useJsonImport, parseAdventureJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { useSystemNotificationsWebSocket } from '../../notifications/hooks/useSystemNotificationsWebSocket';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { changesRoster } from '../../notifications/constants';
 import { InvitePlayersField } from './InvitePlayersField';
 
 type AdventureFormPageProps = { mode: 'view' | 'edit' | 'create' };
@@ -27,7 +28,6 @@ type FormState = {
   narratorPersonality: string;
   visibility: string;
   moderation: string;
-  isMultiplayer: boolean;
   adventureStart: string;
   modelConfiguration: ModelConfiguration;
   contextAttributes: ContextAttributes;
@@ -41,7 +41,6 @@ const EMPTY: FormState = {
   narratorPersonality: '',
   visibility: 'PRIVATE',
   moderation: 'STRICT',
-  isMultiplayer: false,
   adventureStart: '',
   modelConfiguration: { aiModel: 'GPT54_MINI', maxTokenLimit: 100, temperature: 0.8 },
   contextAttributes: { nudge: '', bump: '', bumpFrequency: 0 },
@@ -203,12 +202,10 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   useEffect(() => {
     if (mode === 'create' || !adventureId) return;
 
-    const fresh = systemNotifications.filter((n) => {
-      const kind = n.metadata?.kind;
-      return (kind === 'ADVENTURE_INVITE_RESPONSE' || kind === 'ADVENTURE_MEMBER_REMOVED' || kind === 'ADVENTURE_MEMBER_LEFT')
+    const fresh = systemNotifications.filter((n) =>
+      changesRoster(n.metadata?.kind)
         && n.metadata?.adventureId === adventureId
-        && !processedNotificationsRef.current.has(n.publicId);
-    });
+        && !processedNotificationsRef.current.has(n.publicId));
 
     if (fresh.length > 0) {
       fresh.forEach((n) => processedNotificationsRef.current.add(n.publicId));
@@ -293,7 +290,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               narratorPersonality: data.narratorPersonality ?? '',
               visibility: data.visibility,
               moderation: data.moderation,
-              isMultiplayer: data.isMultiplayer,
               adventureStart: data.adventureStart,
               modelConfiguration: data.modelConfiguration,
               contextAttributes: data.contextAttributes,
@@ -399,7 +395,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
       ...(data.narratorName && { narratorName: data.narratorName }),
       ...(data.narratorPersonality && { narratorPersonality: data.narratorPersonality }),
       ...(data.moderation && { moderation: data.moderation }),
-      ...(typeof data.isMultiplayer === 'boolean' && { isMultiplayer: data.isMultiplayer }),
       ...(data.modelConfiguration && { modelConfiguration: { ...prev.modelConfiguration, ...data.modelConfiguration } }),
       ...(data.contextAttributes && { contextAttributes: { ...prev.contextAttributes, ...data.contextAttributes } }),
     }));
@@ -490,7 +485,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           narratorPersonality: form.narratorPersonality || null,
           visibility: form.visibility,
           moderation: form.moderation,
-          isMultiplayer: false,
           adventureStart: form.adventureStart,
           lorebook: createLorebook.map((e) => ({
             name: e.name,
@@ -543,7 +537,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           narratorPersonality: form.narratorPersonality || null,
           visibility: form.visibility,
           moderation: form.moderation,
-          isMultiplayer: false,
           adventureStart: form.adventureStart,
           permissions,
           modelConfiguration: form.modelConfiguration,

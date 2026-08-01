@@ -36,7 +36,6 @@ export type AdventureDetails = {
   narratorPersonality: string | null;
   visibility: string;
   moderation: string;
-  isMultiplayer: boolean;
   imageUrl: string | null;
   creationDate: string;
   lastUpdateDate: string;

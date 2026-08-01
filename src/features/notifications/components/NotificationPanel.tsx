@@ -6,6 +6,7 @@ import { useSystemNotificationsWebSocket } from '../hooks/useSystemNotifications
 import { useReadNotification } from '../hooks/useReadNotification';
 import { useNotificationPanel } from '../context/NotificationPanelContext';
 import { api } from '../../../utils/api';
+import { NOTIFICATION_KIND } from '../constants';
 import { InvitationNotification } from './InvitationNotification';
 import { JoinAdventureModal } from './JoinAdventureModal';
 
@@ -64,7 +65,7 @@ export function NotificationPanel() {
             orderedNotifications.map((n) => {
               const isRead = readIds.has(n.publicId);
 
-              if (n.isInteractable && n.metadata?.kind === 'ADVENTURE_INVITE') {
+              if (n.isInteractable && n.metadata?.kind === NOTIFICATION_KIND.ADVENTURE_INVITE) {
                 return (
                   <InvitationNotification
                     key={n.publicId}

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useSystemNotificationsWebSocket } from '../hooks/useSystemNotificationsWebSocket';
+import { NOTIFICATION_KIND } from '../constants';
 
 type NotificationPanelContextValue = {
   isPanelOpen: boolean;
@@ -26,7 +27,8 @@ export function NotificationPanelProvider({ children }: NotificationPanelProvide
 
   useEffect(() => {
     const removals = systemNotifications.filter(
-      (n) => n.metadata?.kind === 'ADVENTURE_MEMBER_REMOVED' && !handledRemovalsRef.current.has(n.publicId),
+      (n) => n.metadata?.kind === NOTIFICATION_KIND.ADVENTURE_MEMBER_REMOVED
+        && !handledRemovalsRef.current.has(n.publicId),
     );
 
     if (removals.length > 0) {

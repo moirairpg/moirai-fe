@@ -12,7 +12,6 @@ type WorldImport = {
 
 type AdventureImport = WorldImport & {
   moderation: string;
-  isMultiplayer?: boolean;
   modelConfiguration?: { aiModel?: string; maxTokenLimit?: number; temperature?: number };
   contextAttributes?: { nudge?: string; authorsNote?: string; scene?: string; bump?: string; bumpFrequency?: number };
 };
@@ -65,7 +64,6 @@ export function parseAdventureJson(raw: unknown): AdventureImport {
     narratorPersonality: str(j.narratorPersonality),
     lorebook: parseLorebookEntries(j.lorebookEntries ?? j.lorebook),
     moderation: str(j.moderation),
-    ...(typeof j.isMultiplayer === 'boolean' && { isMultiplayer: j.isMultiplayer }),
     ...(mc && {
       modelConfiguration: {
         ...(typeof mc.aiModel === 'string' && { aiModel: mc.aiModel }),
