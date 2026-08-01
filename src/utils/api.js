@@ -16,19 +16,21 @@ export const extractApiError = async (res) => {
   }
 };
 
+const isSilenced = (silent, res) => (typeof silent === 'function' ? silent(res) : silent);
+
 const apiFetch = async (url, options = {}) => {
   const { silent = false, ...init } = options;
 
   try {
     const res = await fetch(url, { ...init, credentials: 'include' });
 
-    if (!res.ok && !silent) {
+    if (!res.ok && !isSilenced(silent, res)) {
       notifyError(await extractApiError(res.clone()));
     }
 
     return res;
   } catch (error) {
-    if (!silent) notifyError(null);
+    if (silent !== true) notifyError(null);
     throw error;
   }
 };
@@ -77,8 +79,8 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usernames }),
       }),
-    removeCharacter: (adventureId, playerCharacterId) =>
-      apiFetch(`/api/adventures/${adventureId}/characters/${playerCharacterId}`, { method: 'DELETE' }),
+    removeCharacter: (adventureId, playerCharacterId, options = {}) =>
+      apiFetch(`/api/adventures/${adventureId}/characters/${playerCharacterId}`, { ...options, method: 'DELETE' }),
   },
   adventureInvitations: {
     join: (invitationId, playerCharacterId) =>

@@ -75,7 +75,7 @@
       "storyNarration": "Narração",
       "visibilityControl": "Visibilidade e Controle",
       "lorebook": "Livro de Lore",
-      "registeredCharacters": "Personagens registrados ({{count}}/{{max}})"
+      "roster": "Personagens inscritos ({{count}}/{{max}})"
     },
     "player": "Jogador: ",
     "errors": {

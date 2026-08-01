@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Info, Pencil, Play, Plus, Trash2, Loader2 } from 'lucide-react';
-import type { AdventureDetails, ModelConfiguration, ContextAttributes, Permission, AdventureRosterSummary } from '../../sidebar/types';
+import type { AdventureDetails, ModelConfiguration, ContextAttributes, Permission, AdventureMembershipSummary } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { useAuth } from '../../../components/auth';
 import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
@@ -158,7 +158,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const { labelOf } = useCharacterClasses();
   const [form, setForm] = useState<FormState>(EMPTY);
   const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [registeredCharacters, setRegisteredCharacters] = useState<AdventureRosterSummary[]>([]);
+  const [roster, setRoster] = useState<AdventureMembershipSummary[]>([]);
   const [worlds, setWorlds] = useState<SelectOption[]>([]);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
   const [createLorebook, setCreateLorebook] = useState<LorebookEntry[]>([]);
@@ -195,7 +195,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     if (!adventureId) return;
     apiFetch(`/api/adventures/${adventureId}`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data: AdventureDetails | null) => { if (data) setRegisteredCharacters(data.registeredCharacters ?? []); })
+      .then((data: AdventureDetails | null) => { if (data) setRoster(data.roster ?? []); })
       .catch(() => {});
   }, [adventureId]);
 
@@ -218,18 +218,26 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const handleRemoveCharacter = async (playerCharacterId: string) => {
     setConfirmingRemoveId(null);
     if (!adventureId) return;
-    const res = await api.adventure.removeCharacter(adventureId, playerCharacterId);
-    if (res.ok) refreshRoster();
+
+    const res = await api.adventure.removeCharacter(adventureId, playerCharacterId, {
+      silent: (r: Response) => r.status === 404,
+    });
+
+    if (res.ok || res.status === 404) refreshRoster();
   };
 
-  const myMembership = registeredCharacters.find((m) => m.playerUsername === user?.username);
+  const myMembership = roster.find((m) => m.playerUsername === user?.username);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
 
   const handleLeave = async () => {
     setConfirmingLeave(false);
     if (!adventureId || !myMembership) return;
-    const res = await api.adventure.removeCharacter(adventureId, myMembership.playerCharacterId);
-    if (res.ok) {
+
+    const res = await api.adventure.removeCharacter(adventureId, myMembership.playerCharacterId, {
+      silent: (r: Response) => r.status === 404,
+    });
+
+    if (res.ok || res.status === 404) {
       window.dispatchEvent(new Event('adventure-list-changed'));
       navigate('/my-stuff');
     }
@@ -259,7 +267,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     setLorebook([]);
     setCreateLorebook([]);
     setPermissions([]);
-    setRegisteredCharacters([]);
+    setRoster([]);
     let restoredFromSnapshot = false;
 
     if (mode === 'create') {
@@ -303,7 +311,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             setUiImagePositionX(data.uiImagePositionX ?? 0.5);
             setUiImagePositionY(data.uiImagePositionY ?? 0.5);
             setPermissions(data.permissions ?? []);
-            setRegisteredCharacters(data.registeredCharacters ?? []);
+            setRoster(data.roster ?? []);
           })
       );
     }
@@ -633,16 +641,16 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           {mode !== 'create' && (
             <div className="flex flex-col gap-4 rounded-md border border-border p-4">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {t('form.sections.registeredCharacters', { count: registeredCharacters.length, max: 5 })}
+                {t('form.sections.roster', { count: roster.length, max: 5 })}
               </span>
 
               {canManage && adventureId && <InvitePlayersField adventureId={adventureId} />}
 
-              {registeredCharacters.length === 0 ? (
+              {roster.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t('form.empty.noRegisteredCharacters')}</p>
               ) : (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {registeredCharacters.map((member) => (
+                  {roster.map((member) => (
                     <div key={member.playerCharacterId} className="relative">
                       <a
                         href={`/character/${member.playerCharacterId}/view`}

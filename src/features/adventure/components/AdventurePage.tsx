@@ -120,7 +120,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     adventureName,
     narratorName,
     adventureStart,
-    registeredCharacters,
+    roster,
     permissions,
     appendMessage,
     fetchMore,
@@ -131,7 +131,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesFromIdInclusive,
   } = useAdventureMessages(adventureId);
 
-  const myMembership = registeredCharacters.find((m) => m.playerUsername === user?.username);
+  const myMembership = roster.find((m) => m.playerUsername === user?.username);
   const myCharacterName = myMembership?.name;
   const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
 

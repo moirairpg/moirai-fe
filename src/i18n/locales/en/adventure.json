@@ -75,7 +75,7 @@
       "storyNarration": "Story Narration",
       "visibilityControl": "Visibility & Control",
       "lorebook": "Lorebook",
-      "registeredCharacters": "Registered characters ({{count}}/{{max}})"
+      "roster": "Enrolled characters ({{count}}/{{max}})"
     },
     "player": "Player: ",
     "errors": {

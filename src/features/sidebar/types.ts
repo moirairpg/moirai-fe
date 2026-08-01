@@ -43,12 +43,12 @@ export type AdventureDetails = {
   contextAttributes: ContextAttributes;
   permissions: Permission[];
   lorebook: AdventureLorebookEntry[];
-  registeredCharacters: AdventureRosterSummary[];
+  roster: AdventureMembershipSummary[];
   uiImagePositionX: number | null;
   uiImagePositionY: number | null;
 };
 
-export type AdventureRosterSummary = {
+export type AdventureMembershipSummary = {
   playerCharacterId: string;
   playerId: string;
   playerUsername: string;

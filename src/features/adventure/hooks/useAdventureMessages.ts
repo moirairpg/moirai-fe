@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../../../utils/api';
 import type { AdventureMessage } from '../types';
-import type { AdventureRosterSummary, Permission } from '../../sidebar/types';
+import type { AdventureMembershipSummary, Permission } from '../../sidebar/types';
 
 type AdventureData = {
   name: string | null;
   narratorName: string | null;
   adventureStart: string | null;
-  registeredCharacters: AdventureRosterSummary[] | null;
+  roster: AdventureMembershipSummary[] | null;
   permissions: Permission[] | null;
 };
 
@@ -31,7 +31,7 @@ type UseAdventureMessagesResult = {
   adventureName: string | undefined;
   narratorName: string | undefined;
   adventureStart: string | undefined;
-  registeredCharacters: AdventureRosterSummary[];
+  roster: AdventureMembershipSummary[];
   permissions: Permission[];
   appendMessage: (message: AdventureMessage) => void;
   fetchMore: () => void;
@@ -67,7 +67,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   const [adventureName, setAdventureName] = useState<string | undefined>(undefined);
   const [narratorName, setNarratorName] = useState<string | undefined>(undefined);
   const [adventureStart, setAdventureStart] = useState<string | undefined>(undefined);
-  const [registeredCharacters, setRegisteredCharacters] = useState<AdventureRosterSummary[]>([]);
+  const [roster, setRoster] = useState<AdventureMembershipSummary[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [messages, setMessages] = useState<AdventureMessage[]>([]);
   const [loadError, setLoadError] = useState(false);
@@ -82,7 +82,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     setAdventureName(undefined);
     setNarratorName(undefined);
     setAdventureStart(undefined);
-    setRegisteredCharacters([]);
+    setRoster([]);
     setPermissions([]);
     setLoadError(false);
     knownIds.current = new Set();
@@ -98,7 +98,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
         setAdventureName(adv.name ?? undefined);
         setNarratorName(name);
         setAdventureStart(start);
-        setRegisteredCharacters(adv.registeredCharacters ?? []);
+        setRoster(adv.roster ?? []);
         setPermissions(adv.permissions ?? []);
         narratorNameRef.current = name;
 
@@ -178,7 +178,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     adventureName,
     narratorName,
     adventureStart,
-    registeredCharacters,
+    roster,
     permissions,
     appendMessage,
     fetchMore,
