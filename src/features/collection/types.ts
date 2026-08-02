@@ -2,8 +2,8 @@ export type AdventureSummary = {
   id: string;
   name: string;
   description: string;
-  worldName: string;
-  personaName: string;
+  worldName: string | null;
+  narratorName: string | null;
   visibility: string;
   creationDate: string;
   imageUrl: string | null;

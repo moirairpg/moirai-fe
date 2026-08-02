@@ -337,11 +337,15 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   }, [worldFilter, worldPage]);
 
   useEffect(() => {
-    if (mode !== 'view' || !form.worldId) return;
-    apiFetch(`/api/worlds/${form.worldId}`)
-      .then((r) => r.json())
-      .then((w: { name: string }) => setWorldName(w.name))
-      .catch(() => {});
+    if (mode !== 'view' || !form.worldId) {
+      setWorldName(null);
+      return;
+    }
+
+    apiFetch(`/api/worlds/${form.worldId}`, { silent: (r: Response) => r.status === 404 })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((w: { name: string } | null) => setWorldName(w?.name ?? null))
+      .catch(() => setWorldName(null));
   }, [mode, form.worldId]);
 
   const set = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

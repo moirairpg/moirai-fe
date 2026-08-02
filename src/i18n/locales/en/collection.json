@@ -3,8 +3,7 @@
     "title": "Explore",
     "tabs": {
       "adventures": "Adventures",
-      "worlds": "Worlds",
-      "personas": "Personas"
+      "worlds": "Worlds"
     }
   },
   "myStuff": {
@@ -12,8 +11,7 @@
     "tabs": {
       "adventures": "Adventures",
       "worlds": "Worlds",
-      "characters": "Characters",
-      "personas": "Personas"
+      "characters": "Characters"
     }
   },
   "sharedWithMe": {

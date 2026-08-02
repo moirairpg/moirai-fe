@@ -51,7 +51,6 @@
     },
     "empty": {
       "noWorlds": "Nenhum mundo encontrado. Crie um primeiro.",
-      "noPersonas": "Nenhuma persona encontrada. Crie uma primeiro.",
       "noLorebook": "Nenhuma entrada no livro de lore.",
       "noRegisteredCharacters": "Nenhum personagem entrou ainda."
     },

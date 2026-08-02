@@ -51,7 +51,6 @@
     },
     "empty": {
       "noWorlds": "No worlds found. Create one first.",
-      "noPersonas": "No personas found. Create one first.",
       "noLorebook": "No lorebook entries.",
       "noRegisteredCharacters": "No characters have joined yet."
     },
