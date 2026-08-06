@@ -30,7 +30,6 @@ type UseAdventureMessagesResult = {
   loadError: boolean;
   adventureName: string | undefined;
   narratorName: string | undefined;
-  adventureStart: string | undefined;
   roster: AdventureMembershipSummary[];
   permissions: Permission[];
   appendMessage: (message: AdventureMessage) => void;
@@ -38,8 +37,9 @@ type UseAdventureMessagesResult = {
   hasMore: boolean;
   isFetchingMore: boolean;
   removeMessage: (id: string) => void;
-  removeMessagesFromIdForward: (id: string) => void;
   removeMessagesFromIdInclusive: (id: string) => void;
+  removeMessagesAfterId: (id: string) => void;
+  replaceMessageContent: (id: string, content: string) => void;
 };
 
 const saidPrefixRegex = /^(.+?) said[,:]?\s*/;
@@ -66,7 +66,6 @@ function toAdventureMessage(m: MessageSummary, narratorName: string | undefined)
 export function useAdventureMessages(adventureId: string): UseAdventureMessagesResult {
   const [adventureName, setAdventureName] = useState<string | undefined>(undefined);
   const [narratorName, setNarratorName] = useState<string | undefined>(undefined);
-  const [adventureStart, setAdventureStart] = useState<string | undefined>(undefined);
   const [roster, setRoster] = useState<AdventureMembershipSummary[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [messages, setMessages] = useState<AdventureMessage[]>([]);
@@ -81,7 +80,6 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     setHasMore(false);
     setAdventureName(undefined);
     setNarratorName(undefined);
-    setAdventureStart(undefined);
     setRoster([]);
     setPermissions([]);
     setLoadError(false);
@@ -94,10 +92,8 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
       })
       .then((adv: AdventureData) => {
         const name = adv.narratorName ?? undefined;
-        const start = adv.adventureStart ?? undefined;
         setAdventureName(adv.name ?? undefined);
         setNarratorName(name);
-        setAdventureStart(start);
         setRoster(adv.roster ?? []);
         setPermissions(adv.permissions ?? []);
         narratorNameRef.current = name;
@@ -150,17 +146,6 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     knownIds.current.delete(id);
   }, []);
 
-  const removeMessagesFromIdForward = useCallback((id: string) => {
-    setMessages((prev) => {
-      const idx = prev.findIndex((m) => m.id === id);
-
-      if (idx === -1) return prev;
-
-      prev.slice(idx).forEach((m) => knownIds.current.delete(m.id));
-      return prev.slice(0, idx);
-    });
-  }, []);
-
   const removeMessagesFromIdInclusive = useCallback((id: string) => {
     setMessages((prev) => {
       const idx = prev.findIndex((m) => m.id === id);
@@ -172,12 +157,26 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     });
   }, []);
 
+  const removeMessagesAfterId = useCallback((id: string) => {
+    setMessages((prev) => {
+      const idx = prev.findIndex((m) => m.id === id);
+
+      if (idx === -1) return prev;
+
+      prev.slice(idx + 1).forEach((m) => knownIds.current.delete(m.id));
+      return prev.slice(0, idx + 1);
+    });
+  }, []);
+
+  const replaceMessageContent = useCallback((id: string, content: string) => {
+    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, content } : m)));
+  }, []);
+
   return {
     messages,
     loadError,
     adventureName,
     narratorName,
-    adventureStart,
     roster,
     permissions,
     appendMessage,
@@ -185,7 +184,8 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     hasMore,
     isFetchingMore,
     removeMessage,
-    removeMessagesFromIdForward,
     removeMessagesFromIdInclusive,
+    removeMessagesAfterId,
+    replaceMessageContent,
   };
 }

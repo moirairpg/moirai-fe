@@ -12,6 +12,7 @@ import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../.
 import { useJsonImport, parseAdventureJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { useSystemNotificationsWebSocket } from '../../notifications/hooks/useSystemNotificationsWebSocket';
+import { useAiModels } from '../hooks/useAiModels';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { changesRoster } from '../../notifications/constants';
 import { InvitePlayersField } from './InvitePlayersField';
@@ -146,6 +147,7 @@ function CardPicker({
   );
 }
 
+const MIN_TOKEN_LIMIT = 100;
 const INPUT_CLASS = 'rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50';
 const TEXTAREA_CLASS = `resize-y ${INPUT_CLASS}`;
 
@@ -188,6 +190,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const errorBorder = (value: string, required = true) => required && submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
 
+  const aiModels = useAiModels();
   const { systemNotifications } = useSystemNotificationsWebSocket();
   const processedNotificationsRef = useRef<Set<string>>(new Set());
 
@@ -450,7 +453,16 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     if (editingIndex === index) setEditingIndex(null);
   };
 
-  const isValid = form.name.trim() !== '' && (mode !== 'create' || (form.description.trim() !== '' && form.adventureStart.trim() !== ''));
+  const selectedModel = aiModels.find((m) => m.internalModelName === form.modelConfiguration.aiModel);
+  const responseTokenLimit = selectedModel?.responseTokenLimit;
+
+  const isTokenLimitValid = responseTokenLimit === undefined
+    || (form.modelConfiguration.maxTokenLimit >= MIN_TOKEN_LIMIT
+      && form.modelConfiguration.maxTokenLimit <= responseTokenLimit);
+
+  const isValid = form.name.trim() !== ''
+    && isTokenLimitValid
+    && (mode !== 'create' || (form.description.trim() !== '' && form.adventureStart.trim() !== ''));
 
   const handleImageUpload = (file: File) => {
     setImageFile(file);
@@ -955,9 +967,15 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                       <Tooltip content={t('form.tooltips.aiModel')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
                     </label>
                     <select value={form.modelConfiguration.aiModel} onChange={setModel('aiModel')} disabled={readOnly} className={INPUT_CLASS}>
-                      <option value="GPT54">GPT-5.4</option>
-                      <option value="GPT54_MINI">GPT-5.4 Mini</option>
-                      <option value="GPT54_NANO">GPT-5.4 Nano</option>
+                      {aiModels.length === 0 ? (
+                        <option value={form.modelConfiguration.aiModel}>{form.modelConfiguration.aiModel}</option>
+                      ) : (
+                        aiModels.map((model) => (
+                          <option key={model.internalModelName} value={model.internalModelName}>
+                            {model.fullModelName}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
 
@@ -966,7 +984,20 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                       {t('form.fields.maxTokenLimit')}
                       <Tooltip content={t('form.tooltips.maxTokenLimit')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
                     </label>
-                    <input type="number" min={100} value={form.modelConfiguration.maxTokenLimit} onChange={setModel('maxTokenLimit')} disabled={readOnly} className={INPUT_CLASS} />
+                    <input
+                      type="number"
+                      min={MIN_TOKEN_LIMIT}
+                      max={responseTokenLimit}
+                      value={form.modelConfiguration.maxTokenLimit}
+                      onChange={setModel('maxTokenLimit')}
+                      disabled={readOnly}
+                      className={`${INPUT_CLASS}${isTokenLimitValid ? '' : ' border-red-500'}`}
+                    />
+                    {!isTokenLimitValid && responseTokenLimit !== undefined && (
+                      <span className="text-xs text-red-500">
+                        {t('form.validation.maxTokenLimit', { min: MIN_TOKEN_LIMIT, max: responseTokenLimit })}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex flex-1 flex-col gap-1.5">
@@ -1013,7 +1044,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
       {!readOnly && (
         <div className="border-t border-border bg-background px-6 py-4">
           <div className="mx-auto flex w-full max-w-5xl gap-3">
-            <button type="submit" disabled={saving} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+            <button type="submit" disabled={saving || !isValid} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50">
               {saving ? t('form.actions.saving') : t('form.actions.save')}
             </button>
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">

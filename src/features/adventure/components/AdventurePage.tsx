@@ -9,8 +9,8 @@ import { CommandPicker } from './CommandPicker';
 import { useAdventureMessages } from '../hooks/useAdventureMessages';
 import { useAdventureWebSocket } from '../hooks/useAdventureWebSocket';
 import { useAdventureCommands } from '../hooks/useAdventureCommands';
-import { apiFetch } from '../../../utils/api';
 import { useAuth } from '../../../components/auth/context/AuthContext';
+import type { AdventureMessageUpdate } from '../hooks/useAdventureWebSocket';
 import type { AdventureMessage } from '../types';
 import type { CommandDefinition } from '../commands/types';
 
@@ -119,7 +119,6 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     loadError,
     adventureName,
     narratorName,
-    adventureStart,
     roster,
     permissions,
     appendMessage,
@@ -127,30 +126,79 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     hasMore,
     isFetchingMore,
     removeMessage,
-    removeMessagesFromIdForward,
     removeMessagesFromIdInclusive,
+    removeMessagesAfterId,
+    replaceMessageContent,
   } = useAdventureMessages(adventureId);
 
   const myMembership = roster.find((m) => m.playerUsername === user?.username);
   const myCharacterName = myMembership?.name;
   const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
 
-  const { sendMessage, lastMessage } = useAdventureWebSocket(adventureId);
-  const { handleInput } = useAdventureCommands(adventureId, adventureStart, narratorName, messages, removeMessage);
+  const reversedMessages = messages.slice().reverse();
+  const lastPlayerMessage = reversedMessages.find((m) => m.role === 'user');
+  const lastNarratorMessage = reversedMessages.find((m) => m.role === 'narrator');
+  const ownsLastPlayerMessage = Boolean(myCharacterName) && lastPlayerMessage?.authorName === myCharacterName;
 
-  useEffect(() => {
-    if (!lastMessage) return;
-    const isUser = lastMessage.role === 'user';
-    const msg: AdventureMessage = {
-      id: lastMessage.id,
-      role: isUser ? 'user' : 'narrator',
-      content: stripSaidPrefix(lastMessage.content),
-      narratorName: !isUser ? narratorName : undefined,
-      authorName: isUser ? extractSaidName(lastMessage.content) : undefined,
-    };
-    appendMessage(msg);
-    setIsGenerating(isUser);
-  }, [lastMessage, appendMessage, narratorName]);
+  const handleUpdate = useCallback((update: AdventureMessageUpdate) => {
+    switch (update.change) {
+      case 'MESSAGE_REMOVED':
+        removeMessage(update.messageId);
+        break;
+
+      case 'MESSAGES_REMOVED_FROM':
+        removeMessagesFromIdInclusive(update.messageId);
+        break;
+
+      case 'MESSAGE_EDITED':
+        replaceMessageContent(update.messageId, stripSaidPrefix(update.message.content));
+        removeMessagesAfterId(update.messageId);
+        break;
+
+      case 'MESSAGE_ADDED': {
+        const isUser = update.message.role === 'user';
+        const msg: AdventureMessage = {
+          id: update.message.id,
+          role: isUser ? 'user' : 'narrator',
+          content: stripSaidPrefix(update.message.content),
+          narratorName: !isUser ? narratorName : undefined,
+          authorName: isUser ? extractSaidName(update.message.content) : undefined,
+        };
+
+        appendMessage(msg);
+        break;
+      }
+
+      case 'NARRATION_FAILED':
+        break;
+    }
+
+    setIsGenerating(update.isNarrationPending);
+  }, [
+    appendMessage,
+    removeMessage,
+    removeMessagesFromIdInclusive,
+    removeMessagesAfterId,
+    replaceMessageContent,
+    narratorName,
+  ]);
+
+  const {
+    sendMessage,
+    startAdventure,
+    go,
+    retry,
+    retryFromMessage,
+    say,
+    editMessage,
+    deleteMessage,
+  } = useAdventureWebSocket(adventureId, handleUpdate);
+
+  const { handleInput } = useAdventureCommands(
+    adventureId,
+    messages,
+    { startAdventure, go, retry, say },
+  );
 
   const submit = useCallback(() => {
     const trimmed = input.trim();
@@ -158,13 +206,13 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     setInput('');
     setPickerOpen(false);
 
-    const handled = handleInput(trimmed, sendMessage, appendMessage, setIsGenerating);
+    const handled = handleInput(trimmed, appendMessage, setIsGenerating);
 
     if (handled) return;
 
     setIsGenerating(true);
     sendMessage(trimmed);
-  }, [input, isGenerating, sendMessage, handleInput]);
+  }, [input, isGenerating, sendMessage, handleInput, appendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -187,7 +235,27 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const handleContextMenu = (e: React.MouseEvent, message: AdventureMessage) => {
     e.preventDefault();
 
-    if (!canManage) {
+    if (canManage) {
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        messageId: message.id,
+        canEdit: true,
+        canRetry: message.role === 'narrator',
+        canDelete: true,
+      });
+
+      return;
+    }
+
+    if (!ownsLastPlayerMessage) {
+      return;
+    }
+
+    const isOwnLatestMessage = message.id === lastPlayerMessage?.id;
+    const isLatestNarration = message.id === lastNarratorMessage?.id;
+
+    if (!isOwnLatestMessage && !isLatestNarration) {
       return;
     }
 
@@ -195,9 +263,9 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
       x: e.clientX,
       y: e.clientY,
       messageId: message.id,
-      canEdit: true,
-      canRetry: message.role === 'narrator',
-      canDelete: true,
+      canEdit: isOwnLatestMessage,
+      canRetry: true,
+      canDelete: false,
     });
   };
 
@@ -208,44 +276,21 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     }
 
     if (action === 'delete') {
-      apiFetch(`/api/adventures/${adventureId}/messages/${messageId}`, { method: 'DELETE' })
-        .then(() => removeMessage(messageId))
-        .catch(() => {});
+      deleteMessage(messageId);
       return;
     }
 
-    if (action === 'retry') {
-      setIsGenerating(true);
-      apiFetch(`/api/adventures/${adventureId}/messages/${messageId}/retry`, { method: 'POST' })
-        .then((res) => res.json())
-        .then((result: { id: string; role: string; content: string }) => {
-          removeMessagesFromIdForward(messageId);
-          appendMessage({ id: result.id, role: 'narrator', content: result.content, narratorName });
-          setIsGenerating(false);
-        })
-        .catch(() => setIsGenerating(false));
+    if (canManage) {
+      retryFromMessage(messageId);
+      return;
     }
+
+    retry();
   };
 
   const handleEditConfirm = (messageId: string, newContent: string) => {
-    apiFetch(`/api/adventures/${adventureId}/messages/${messageId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: newContent }),
-    })
-      .then(() => {
-        removeMessagesFromIdInclusive(messageId);
-        setEditingMessageId(null);
-        setIsGenerating(true);
-        appendMessage({ id: messageId, role: 'user', content: newContent, authorUsername: user?.username });
-        return apiFetch(`/api/adventures/${adventureId}/go`, { method: 'POST' });
-      })
-      .then((res) => res.json())
-      .then((result: { id: string; content: string }) => {
-        appendMessage({ id: result.id, role: 'narrator', content: result.content, narratorName });
-        setIsGenerating(false);
-      })
-      .catch(() => setIsGenerating(false));
+    setEditingMessageId(null);
+    editMessage(messageId, newContent);
   };
 
   if (loadError) {

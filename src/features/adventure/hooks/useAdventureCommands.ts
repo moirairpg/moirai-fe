@@ -4,10 +4,16 @@ import { parseCommand } from '../commands/parser';
 import type { AdventureMessage } from '../types';
 import type { ParsedCommand } from '../commands/types';
 
+export type AdventureActions = {
+  startAdventure: () => void;
+  go: () => void;
+  retry: () => void;
+  say: (content: string) => void;
+};
+
 type UseAdventureCommandsResult = {
   handleInput: (
     input: string,
-    sendMessage: (content: string) => void,
     appendMessage: (msg: AdventureMessage) => void,
     setIsGenerating: (v: boolean) => void,
   ) => boolean;
@@ -15,15 +21,12 @@ type UseAdventureCommandsResult = {
 
 export function useAdventureCommands(
   adventureId: string,
-  adventureStart: string | undefined,
-  narratorName: string | undefined,
   messages: AdventureMessage[],
-  removeMessage: (id: string) => void,
+  actions: AdventureActions,
 ): UseAdventureCommandsResult {
   const handleInput = useCallback(
     (
       input: string,
-      sendMessage: (content: string) => void,
       appendMessage: (msg: AdventureMessage) => void,
       setIsGenerating: (v: boolean) => void,
     ): boolean => {
@@ -51,10 +54,10 @@ export function useAdventureCommands(
         return true;
       }
 
-      dispatchCommand(parsed, adventureId, adventureStart, narratorName, messages, removeMessage, sendMessage, appendMessage, setIsGenerating);
+      dispatchCommand(parsed, adventureId, messages, actions, appendMessage, setIsGenerating);
       return true;
     },
-    [adventureId, adventureStart, narratorName, messages, removeMessage],
+    [adventureId, messages, actions],
   );
 
   return { handleInput };
@@ -67,78 +70,37 @@ function systemMessage(content: string): AdventureMessage {
 function dispatchCommand(
   command: ParsedCommand,
   adventureId: string,
-  adventureStart: string | undefined,
-  narratorName: string | undefined,
   messages: AdventureMessage[],
-  removeMessage: (id: string) => void,
-  sendMessage: (content: string) => void,
+  actions: AdventureActions,
   appendMessage: (msg: AdventureMessage) => void,
   setIsGenerating: (v: boolean) => void,
 ) {
   switch (command.name) {
     case 'start':
-      if (adventureStart) {
-        appendMessage({ id: crypto.randomUUID(), role: 'narrator', content: adventureStart, narratorName });
-      }
       setIsGenerating(true);
-      apiFetch(`/api/adventures/${adventureId}/start`, { method: 'POST' })
-        .then((res) => res.json())
-        .then((result: { id: string; content: string; role: string }) => {
-          appendMessage({ id: result.id, role: 'narrator', content: result.content, narratorName });
-          setIsGenerating(false);
-        })
-        .catch(() => {
-          setIsGenerating(false);
-          appendMessage(systemMessage('Failed to start adventure.'));
-        });
+      actions.startAdventure();
       break;
 
     case 'go':
       setIsGenerating(true);
-      apiFetch(`/api/adventures/${adventureId}/go`, { method: 'POST' })
-        .then((res) => res.json())
-        .then((result: { id: string; content: string; role: string }) => {
-          appendMessage({ id: result.id, role: 'narrator', content: result.content, narratorName });
-          setIsGenerating(false);
-        })
-        .catch(() => {
-          setIsGenerating(false);
-          appendMessage(systemMessage('Failed to advance story.'));
-        });
+      actions.go();
       break;
 
     case 'retry': {
       const lastMessage = messages[messages.length - 1];
+
       if (!lastMessage || lastMessage.role !== 'narrator') {
         appendMessage(systemMessage('/retry can only be used after an AI response.'));
         break;
       }
-      removeMessage(lastMessage.id);
+
       setIsGenerating(true);
-      apiFetch(`/api/adventures/${adventureId}/retry`, { method: 'POST' })
-        .then((res) => res.json())
-        .then((result: { id: string; content: string; role: string }) => {
-          appendMessage({ id: result.id, role: 'narrator', content: result.content, narratorName });
-          setIsGenerating(false);
-        })
-        .catch(() => {
-          setIsGenerating(false);
-          appendMessage(systemMessage('Failed to retry.'));
-        });
+      actions.retry();
       break;
     }
 
     case 'say':
-      apiFetch(`/api/adventures/${adventureId}/say`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: command.text }),
-      })
-        .then((res) => res.json())
-        .then((result: { id: string; content: string; role: string }) => {
-          appendMessage({ id: result.id, role: 'narrator', content: result.content, narratorName });
-        })
-        .catch(() => appendMessage(systemMessage('Failed to insert dialogue.')));
+      actions.say(command.text);
       break;
 
     case 'nudge':

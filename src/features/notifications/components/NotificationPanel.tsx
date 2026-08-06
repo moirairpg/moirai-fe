@@ -27,9 +27,13 @@ export function NotificationPanel() {
     (a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime(),
   );
 
+  const dismiss = (publicId: string) => {
+    setReadIds((prev) => new Set(prev).add(publicId));
+  };
+
   const handleRead = (publicId: string) => {
     void markRead(publicId);
-    setReadIds((prev) => new Set(prev).add(publicId));
+    dismiss(publicId);
   };
 
   const handleDecline = async (publicId: string) => {
@@ -38,7 +42,7 @@ export function NotificationPanel() {
       setDeclineErrors((prev) => ({ ...prev, [publicId]: t('invite.errors.declineFailed') }));
       return;
     }
-    handleRead(publicId);
+    dismiss(publicId);
   };
 
   return (
@@ -109,7 +113,7 @@ export function NotificationPanel() {
           invitationId={activeInvite.invitationId}
           adventureName={activeInvite.adventureName}
           onJoined={() => {
-            handleRead(activeInvite.invitationId);
+            dismiss(activeInvite.invitationId);
             setActiveInvite(null);
           }}
           onClose={() => setActiveInvite(null)}

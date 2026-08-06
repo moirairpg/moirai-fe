@@ -21,6 +21,9 @@
       "contextAttributes": "Context Attributes",
       "modelConfiguration": "Model Configuration"
     },
+    "validation": {
+      "maxTokenLimit": "Must be between {{min}} and {{max}} for the selected model"
+    },
     "tooltips": {
       "world": "Sets the starting scene, lore, and narrator for this adventure",
       "visibility": "Who can see this adventure",
