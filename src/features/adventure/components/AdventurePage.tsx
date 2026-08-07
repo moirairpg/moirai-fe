@@ -24,10 +24,6 @@ function stripSaidPrefix(content: string): string {
   return content.replace(saidPrefixRegex, '');
 }
 
-function extractSaidName(content: string): string | undefined {
-  return content.match(saidPrefixRegex)?.[1];
-}
-
 type FormatButton = {
   icon: typeof Bold;
   marker: string;
@@ -162,7 +158,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
           role: isUser ? 'user' : 'narrator',
           content: stripSaidPrefix(update.message.content),
           narratorName: !isUser ? narratorName : undefined,
-          authorName: isUser ? extractSaidName(update.message.content) : undefined,
+          authorName: update.message.authorCharacterName ?? undefined,
         };
 
         appendMessage(msg);

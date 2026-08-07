@@ -6,5 +6,5 @@ export type AdventureMessage = {
   content: string;
   narratorName?: string;
   authorName?: string;
-  authorUsername?: string;
+  authorId?: string;
 };

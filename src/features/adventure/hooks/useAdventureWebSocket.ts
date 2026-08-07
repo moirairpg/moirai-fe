@@ -5,6 +5,7 @@ type MessageResult = {
   id: string;
   role: string;
   content: string;
+  authorCharacterName: string | null;
   createdAt: string;
 };
 

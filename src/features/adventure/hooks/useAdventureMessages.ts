@@ -16,7 +16,8 @@ type MessageSummary = {
   role: 'user' | 'assistant';
   content: string;
   status: string;
-  authorUsername: string | null;
+  authorId: string | null;
+  authorCharacterName: string | null;
   creationDate: string;
 };
 
@@ -48,18 +49,14 @@ function stripSaidPrefix(content: string): string {
   return content.replace(saidPrefixRegex, '');
 }
 
-function extractSaidName(content: string): string | undefined {
-  return content.match(saidPrefixRegex)?.[1];
-}
-
 function toAdventureMessage(m: MessageSummary, narratorName: string | undefined): AdventureMessage {
   return {
     id: m.id,
     role: m.role === 'user' ? 'user' : 'narrator',
     content: stripSaidPrefix(m.content),
     narratorName: m.role !== 'user' ? narratorName : undefined,
-    authorName: m.role === 'user' ? extractSaidName(m.content) : undefined,
-    authorUsername: m.authorUsername ?? undefined,
+    authorName: m.authorCharacterName ?? undefined,
+    authorId: m.authorId ?? undefined,
   };
 }
 
