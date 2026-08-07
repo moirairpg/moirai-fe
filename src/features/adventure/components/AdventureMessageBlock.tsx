@@ -117,7 +117,7 @@ export function AdventureMessageBlock({
       onContextMenu={onContextMenu}
     >
       <span className={`font-mono font-medium ${prefixClass}`}>{prefix} ›</span>
-      <span className="ml-2 [overflow-wrap:anywhere]">
+      <span className="ml-2 [overflow-wrap:anywhere] [&>span+span]:mt-2 [&>span+span]:block">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkBreaks]}
           components={{
