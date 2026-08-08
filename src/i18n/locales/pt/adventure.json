@@ -15,6 +15,7 @@
       "aiModel": "Modelo de IA",
       "maxTokenLimit": "Limite máximo de tokens",
       "temperature": "Temperatura",
+      "authorsNote": "Nota do autor",
       "nudge": "Dica",
       "bump": "Lembrete",
       "bumpFrequency": "Frequência de lembrete",
@@ -33,6 +34,7 @@
       "temperature": "Menor = mais consistente, maior = mais criativo",
       "narratorName": "Nome usado para identificar o narrador desta história",
       "narratorPersonality": "Instruções que definem como o narrador fala e conta a história",
+      "authorsNote": "Orientação permanente para o narrador, aplicada a cada resposta. Use para tom, ritmo ou estilo, não para enredo",
       "nudge": "Uma dica silenciosa que guia o comportamento da IA",
       "bump": "Lembra periodicamente a IA de sua personalidade e guia seu comportamento",
       "bumpFrequency": "Com que frequência o texto de lembrete se repete, em mensagens"

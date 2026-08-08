@@ -96,17 +96,15 @@ export function EntityCard(props: EntityCardProps) {
               </button>
             )}
 
-            {props.kind === 'character' && (
-              <button
-                onClick={() => props.onView(props.id)}
-                className="flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent/80"
-              >
-                <Eye className="h-3.5 w-3.5" />
-                {t('card.actions.view')}
-              </button>
-            )}
+            <button
+              onClick={() => props.onView(props.id)}
+              className="flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent/80"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              {t('card.actions.view')}
+            </button>
 
-            {props.kind === 'character' || props.canWrite ? (
+            {(props.kind === 'character' || props.canWrite) && (
               <>
                 <button
                   onClick={() => props.onEdit(props.id)}
@@ -123,14 +121,6 @@ export function EntityCard(props: EntityCardProps) {
                   {t('card.actions.delete')}
                 </button>
               </>
-            ) : (
-              <button
-                onClick={() => props.onView(props.id)}
-                className="flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent/80"
-              >
-                <Eye className="h-3.5 w-3.5" />
-                {t('card.actions.view')}
-              </button>
             )}
           </div>
         )}

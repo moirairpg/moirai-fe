@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Pencil, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
@@ -44,7 +44,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
 
   const readOnly = mode === 'view';
   const canEdit = mode === 'view' && ownerUsername !== null && ownerUsername === user?.username;
-  const canDelete = mode === 'edit' && ownerUsername !== null && ownerUsername === user?.username;
+  const canDelete = mode !== 'create' && ownerUsername !== null && ownerUsername === user?.username;
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -229,6 +229,12 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
                   {t('card.actions.edit', { ns: 'collection' })}
                 </button>
               )}
+              {canDelete && (
+                <button type="button" onClick={() => setConfirmingDelete(true)} className="flex items-center gap-1.5 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t('card.actions.delete', { ns: 'collection' })}
+                </button>
+              )}
               <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
                 {t('form.actions.back')}
               </button>
@@ -334,11 +340,6 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
               {t('form.actions.cancel')}
             </button>
-            {canDelete && (
-              <button type="button" onClick={() => setConfirmingDelete(true)} className="ml-auto rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
-                {t('confirm.confirm', { ns: 'common' })}
-              </button>
-            )}
           </div>
         </div>
       )}

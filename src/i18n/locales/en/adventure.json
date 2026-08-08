@@ -15,6 +15,7 @@
       "aiModel": "AI Model",
       "maxTokenLimit": "Max Token Limit",
       "temperature": "Temperature",
+      "authorsNote": "Author's note",
       "nudge": "Nudge",
       "bump": "Bump",
       "bumpFrequency": "Bump Frequency",
@@ -33,6 +34,7 @@
       "temperature": "Lower = more consistent, higher = more creative",
       "narratorName": "Name used to identify this narrator in the story",
       "narratorPersonality": "Instructions that define how the narrator speaks and tells the story",
+      "authorsNote": "Standing direction for the narrator, applied to every response. Use it for tone, pacing or style rather than plot",
       "nudge": "A quiet hint that guides how the AI behaves",
       "bump": "Periodically reminds the AI of its personality and guides its behavior",
       "bumpFrequency": "How often the bump text repeats, in messages"

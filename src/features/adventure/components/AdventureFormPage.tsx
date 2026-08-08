@@ -44,7 +44,7 @@ const EMPTY: FormState = {
   moderation: 'STRICT',
   adventureStart: '',
   modelConfiguration: { aiModel: 'GPT54_MINI', maxTokenLimit: 100, temperature: 0.8 },
-  contextAttributes: { nudge: '', bump: '', bumpFrequency: 0 },
+  contextAttributes: { nudge: '', authorsNote: '', bump: '', bumpFrequency: 0 },
 };
 
 
@@ -246,7 +246,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     }
   };
 
-  const canDelete = mode === 'edit' && canManage;
+  const canDelete = mode !== 'create' && canManage;
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -552,7 +552,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
         window.dispatchEvent(new Event('adventure-list-changed'));
-        navigate(`/adventure/play/${id}`);
+        navigate(`/adventure/${id}/view`);
       } else {
         const body = {
           name: form.name,
@@ -616,7 +616,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                   <input type="file" accept=".json" className="sr-only" onChange={handleJsonImport} />
                 </label>
               )}
-              {mode === 'view' && (
+              {mode !== 'create' && (
                 <button type="button" onClick={() => navigate(`/adventure/play/${adventureId}`)} className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                   <Play className="h-3.5 w-3.5" />
                   {t('card.actions.play', { ns: 'collection' })}
@@ -626,6 +626,12 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                 <button type="button" onClick={() => navigate(`/adventure/${adventureId}/edit`)} className="flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
                   <Pencil className="h-3.5 w-3.5" />
                   {t('card.actions.edit', { ns: 'collection' })}
+                </button>
+              )}
+              {canDelete && (
+                <button type="button" onClick={() => setConfirmingDelete(true)} className="flex items-center gap-1.5 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t('card.actions.delete', { ns: 'collection' })}
                 </button>
               )}
               {mode === 'view' && myMembership && (
@@ -1013,6 +1019,14 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
 
                 <div className="flex flex-col gap-1.5">
                   <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                    {t('form.fields.authorsNote')}
+                    <Tooltip content={t('form.tooltips.authorsNote')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
+                  </label>
+                  <textarea rows={3} value={form.contextAttributes.authorsNote} onChange={setCtx('authorsNote')} disabled={readOnly} className={TEXTAREA_CLASS} />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                     {t('form.fields.nudge')}
                     <Tooltip content={t('form.tooltips.nudge')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
                   </label>
@@ -1050,11 +1064,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
               {t('form.actions.cancel')}
             </button>
-            {canDelete && (
-              <button type="button" onClick={() => setConfirmingDelete(true)} className="ml-auto rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
-                {t('confirm.confirm', { ns: 'common' })}
-              </button>
-            )}
           </div>
         </div>
       )}
