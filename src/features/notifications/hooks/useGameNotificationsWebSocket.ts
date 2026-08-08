@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useWebSocket } from '../../../contexts/WebSocketContext';
+import type { NotificationMetadata } from '../constants';
 
 type GameNotification = {
   publicId: string;
   message: string;
   isInteractable: boolean;
-  metadata: Record<string, unknown> | null;
+  metadata: NotificationMetadata;
   creationDate: string;
 };
 

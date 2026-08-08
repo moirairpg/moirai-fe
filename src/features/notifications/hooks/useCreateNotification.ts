@@ -25,6 +25,7 @@ export function useCreateNotification(): UseCreateNotificationResult {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),
+        silent: true,
       });
       if (!res.ok) {
         const errorMessage = await extractApiError(res);

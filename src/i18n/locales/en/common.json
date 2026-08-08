@@ -5,5 +5,26 @@
     }
   },
   "darkModeToggle": "Toggle dark mode",
-  "selectAdventure": "Select an adventure to begin."
+  "toast": {
+    "unexpectedError": "Something went wrong. Please try again.",
+    "dismiss": "Dismiss"
+  },
+  "selectAdventure": "Select an adventure to begin.",
+  "confirm": {
+    "confirm": "Delete",
+    "cancel": "Cancel",
+    "deleteAdventure": "Delete this adventure? This cannot be undone.",
+    "deleteWorld": "Delete this world? This cannot be undone.",
+    "deleteCharacter": "Delete this character? This cannot be undone.",
+    "removeCharacter": "Remove this character from the adventure?",
+    "leaveAdventure": "Leave this adventure?"
+  },
+  "imageBanner": {
+    "dragHint": "Click and hold to drag and reposition image",
+    "viewImage": "View image",
+    "uploadImage": "Upload new image",
+    "removeImage": "Remove image",
+    "generateImage": "Generate image",
+    "generating": "Generating image…"
+  }
 }

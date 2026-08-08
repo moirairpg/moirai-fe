@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Info, Pencil, Trash2, Plus } from 'lucide-react';
-import type { WorldDetails } from '../../sidebar/types';
+import { Info, Pencil, Trash2, Plus, Loader2 } from 'lucide-react';
+import type { WorldDetails, Permission } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
+import { useAuth } from '../../../components/auth';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
+import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseWorldJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 
 type WorldFormPageProps = { mode: 'view' | 'edit' | 'create' };
-
-type LorebookEntry = { id?: string; name: string; description: string };
 
 type FormState = {
   name: string;
@@ -22,63 +24,16 @@ type FormState = {
 };
 
 const EMPTY: FormState = { name: '', description: '', adventureStart: '', visibility: 'PRIVATE', narratorName: '', narratorPersonality: '' };
-const EMPTY_ENTRY: LorebookEntry = { name: '', description: '' };
 
 const INPUT_CLASS = 'rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50';
 const TEXTAREA_CLASS = `resize-y ${INPUT_CLASS}`;
-
-function LorebookEntryForm({
-  value,
-  onChange,
-  onDone,
-  onCancel,
-  namePlaceholder,
-  descriptionPlaceholder,
-  doneLabel,
-  cancelLabel,
-}: {
-  value: LorebookEntry;
-  onChange: (entry: LorebookEntry) => void;
-  onDone: () => void;
-  onCancel: () => void;
-  namePlaceholder: string;
-  descriptionPlaceholder: string;
-  doneLabel: string;
-  cancelLabel: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2 rounded-md border border-border p-4">
-      <input
-        type="text"
-        placeholder={namePlaceholder}
-        value={value.name}
-        onChange={(e) => onChange({ ...value, name: e.target.value })}
-        className={INPUT_CLASS}
-        autoFocus
-      />
-      <textarea
-        rows={3}
-        placeholder={descriptionPlaceholder}
-        value={value.description}
-        onChange={(e) => onChange({ ...value, description: e.target.value })}
-        className={TEXTAREA_CLASS}
-      />
-      <div className="flex gap-2">
-        <button type="button" onClick={onDone} disabled={!value.name.trim() || !value.description.trim()} className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-          {doneLabel}
-        </button>
-        <button type="button" onClick={onCancel} className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
-          {cancelLabel}
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const navigate = useNavigate();
   const { worldId } = useParams<{ worldId: string }>();
   const { t } = useTranslation('world');
+  const { user } = useAuth();
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
@@ -97,6 +52,16 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const [lorebookFilter, setLorebookFilter] = useState('');
 
   const readOnly = mode === 'view';
+  const canEdit = mode === 'view' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
+  const canDelete = mode !== 'create' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const handleDelete = async () => {
+    setConfirmingDelete(false);
+    const res = await apiFetch(`/api/worlds/${worldId}`, { method: 'DELETE' });
+    if (res.ok) navigate('/my-stuff');
+  };
+
   const isValid = form.name.trim() !== '' && form.description.trim() !== '' && form.adventureStart.trim() !== '';
   const errorBorder = (value: string) => submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
@@ -106,6 +71,8 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     setSubmitted(false);
     setError('');
     setLorebookFilter('');
+    setDeletedIds([]);
+    setPermissions([]);
     if (mode === 'create') {
       setForm(EMPTY);
       setLorebook([]);
@@ -128,6 +95,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         setImageUrl(data.imageUrl ?? null);
         setUiImagePositionX(data.uiImagePositionX ?? 0.5);
         setUiImagePositionY(data.uiImagePositionY ?? 0.5);
+        setPermissions(data.permissions ?? []);
         setLoading(false);
       })
       .catch(() => {
@@ -193,9 +161,12 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
 
   const handleImageGenerate = async () => {
     const prompt = buildImagePrompt({
-      name: form.name,
-      description: form.description,
-      adventureStart: form.adventureStart,
+      subject: 'world',
+      fields: [
+        { label: 'Name', value: form.name },
+        { label: 'Description', value: form.description },
+        { label: 'Adventure Start', value: form.adventureStart },
+      ],
     });
     const blob = await api.imageGenerations.generate(prompt);
     const file = new File([blob], 'generated.png', { type: 'image/png' });
@@ -218,7 +189,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         visibility: form.visibility,
         narratorName: form.narratorName || null,
         narratorPersonality: form.narratorPersonality || null,
-        permissions: [],
+        permissions: mode === 'create' ? [] : permissions,
         uiImagePositionX,
         uiImagePositionY,
       };
@@ -228,22 +199,26 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...baseBody, lorebook: lorebook.map(({ name, description }) => ({ name, description })) }),
+          silent: true,
         });
         if (!res.ok) throw new Error(await extractApiError(res) ?? t('form.errors.saveFailed'));
         const data = await res.json();
         const id = data.id;
         if (imageFile) {
-          const uploadRes = await api.world.uploadImage(id, imageFile);
+          const uploadRes = await api.world.uploadImage(id, imageFile, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         } else {
           const prompt = buildImagePrompt({
-            name: form.name,
-            description: form.description,
-            adventureStart: form.adventureStart,
+            subject: 'world',
+            fields: [
+              { label: 'Name', value: form.name },
+              { label: 'Description', value: form.description },
+              { label: 'Adventure Start', value: form.adventureStart },
+            ],
           });
-          const blob = await api.imageGenerations.generate(prompt);
+          const blob = await api.imageGenerations.generate(prompt, { silent: true });
           const file = new File([blob], 'generated.png', { type: 'image/png' });
-          const uploadRes = await api.world.uploadImage(id, file);
+          const uploadRes = await api.world.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
         navigate(`/world/${id}/view`);
@@ -261,6 +236,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
               .map(({ id, name, description }) => ({ id, name, description })),
             lorebookEntriesToDelete: deletedIds,
           }),
+          silent: true,
         });
         if (!updateRes.ok) throw new Error(await extractApiError(updateRes) ?? t('form.errors.saveFailed'));
         navigate(`/world/${worldId}/view`);
@@ -276,7 +252,12 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+    <form onSubmit={handleSubmit} className="relative flex flex-1 flex-col overflow-hidden">
+      {saving && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto px-6 py-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
           <div className="flex items-center justify-between">
@@ -287,6 +268,18 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
                   {t('form.actions.importJson')}
                   <input type="file" accept=".json" className="sr-only" onChange={handleJsonImport} />
                 </label>
+              )}
+              {canEdit && (
+                <button type="button" onClick={() => navigate(`/world/${worldId}/edit`)} className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                  <Pencil className="h-3.5 w-3.5" />
+                  {t('card.actions.edit', { ns: 'collection' })}
+                </button>
+              )}
+              {canDelete && (
+                <button type="button" onClick={() => setConfirmingDelete(true)} className="flex items-center gap-1.5 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t('card.actions.delete', { ns: 'collection' })}
+                </button>
               )}
               <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
                 {t('form.actions.back')}
@@ -471,6 +464,14 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
             </button>
           </div>
         </div>
+      )}
+
+      {confirmingDelete && (
+        <ConfirmDialog
+          message={t('confirm.deleteWorld', { ns: 'common' })}
+          onConfirm={handleDelete}
+          onClose={() => setConfirmingDelete(false)}
+        />
       )}
     </form>
   );

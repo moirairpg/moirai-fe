@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react';
 
-type ContextMenuAction = 'edit' | 'retry' | 'delete';
+type ContextMenuAction = 'edit' | 'edit-and-generate' | 'retry' | 'delete';
 
 type AdventureMessageContextMenuProps = {
   x: number;
   y: number;
   canEdit: boolean;
+  canEditAndGenerate: boolean;
   canRetry: boolean;
+  canDelete: boolean;
   onAction: (action: ContextMenuAction) => void;
   onDismiss: () => void;
 };
@@ -15,7 +17,9 @@ export function AdventureMessageContextMenu({
   x,
   y,
   canEdit,
+  canEditAndGenerate,
   canRetry,
+  canDelete,
   onAction,
   onDismiss,
 }: AdventureMessageContextMenuProps) {
@@ -54,6 +58,15 @@ export function AdventureMessageContextMenu({
           Edit
         </button>
       )}
+      {canEditAndGenerate && (
+        <button
+          type="button"
+          onClick={() => { onAction('edit-and-generate'); onDismiss(); }}
+          className="w-full px-3 py-1.5 text-left text-sm text-foreground hover:bg-accent"
+        >
+          Edit and generate
+        </button>
+      )}
       {canRetry && (
         <button
           type="button"
@@ -63,13 +76,15 @@ export function AdventureMessageContextMenu({
           Retry
         </button>
       )}
-      <button
-        type="button"
-        onClick={() => { onAction('delete'); onDismiss(); }}
-        className="w-full px-3 py-1.5 text-left text-sm text-destructive hover:bg-accent"
-      >
-        Delete
-      </button>
+      {canDelete && (
+        <button
+          type="button"
+          onClick={() => { onAction('delete'); onDismiss(); }}
+          className="w-full px-3 py-1.5 text-left text-sm text-destructive hover:bg-accent"
+        >
+          Delete
+        </button>
+      )}
     </div>
   );
 }

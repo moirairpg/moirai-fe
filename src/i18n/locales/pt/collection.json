@@ -3,8 +3,7 @@
     "title": "Explorar",
     "tabs": {
       "adventures": "Aventuras",
-      "worlds": "Mundos",
-      "personas": "Personas"
+      "worlds": "Mundos"
     }
   },
   "myStuff": {
@@ -12,7 +11,7 @@
     "tabs": {
       "adventures": "Aventuras",
       "worlds": "Mundos",
-      "personas": "Personas"
+      "characters": "Personagens"
     }
   },
   "sharedWithMe": {
@@ -26,7 +25,8 @@
       "view": "Ver",
       "cancel": "Cancelar"
     },
-    "confirm": "Tem certeza?"
+    "confirm": "Tem certeza?",
+    "noClass": "Sem classe"
   },
   "grid": {
     "loading": "Carregando...",

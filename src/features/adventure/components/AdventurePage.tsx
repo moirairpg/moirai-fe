@@ -1,27 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bold, Italic, Strikethrough } from 'lucide-react';
+import { Bold, Italic, Strikethrough, Pencil, Eye } from 'lucide-react';
 import { AdventureMessagesPane } from './AdventureMessagesPane';
 import { AdventureMessageContextMenu } from './AdventureMessageContextMenu';
 import { CommandPicker } from './CommandPicker';
 import { useAdventureMessages } from '../hooks/useAdventureMessages';
 import { useAdventureWebSocket } from '../hooks/useAdventureWebSocket';
 import { useAdventureCommands } from '../hooks/useAdventureCommands';
-import { apiFetch } from '../../../utils/api';
 import { useAuth } from '../../../components/auth/context/AuthContext';
+import type { AdventureMessageUpdate } from '../hooks/useAdventureWebSocket';
 import type { AdventureMessage } from '../types';
 import type { CommandDefinition } from '../commands/types';
 
 type AdventurePageProps = {
   adventureId: string;
 };
-
-const saidPrefixRegex = /^.+? said[,:]?\s*/;
-
-function stripSaidPrefix(content: string): string {
-  return content.replace(saidPrefixRegex, '');
-}
 
 type FormatButton = {
   icon: typeof Bold;
@@ -72,17 +67,22 @@ type ContextMenuState = {
   y: number;
   messageId: string;
   canEdit: boolean;
+  canEditAndGenerate: boolean;
   canRetry: boolean;
+  canDelete: boolean;
 } | null;
+
+type EditingState = { messageId: string; mode: 'edit' | 'edit-and-generate' } | null;
 
 export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const { t } = useTranslation('adventure');
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<EditingState>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -109,32 +109,90 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
   const {
     messages,
-    narratorName,
-    adventureStart,
+    loadError,
+    adventureName,
+    roster,
+    permissions,
     appendMessage,
     fetchMore,
     hasMore,
     isFetchingMore,
     removeMessage,
-    removeMessagesFromIdForward,
     removeMessagesFromIdInclusive,
+    removeMessagesAfterId,
+    replaceMessageContent,
   } = useAdventureMessages(adventureId);
 
-  const { sendMessage, lastMessage } = useAdventureWebSocket(adventureId);
-  const { handleInput } = useAdventureCommands(adventureId, adventureStart, narratorName, messages, removeMessage);
+  const myMembership = roster.find((m) => m.playerUsername === user?.username);
+  const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
 
-  useEffect(() => {
-    if (!lastMessage) return;
-    const isUser = lastMessage.role === 'USER';
-    const msg: AdventureMessage = {
-      id: lastMessage.id,
-      role: isUser ? 'user' : 'narrator',
-      content: stripSaidPrefix(lastMessage.content),
-      narratorName: !isUser ? narratorName : undefined,
-    };
-    appendMessage(msg);
-    setIsGenerating(false);
-  }, [lastMessage, appendMessage, narratorName]);
+  const reversedMessages = messages.slice().reverse();
+  const lastPlayerMessage = reversedMessages.find((m) => m.role === 'user');
+  const lastNarratorMessage = reversedMessages.find((m) => m.role === 'narrator');
+  const ownsLastPlayerMessage = Boolean(user?.publicId) && lastPlayerMessage?.authorId === user?.publicId;
+
+  const handleUpdate = useCallback((update: AdventureMessageUpdate) => {
+    switch (update.change) {
+      case 'MESSAGE_REMOVED':
+        removeMessage(update.messageId);
+        break;
+
+      case 'MESSAGES_REMOVED_FROM':
+        removeMessagesFromIdInclusive(update.messageId);
+        break;
+
+      case 'MESSAGE_EDITED':
+        replaceMessageContent(update.messageId, update.message.content);
+        break;
+
+      case 'MESSAGES_REMOVED_AFTER':
+        removeMessagesAfterId(update.messageId);
+        break;
+
+      case 'MESSAGE_ADDED': {
+        const isUser = update.message.role === 'user';
+        const msg: AdventureMessage = {
+          id: update.message.id,
+          role: isUser ? 'user' : 'narrator',
+          content: update.message.content,
+          authorName: update.message.authorCharacterName ?? undefined,
+          authorId: update.message.authorId ?? undefined,
+        };
+
+        appendMessage(msg);
+        break;
+      }
+
+      case 'NARRATION_FAILED':
+        break;
+    }
+
+    setIsGenerating(update.isNarrationPending);
+  }, [
+    appendMessage,
+    removeMessage,
+    removeMessagesFromIdInclusive,
+    removeMessagesAfterId,
+    replaceMessageContent,
+  ]);
+
+  const {
+    sendMessage,
+    startAdventure,
+    go,
+    retry,
+    retryFromMessage,
+    say,
+    editMessage,
+    editMessageAndGenerateOutput,
+    deleteMessage,
+  } = useAdventureWebSocket(adventureId, handleUpdate);
+
+  const { handleInput } = useAdventureCommands(
+    adventureId,
+    messages,
+    { startAdventure, go, retry, say },
+  );
 
   const submit = useCallback(() => {
     const trimmed = input.trim();
@@ -142,14 +200,13 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     setInput('');
     setPickerOpen(false);
 
-    const handled = handleInput(trimmed, sendMessage, appendMessage, setIsGenerating);
+    const handled = handleInput(trimmed, appendMessage, setIsGenerating);
 
     if (handled) return;
 
     setIsGenerating(true);
-    appendMessage({ id: crypto.randomUUID(), role: 'user', content: trimmed, authorUsername: user?.username });
     sendMessage(trimmed);
-  }, [input, isGenerating, appendMessage, sendMessage, handleInput]);
+  }, [input, isGenerating, sendMessage, handleInput, appendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -171,75 +228,135 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
   const handleContextMenu = (e: React.MouseEvent, message: AdventureMessage) => {
     e.preventDefault();
+
+    const isOwnMessage = Boolean(user?.publicId) && message.authorId === user?.publicId;
+
+    if (canManage) {
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        messageId: message.id,
+        canEdit: true,
+        canEditAndGenerate: message.role === 'user',
+        canRetry: message.role === 'narrator',
+        canDelete: true,
+      });
+
+      return;
+    }
+
+    const isOwnLatestMessage = message.id === lastPlayerMessage?.id && ownsLastPlayerMessage;
+    const isLatestNarration = message.id === lastNarratorMessage?.id;
+
+    if (!isOwnMessage && !isLatestNarration) {
+      return;
+    }
+
+    if (isLatestNarration && !ownsLastPlayerMessage) {
+      return;
+    }
+
     setContextMenu({
       x: e.clientX,
       y: e.clientY,
       messageId: message.id,
-      canEdit: message.authorUsername === user?.username,
-      canRetry: message.role === 'narrator',
+      canEdit: isOwnMessage,
+      canEditAndGenerate: isOwnLatestMessage,
+      canRetry: isLatestNarration || isOwnLatestMessage,
+      canDelete: false,
     });
   };
 
-  const handleContextAction = (action: 'edit' | 'retry' | 'delete', messageId: string) => {
-    if (action === 'edit') {
-      setEditingMessageId(messageId);
+  const handleContextAction = (
+    action: 'edit' | 'edit-and-generate' | 'retry' | 'delete',
+    messageId: string,
+  ) => {
+    if (action === 'edit' || action === 'edit-and-generate') {
+      setEditing({ messageId, mode: action });
       return;
     }
 
     if (action === 'delete') {
-      apiFetch(`/api/adventures/${adventureId}/messages/${messageId}`, { method: 'DELETE' })
-        .then(() => removeMessage(messageId))
-        .catch(() => {});
+      deleteMessage(messageId);
       return;
     }
 
-    if (action === 'retry') {
-      setIsGenerating(true);
-      apiFetch(`/api/adventures/${adventureId}/messages/${messageId}/retry`, { method: 'POST' })
-        .then((res) => res.json())
-        .then((result: { id: string; role: string; content: string }) => {
-          removeMessagesFromIdForward(messageId);
-          appendMessage({ id: result.id, role: 'narrator', content: result.content, narratorName });
-          setIsGenerating(false);
-        })
-        .catch(() => setIsGenerating(false));
+    if (canManage) {
+      retryFromMessage(messageId);
+      return;
     }
+
+    retry();
   };
 
   const handleEditConfirm = (messageId: string, newContent: string) => {
-    apiFetch(`/api/adventures/${adventureId}/messages/${messageId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: newContent }),
-    })
-      .then(() => {
-        removeMessagesFromIdInclusive(messageId);
-        setEditingMessageId(null);
-        setIsGenerating(true);
-        appendMessage({ id: messageId, role: 'user', content: newContent, authorUsername: user?.username });
-        return apiFetch(`/api/adventures/${adventureId}/go`, { method: 'POST' });
-      })
-      .then((res) => res.json())
-      .then((result: { id: string; content: string }) => {
-        appendMessage({ id: result.id, role: 'narrator', content: result.content, narratorName });
-        setIsGenerating(false);
-      })
-      .catch(() => setIsGenerating(false));
+    const mode = editing?.mode;
+
+    setEditing(null);
+
+    if (mode === 'edit-and-generate') {
+      editMessageAndGenerateOutput(messageId, newContent);
+      return;
+    }
+
+    editMessage(messageId, newContent);
   };
+
+  if (loadError) {
+    return (
+      <div className="flex h-full flex-1 items-center justify-center p-8 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-lg font-semibold text-foreground">{t('page.noAccess.title')}</p>
+          <p className="text-sm text-muted-foreground">{t('page.noAccess.description')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between gap-3 border-b border-border/50 px-4 py-2">
+        <div className="flex min-w-0 items-center gap-1.5 text-sm">
+          <span className="truncate font-semibold text-foreground">
+            {adventureName ?? t('page.loading')}
+          </span>
+          <span className="flex-shrink-0 text-muted-foreground">/</span>
+          <span className="flex-shrink-0 text-muted-foreground">{t('page.playing')}</span>
+        </div>
+
+        {canManage ? (
+          <button
+            type="button"
+            onClick={() => navigate(`/adventure/${adventureId}/edit`)}
+            className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            {t('card.actions.edit', { ns: 'collection' })}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => navigate(`/adventure/${adventureId}/view`)}
+            className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            {t('card.actions.view', { ns: 'collection' })}
+          </button>
+        )}
+      </div>
+
       <AdventureMessagesPane
         adventureId={adventureId}
         messages={messages}
+        currentUserId={user?.publicId}
         isGenerating={isGenerating}
         hasMore={hasMore}
         isFetchingMore={isFetchingMore}
         onFetchMore={fetchMore}
-        editingMessageId={editingMessageId}
+        editingMessageId={editing?.messageId ?? null}
         onContextMenu={handleContextMenu}
         onEditConfirm={handleEditConfirm}
-        onEditCancel={() => setEditingMessageId(null)}
+        onEditCancel={() => setEditing(null)}
       />
 
       {contextMenu &&
@@ -248,13 +365,16 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
             x={contextMenu.x}
             y={contextMenu.y}
             canEdit={contextMenu.canEdit}
+            canEditAndGenerate={contextMenu.canEditAndGenerate}
             canRetry={contextMenu.canRetry}
+            canDelete={contextMenu.canDelete}
             onAction={(action) => handleContextAction(action, contextMenu.messageId)}
             onDismiss={() => setContextMenu(null)}
           />,
           document.body,
         )}
 
+      {myMembership && (
       <div className="border-t border-border/50 p-4">
         <div className="flex gap-1 mb-1.5">
           {FORMAT_BUTTONS.map(({ icon: Icon, marker, titleKey }) => (
@@ -303,6 +423,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
           </button>
         </form>
       </div>
+      )}
     </div>
   );
 }

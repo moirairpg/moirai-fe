@@ -7,6 +7,32 @@
     "toggleAriaLabel": "Alternar painel de notificações",
     "empty": "Sem notificações"
   },
+  "invite": {
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "errors": {
+      "declineFailed": "Falha ao recusar o convite."
+    },
+    "join": {
+      "title": "Entrar em {{adventure}}",
+      "subtitle": "Busque um dos seus personagens para entrar.",
+      "searchPlaceholder": "Busque seus personagens...",
+      "loading": "Carregando personagens...",
+      "empty": "Você ainda não tem personagens. Crie um primeiro.",
+      "noMatches": "Nenhum personagem corresponde à sua busca.",
+      "details": "Detalhes",
+      "back": "Voltar",
+      "choose": "Escolher",
+      "joining": "Entrando...",
+      "cancel": "Cancelar",
+      "scrollLeft": "Rolar para a esquerda",
+      "scrollRight": "Rolar para a direita",
+      "errors": {
+        "failed": "Falha ao entrar na aventura.",
+        "detailFailed": "Falha ao carregar os detalhes do personagem."
+      }
+    }
+  },
   "admin": {
     "title": "Notificações",
     "form": {

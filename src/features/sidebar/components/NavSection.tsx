@@ -8,10 +8,10 @@ type NavSectionProps = {
   isExpanded: boolean;
   onToggle: () => void;
   createPath: string;
-  browsePath: string;
+  browsePath?: string;
   recentItems?: { id: string; label: string; href: string }[];
   createLabel: string;
-  browseLabel: string;
+  browseLabel?: string;
 };
 
 export function NavSection({
@@ -49,9 +49,11 @@ export function NavSection({
             {createLabel}
           </Link>
 
-          <Link to={browsePath} className={itemClass}>
-            {browseLabel}
-          </Link>
+          {browsePath && (
+            <Link to={browsePath} className={itemClass}>
+              {browseLabel}
+            </Link>
+          )}
 
           {recentItems && recentItems.length > 0 && (
             <>

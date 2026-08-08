@@ -10,51 +10,7 @@ import enAdventure from './locales/en/adventure.json';
 import enWorld from './locales/en/world.json';
 import enCollection from './locales/en/collection.json';
 import enNotifications from './locales/en/notifications.json';
-
-import koCommon from './locales/ko/common.json';
-import koSettings from './locales/ko/settings.json';
-import koSidebar from './locales/ko/sidebar.json';
-import koAuth from './locales/ko/auth.json';
-import koAdventure from './locales/ko/adventure.json';
-import koWorld from './locales/ko/world.json';
-import koCollection from './locales/ko/collection.json';
-import koNotifications from './locales/ko/notifications.json';
-
-import zhCommon from './locales/zh-CN/common.json';
-import zhSettings from './locales/zh-CN/settings.json';
-import zhSidebar from './locales/zh-CN/sidebar.json';
-import zhAuth from './locales/zh-CN/auth.json';
-import zhAdventure from './locales/zh-CN/adventure.json';
-import zhWorld from './locales/zh-CN/world.json';
-import zhCollection from './locales/zh-CN/collection.json';
-import zhNotifications from './locales/zh-CN/notifications.json';
-
-import jaCommon from './locales/ja/common.json';
-import jaSettings from './locales/ja/settings.json';
-import jaSidebar from './locales/ja/sidebar.json';
-import jaAuth from './locales/ja/auth.json';
-import jaAdventure from './locales/ja/adventure.json';
-import jaWorld from './locales/ja/world.json';
-import jaCollection from './locales/ja/collection.json';
-import jaNotifications from './locales/ja/notifications.json';
-
-import ruCommon from './locales/ru/common.json';
-import ruSettings from './locales/ru/settings.json';
-import ruSidebar from './locales/ru/sidebar.json';
-import ruAuth from './locales/ru/auth.json';
-import ruAdventure from './locales/ru/adventure.json';
-import ruWorld from './locales/ru/world.json';
-import ruCollection from './locales/ru/collection.json';
-import ruNotifications from './locales/ru/notifications.json';
-
-import deCommon from './locales/de/common.json';
-import deSettings from './locales/de/settings.json';
-import deSidebar from './locales/de/sidebar.json';
-import deAuth from './locales/de/auth.json';
-import deAdventure from './locales/de/adventure.json';
-import deWorld from './locales/de/world.json';
-import deCollection from './locales/de/collection.json';
-import deNotifications from './locales/de/notifications.json';
+import enCharacter from './locales/en/character.json';
 
 import ptCommon from './locales/pt/common.json';
 import ptSettings from './locales/pt/settings.json';
@@ -64,6 +20,7 @@ import ptAdventure from './locales/pt/adventure.json';
 import ptWorld from './locales/pt/world.json';
 import ptCollection from './locales/pt/collection.json';
 import ptNotifications from './locales/pt/notifications.json';
+import ptCharacter from './locales/pt/character.json';
 
 import { languages } from './languages.js';
 
@@ -93,56 +50,7 @@ i18n
         world: enWorld,
         collection: enCollection,
         notifications: enNotifications,
-      },
-      ko: {
-        common: koCommon,
-        settings: koSettings,
-        sidebar: koSidebar,
-        auth: koAuth,
-        adventure: koAdventure,
-        world: koWorld,
-        collection: koCollection,
-        notifications: koNotifications,
-      },
-      'zh-CN': {
-        common: zhCommon,
-        settings: zhSettings,
-        sidebar: zhSidebar,
-        auth: zhAuth,
-        adventure: zhAdventure,
-        world: zhWorld,
-        collection: zhCollection,
-        notifications: zhNotifications,
-      },
-      ja: {
-        common: jaCommon,
-        settings: jaSettings,
-        sidebar: jaSidebar,
-        auth: jaAuth,
-        adventure: jaAdventure,
-        world: jaWorld,
-        collection: jaCollection,
-        notifications: jaNotifications,
-      },
-      ru: {
-        common: ruCommon,
-        settings: ruSettings,
-        sidebar: ruSidebar,
-        auth: ruAuth,
-        adventure: ruAdventure,
-        world: ruWorld,
-        collection: ruCollection,
-        notifications: ruNotifications,
-      },
-      de: {
-        common: deCommon,
-        settings: deSettings,
-        sidebar: deSidebar,
-        auth: deAuth,
-        adventure: deAdventure,
-        world: deWorld,
-        collection: deCollection,
-        notifications: deNotifications,
+        character: enCharacter,
       },
       pt: {
         common: ptCommon,
@@ -153,6 +61,7 @@ i18n
         world: ptWorld,
         collection: ptCollection,
         notifications: ptNotifications,
+        character: ptCharacter,
       },
     },
 
@@ -162,7 +71,7 @@ i18n
 
     debug: import.meta.env.DEV,
 
-    ns: ['common', 'settings', 'sidebar', 'auth', 'adventure', 'world', 'collection', 'notifications'],
+    ns: ['common', 'settings', 'sidebar', 'auth', 'adventure', 'world', 'collection', 'notifications', 'character'],
     defaultNS: 'common',
 
     keySeparator: '.',

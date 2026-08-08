@@ -7,6 +7,32 @@
     "toggleAriaLabel": "Toggle notifications panel",
     "empty": "No notifications"
   },
+  "invite": {
+    "accept": "Accept",
+    "decline": "Decline",
+    "errors": {
+      "declineFailed": "Failed to decline the invitation."
+    },
+    "join": {
+      "title": "Join {{adventure}}",
+      "subtitle": "Search for one of your characters to join with.",
+      "searchPlaceholder": "Search your characters...",
+      "loading": "Loading characters...",
+      "empty": "You have no characters yet. Create one first.",
+      "noMatches": "No characters match your search.",
+      "details": "Details",
+      "back": "Back",
+      "choose": "Choose",
+      "joining": "Joining...",
+      "cancel": "Cancel",
+      "scrollLeft": "Scroll left",
+      "scrollRight": "Scroll right",
+      "errors": {
+        "failed": "Failed to join the adventure.",
+        "detailFailed": "Failed to load character details."
+      }
+    }
+  },
   "admin": {
     "title": "Notifications",
     "form": {

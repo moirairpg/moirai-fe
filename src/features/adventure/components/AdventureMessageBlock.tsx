@@ -4,8 +4,31 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import type { AdventureMessage } from '../types';
 
+const PLAYER_COLORS = [
+  'text-amber-400',
+  'text-purple-400',
+  'text-pink-400',
+  'text-orange-400',
+  'text-rose-400',
+  'text-indigo-400',
+  'text-yellow-400',
+  'text-fuchsia-400',
+  'text-violet-400',
+  'text-red-400',
+  'text-blue-400',
+];
+
+function colorForName(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  }
+  return PLAYER_COLORS[Math.abs(hash) % PLAYER_COLORS.length];
+}
+
 type AdventureMessageBlockProps = {
   message: AdventureMessage;
+  currentUserId?: string;
   isEditing?: boolean;
   onContextMenu?: (e: React.MouseEvent) => void;
   onEditConfirm?: (newContent: string) => void;
@@ -14,6 +37,7 @@ type AdventureMessageBlockProps = {
 
 export function AdventureMessageBlock({
   message,
+  currentUserId,
   isEditing = false,
   onContextMenu,
   onEditConfirm,
@@ -74,8 +98,18 @@ export function AdventureMessageBlock({
     );
   }
 
-  const prefixClass = message.role === 'user' ? 'text-cyan-400' : 'text-green-400';
-  const prefix = message.role === 'user' ? 'You' : (message.narratorName ?? 'Narrator');
+  const isUser = message.role === 'user';
+  const isOwn = isUser && !!message.authorId && message.authorId === currentUserId;
+  const prefixClass = !isUser
+    ? 'text-green-400'
+    : isOwn
+      ? 'text-cyan-400'
+      : message.authorName
+        ? colorForName(message.authorName)
+        : 'text-cyan-400';
+  const prefix = isUser
+    ? (isOwn ? 'You' : (message.authorName ?? 'You'))
+    : (message.authorName ?? 'Narrator');
 
   return (
     <div
@@ -83,7 +117,7 @@ export function AdventureMessageBlock({
       onContextMenu={onContextMenu}
     >
       <span className={`font-mono font-medium ${prefixClass}`}>{prefix} ›</span>
-      <span className="ml-2 [overflow-wrap:anywhere]">
+      <span className="ml-2 [overflow-wrap:anywhere] [&>span+span]:mt-2 [&>span+span]:block">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkBreaks]}
           components={{

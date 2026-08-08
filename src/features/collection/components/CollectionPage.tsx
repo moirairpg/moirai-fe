@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../utils/api';
 import { useAdventureCollection } from '../hooks/useAdventureCollection';
 import { useWorldCollection } from '../hooks/useWorldCollection';
+import { useCharacterCollection } from '../hooks/useCharacterCollection';
+import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
 import { CardGrid } from './CardGrid';
 import { EntityCard } from './EntityCard';
 import type { CollectionView, CollectionTab } from '../types';
@@ -47,18 +48,47 @@ function WorldTab({ view }: TabProps) {
   );
 }
 
+function CharacterTab() {
+  const navigate = useNavigate();
+  const { t } = useTranslation('character');
+  const { items, isLoading, hasMore, loadMore, removeItem } = useCharacterCollection();
+  const { labelOf } = useCharacterClasses();
+
+  const handleView = (id: string) => navigate(`/character/${id}/view`);
+  const handleEdit = (id: string) => navigate(`/character/${id}/edit`);
+  const handleDelete = (id: string) => apiFetch(`/api/player-characters/${id}`, { method: 'DELETE' }).then((res) => { if (res.ok) removeItem(id); }).catch(() => {});
+
+  const classLabelOf = (characterClass: string | null) => {
+    const resolved = labelOf(characterClass);
+    return resolved === null ? null : t(`classes.${characterClass}`, { defaultValue: resolved });
+  };
+
+  return (
+    <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
+      {items.map((c) => (
+        <EntityCard key={c.id} kind="character" id={c.id} name={c.name} classLabel={classLabelOf(c.characterClass)} imageUrl={c.imageUrl} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
+      ))}
+    </CardGrid>
+  );
+}
+
 type CollectionPageProps = { view: CollectionView };
 
 export default function CollectionPage({ view }: CollectionPageProps) {
-  const [activeTab, setActiveTab] = useState<CollectionTab>('adventures');
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation('collection');
 
   const title = view === 'MY_STUFF' ? t('myStuff.title') : t('sharedWithMe.title');
+  const basePath = view === 'MY_STUFF' ? '/my-stuff' : '/shared-with-me';
 
   const TABS: { id: CollectionTab; label: string }[] = [
     { id: 'adventures', label: t('myStuff.tabs.adventures') },
     { id: 'worlds', label: t('myStuff.tabs.worlds') },
+    ...(view === 'MY_STUFF' ? [{ id: 'characters' as const, label: t('myStuff.tabs.characters') }] : []),
   ];
+
+  const raw = searchParams.get('tab');
+  const activeTab: CollectionTab = TABS.some((tab) => tab.id === raw) ? (raw as CollectionTab) : 'adventures';
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
@@ -66,9 +96,9 @@ export default function CollectionPage({ view }: CollectionPageProps) {
 
       <div className="flex gap-1 border-b border-border">
         {TABS.map((tab) => (
-          <button
+          <Link
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            to={`${basePath}?tab=${tab.id}`}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.id
                 ? 'border-b-2 border-primary text-foreground'
@@ -76,12 +106,13 @@ export default function CollectionPage({ view }: CollectionPageProps) {
             }`}
           >
             {tab.label}
-          </button>
+          </Link>
         ))}
       </div>
 
       {activeTab === 'adventures' && <AdventureTab view={view} />}
       {activeTab === 'worlds' && <WorldTab view={view} />}
+      {activeTab === 'characters' && view === 'MY_STUFF' && <CharacterTab />}
     </div>
   );
 }

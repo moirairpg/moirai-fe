@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../utils/api';
 import { useAdventureCollection } from '../hooks/useAdventureCollection';
@@ -46,12 +46,10 @@ function WorldsTab() {
 }
 
 export default function BrowsePage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation('collection');
   const raw = searchParams.get('tab');
   const activeTab: BrowseTab = raw === 'worlds' ? raw : 'adventures';
-
-  const setTab = (tab: BrowseTab) => setSearchParams({ tab }, { replace: true });
 
   const TABS: { id: BrowseTab; label: string }[] = [
     { id: 'adventures', label: t('browse.tabs.adventures') },
@@ -64,9 +62,9 @@ export default function BrowsePage() {
 
       <div className="flex gap-1 border-b border-border">
         {TABS.map((tab) => (
-          <button
+          <Link
             key={tab.id}
-            onClick={() => setTab(tab.id)}
+            to={`/explore?tab=${tab.id}`}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.id
                 ? 'border-b-2 border-primary text-foreground'
@@ -74,7 +72,7 @@ export default function BrowsePage() {
             }`}
           >
             {tab.label}
-          </button>
+          </Link>
         ))}
       </div>
 

@@ -5,6 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { useSystemNotificationsWebSocket } from '../hooks/useSystemNotificationsWebSocket';
 import { useReadNotification } from '../hooks/useReadNotification';
 import { useNotificationPanel } from '../context/NotificationPanelContext';
+import { api } from '../../../utils/api';
+import { NOTIFICATION_KIND } from '../constants';
+import { InvitationNotification } from './InvitationNotification';
+import { JoinAdventureModal } from './JoinAdventureModal';
+
+type ActiveInvite = { invitationId: string; adventureName: string };
 
 export function NotificationPanel() {
   const { t } = useTranslation('notifications');
@@ -12,12 +18,31 @@ export function NotificationPanel() {
   const { isPanelOpen, togglePanel } = useNotificationPanel();
   const { mutate: markRead } = useReadNotification();
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [activeInvite, setActiveInvite] = useState<ActiveInvite | null>(null);
+  const [declineErrors, setDeclineErrors] = useState<Record<string, string>>({});
 
   const unreadCount = systemNotifications.filter((n) => !readIds.has(n.publicId)).length;
 
+  const orderedNotifications = [...systemNotifications].sort(
+    (a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime(),
+  );
+
+  const dismiss = (publicId: string) => {
+    setReadIds((prev) => new Set(prev).add(publicId));
+  };
+
   const handleRead = (publicId: string) => {
     void markRead(publicId);
-    setReadIds((prev) => new Set(prev).add(publicId));
+    dismiss(publicId);
+  };
+
+  const handleDecline = async (publicId: string) => {
+    const res = await api.adventureInvitations.decline(publicId);
+    if (!res.ok) {
+      setDeclineErrors((prev) => ({ ...prev, [publicId]: t('invite.errors.declineFailed') }));
+      return;
+    }
+    dismiss(publicId);
   };
 
   return (
@@ -38,11 +63,28 @@ export function NotificationPanel() {
 
       {isPanelOpen && (
         <div className="absolute right-0 top-full z-20 mt-1 w-56 max-h-80 overflow-y-auto rounded-md border border-border bg-background shadow-lg">
-          {systemNotifications.length === 0 ? (
+          {orderedNotifications.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">{t('panel.empty')}</p>
           ) : (
-            systemNotifications.map((n) => {
+            orderedNotifications.map((n) => {
               const isRead = readIds.has(n.publicId);
+
+              if (n.isInteractable && n.metadata?.kind === NOTIFICATION_KIND.ADVENTURE_INVITE) {
+                return (
+                  <InvitationNotification
+                    key={n.publicId}
+                    message={n.message}
+                    creationDate={n.creationDate}
+                    isRead={isRead}
+                    error={declineErrors[n.publicId]}
+                    onAccept={() =>
+                      setActiveInvite({ invitationId: n.publicId, adventureName: String(n.metadata?.adventureName ?? '') })
+                    }
+                    onDecline={() => handleDecline(n.publicId)}
+                  />
+                );
+              }
+
               return (
                 <button
                   key={n.publicId}
@@ -64,6 +106,18 @@ export function NotificationPanel() {
             })
           )}
         </div>
+      )}
+
+      {activeInvite && (
+        <JoinAdventureModal
+          invitationId={activeInvite.invitationId}
+          adventureName={activeInvite.adventureName}
+          onJoined={() => {
+            dismiss(activeInvite.invitationId);
+            setActiveInvite(null);
+          }}
+          onClose={() => setActiveInvite(null)}
+        />
       )}
     </div>
   );

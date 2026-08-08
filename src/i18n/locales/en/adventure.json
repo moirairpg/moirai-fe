@@ -15,11 +15,15 @@
       "aiModel": "AI Model",
       "maxTokenLimit": "Max Token Limit",
       "temperature": "Temperature",
+      "authorsNote": "Author's note",
       "nudge": "Nudge",
       "bump": "Bump",
       "bumpFrequency": "Bump Frequency",
       "contextAttributes": "Context Attributes",
       "modelConfiguration": "Model Configuration"
+    },
+    "validation": {
+      "maxTokenLimit": "Must be between {{min}} and {{max}} for the selected model"
     },
     "tooltips": {
       "world": "Sets the starting scene, lore, and narrator for this adventure",
@@ -30,6 +34,7 @@
       "temperature": "Lower = more consistent, higher = more creative",
       "narratorName": "Name used to identify this narrator in the story",
       "narratorPersonality": "Instructions that define how the narrator speaks and tells the story",
+      "authorsNote": "Standing direction for the narrator, applied to every response. Use it for tone, pacing or style rather than plot",
       "nudge": "A quiet hint that guides how the AI behaves",
       "bump": "Periodically reminds the AI of its personality and guides its behavior",
       "bumpFrequency": "How often the bump text repeats, in messages"
@@ -51,8 +56,8 @@
     },
     "empty": {
       "noWorlds": "No worlds found. Create one first.",
-      "noPersonas": "No personas found. Create one first.",
-      "noLorebook": "No lorebook entries."
+      "noLorebook": "No lorebook entries.",
+      "noRegisteredCharacters": "No characters have joined yet."
     },
     "actions": {
       "back": "Back",
@@ -64,14 +69,17 @@
       "advanced": "Advanced",
       "importJson": "Import JSON",
       "clearWorld": "Clear World",
-      "clearLorebook": "Clear Lorebook"
+      "clearLorebook": "Clear Lorebook",
+      "removeCharacter": "Remove from adventure",
+      "leave": "Leave adventure"
     },
     "optional": "optional",
     "sections": {
       "basicData": "Basic Data",
       "storyNarration": "Story Narration",
       "visibilityControl": "Visibility & Control",
-      "lorebook": "Lorebook"
+      "lorebook": "Lorebook",
+      "roster": "Enrolled characters ({{count}}/{{max}})"
     },
     "player": "Player: ",
     "errors": {
@@ -83,6 +91,11 @@
     "inputPlaceholder": "What do you do? (Enter to send, Shift+Enter for newline)",
     "send": "Send",
     "loading": "Loading...",
+    "playing": "Playing",
+    "noAccess": {
+      "title": "You don't have access to this adventure",
+      "description": "You may have been removed, or you no longer have permission to view it."
+    },
     "formatting": {
       "bold": "Bold",
       "italic": "Italic",
@@ -98,5 +111,16 @@
       "The threads of destiny intertwine...",
       "Ancient forces stir..."
     ]
+  },
+  "invite": {
+    "title": "Invite players",
+    "placeholder": "Type usernames, comma-separated",
+    "action": "Invite",
+    "sending": "Inviting...",
+    "invited": "Invited: ",
+    "notFound": "These users don't exist: ",
+    "errors": {
+      "failed": "Failed to send invitations."
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Loader2, X } from 'lucide-react';
 
 type EntityBannerProps = {
   imageUrl: string | null;
@@ -11,7 +12,7 @@ type EntityBannerProps = {
   onUiImagePositionChange?: (x: number, y: number) => void;
   onUpload: (file: File) => void;
   onRemove: () => void;
-  onGenerate: () => void;
+  onGenerate: () => void | Promise<void>;
 };
 
 export function EntityBanner({
@@ -26,12 +27,24 @@ export function EntityBanner({
   onRemove,
   onGenerate,
 }: EntityBannerProps) {
+  const { t } = useTranslation('common');
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const dragStart = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const isEditable = mode === 'create' || mode === 'edit';
+
+  const handleGenerate = async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+    try {
+      await onGenerate();
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,7 +55,7 @@ export function EntityBanner({
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isEditable || !imageUrl || !onUiImagePositionChange) return;
+    if (!isEditable || !imageUrl || !onUiImagePositionChange || isGenerating) return;
     if ((e.target as HTMLElement).closest('button')) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -84,9 +97,10 @@ export function EntityBanner({
           />
         )}
 
+        {!isGenerating && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/0 opacity-0 transition-all group-hover:bg-black/50 group-hover:opacity-100">
           {isEditable && imageUrl && (
-            <span className="mb-1 text-xs text-white/70">Click and hold to drag and reposition image</span>
+            <span className="mb-1 text-xs text-white/70">{t('imageBanner.dragHint')}</span>
           )}
 
           {imageUrl && (
@@ -94,7 +108,7 @@ export function EntityBanner({
               type="button"
               className="text-sm font-medium text-white hover:underline"
               onClick={() => setLightboxOpen(true)}>
-              View image
+              {t('imageBanner.viewImage')}
             </button>
           )}
 
@@ -104,7 +118,7 @@ export function EntityBanner({
                 type="button"
                 className="text-sm font-medium text-white hover:underline"
                 onClick={() => inputRef.current?.click()}>
-                Upload new image
+                {t('imageBanner.uploadImage')}
               </button>
 
               {imageUrl && (
@@ -112,7 +126,7 @@ export function EntityBanner({
                   type="button"
                   className="text-sm font-medium text-white hover:underline"
                   onClick={onRemove}>
-                  Remove image
+                  {t('imageBanner.removeImage')}
                 </button>
               )}
 
@@ -120,13 +134,21 @@ export function EntityBanner({
                 <button
                   type="button"
                   className="text-sm font-medium text-white hover:underline"
-                  onClick={onGenerate}>
-                  Generate image
+                  onClick={handleGenerate}>
+                  {t('imageBanner.generateImage')}
                 </button>
               )}
             </>
           )}
         </div>
+        )}
+
+        {isGenerating && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/70">
+            <Loader2 className="h-8 w-8 animate-spin text-white" />
+            <span className="text-sm font-medium text-white">{t('imageBanner.generating')}</span>
+          </div>
+        )}
 
         <div className="pointer-events-none absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent px-6 py-4">
           <span className="text-3xl font-bold text-white">{name || '\u00A0'}</span>

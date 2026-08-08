@@ -22,6 +22,7 @@ export function useUpdateNotification(): UseUpdateNotificationResult {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        silent: true,
       });
       if (!res.ok) throw new Error('Failed to update notification');
       const json: NotificationDetails = await res.json();

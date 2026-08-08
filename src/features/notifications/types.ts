@@ -1,3 +1,5 @@
+import type { NotificationMetadata } from './constants';
+
 export type NotificationType = 'BROADCAST' | 'SYSTEM' | 'GAME';
 export type NotificationLevel = 'INFO' | 'URGENT';
 
@@ -9,7 +11,7 @@ export type NotificationDetails = {
   targetUsernames: string[];
   adventureId: string | null;
   isInteractable: boolean;
-  metadata: Record<string, unknown> | null;
+  metadata: NotificationMetadata;
   creationDate: string;
   lastUpdateDate: string;
 };

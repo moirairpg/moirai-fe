@@ -11,6 +11,7 @@ export type ModelConfiguration = {
 
 export type ContextAttributes = {
   nudge: string;
+  authorsNote: string;
   bump: string;
   bumpFrequency: number;
 };
@@ -36,7 +37,6 @@ export type AdventureDetails = {
   narratorPersonality: string | null;
   visibility: string;
   moderation: string;
-  isMultiplayer: boolean;
   imageUrl: string | null;
   creationDate: string;
   lastUpdateDate: string;
@@ -44,8 +44,18 @@ export type AdventureDetails = {
   contextAttributes: ContextAttributes;
   permissions: Permission[];
   lorebook: AdventureLorebookEntry[];
+  roster: AdventureMembershipSummary[];
   uiImagePositionX: number | null;
   uiImagePositionY: number | null;
+};
+
+export type AdventureMembershipSummary = {
+  playerCharacterId: string;
+  playerId: string;
+  playerUsername: string;
+  name: string;
+  characterClass: string | null;
+  imageUrl: string | null;
 };
 
 export type WorldLorebookEntry = {
