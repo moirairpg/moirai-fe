@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
 
-type ContextMenuAction = 'edit' | 'retry' | 'delete';
+type ContextMenuAction = 'edit' | 'edit-and-generate' | 'retry' | 'delete';
 
 type AdventureMessageContextMenuProps = {
   x: number;
   y: number;
   canEdit: boolean;
+  canEditAndGenerate: boolean;
   canRetry: boolean;
   canDelete: boolean;
   onAction: (action: ContextMenuAction) => void;
@@ -16,6 +17,7 @@ export function AdventureMessageContextMenu({
   x,
   y,
   canEdit,
+  canEditAndGenerate,
   canRetry,
   canDelete,
   onAction,
@@ -54,6 +56,15 @@ export function AdventureMessageContextMenu({
           className="w-full px-3 py-1.5 text-left text-sm text-foreground hover:bg-accent"
         >
           Edit
+        </button>
+      )}
+      {canEditAndGenerate && (
+        <button
+          type="button"
+          onClick={() => { onAction('edit-and-generate'); onDismiss(); }}
+          className="w-full px-3 py-1.5 text-left text-sm text-foreground hover:bg-accent"
+        >
+          Edit and generate
         </button>
       )}
       {canRetry && (

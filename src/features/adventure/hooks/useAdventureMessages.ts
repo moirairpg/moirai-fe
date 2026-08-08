@@ -43,18 +43,11 @@ type UseAdventureMessagesResult = {
   replaceMessageContent: (id: string, content: string) => void;
 };
 
-const saidPrefixRegex = /^(.+?) said[,:]?\s*/;
-
-function stripSaidPrefix(content: string): string {
-  return content.replace(saidPrefixRegex, '');
-}
-
-function toAdventureMessage(m: MessageSummary, narratorName: string | undefined): AdventureMessage {
+function toAdventureMessage(m: MessageSummary): AdventureMessage {
   return {
     id: m.id,
     role: m.role === 'user' ? 'user' : 'narrator',
-    content: stripSaidPrefix(m.content),
-    narratorName: m.role !== 'user' ? narratorName : undefined,
+    content: m.content,
     authorName: m.authorCharacterName ?? undefined,
     authorId: m.authorId ?? undefined,
   };
@@ -70,7 +63,6 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   const [hasMore, setHasMore] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const knownIds = useRef(new Set<string>());
-  const narratorNameRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     setMessages([]);
@@ -93,7 +85,6 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
         setNarratorName(name);
         setRoster(adv.roster ?? []);
         setPermissions(adv.permissions ?? []);
-        narratorNameRef.current = name;
 
         return apiFetch(`/api/adventures/${adventureId}/messages?size=50`)
           .then((res) => res.json())
@@ -102,7 +93,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
             const reversed = [...data.data].reverse();
             const mapped = reversed.map((m) => {
               knownIds.current.add(m.id);
-              return toAdventureMessage(m, name);
+              return toAdventureMessage(m);
             });
             setMessages(mapped);
           });
@@ -124,7 +115,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
           .filter((m) => !knownIds.current.has(m.id))
           .map((m) => {
             knownIds.current.add(m.id);
-            return toAdventureMessage(m, narratorNameRef.current);
+            return toAdventureMessage(m);
           });
         setMessages((prev) => [...newMessages, ...prev]);
       })

@@ -28,7 +28,7 @@ function colorForName(name: string): string {
 
 type AdventureMessageBlockProps = {
   message: AdventureMessage;
-  currentCharacterName?: string;
+  currentUserId?: string;
   isEditing?: boolean;
   onContextMenu?: (e: React.MouseEvent) => void;
   onEditConfirm?: (newContent: string) => void;
@@ -37,7 +37,7 @@ type AdventureMessageBlockProps = {
 
 export function AdventureMessageBlock({
   message,
-  currentCharacterName,
+  currentUserId,
   isEditing = false,
   onContextMenu,
   onEditConfirm,
@@ -99,7 +99,7 @@ export function AdventureMessageBlock({
   }
 
   const isUser = message.role === 'user';
-  const isOwn = isUser && !!message.authorName && message.authorName === currentCharacterName;
+  const isOwn = isUser && !!message.authorId && message.authorId === currentUserId;
   const prefixClass = !isUser
     ? 'text-green-400'
     : isOwn
@@ -109,7 +109,7 @@ export function AdventureMessageBlock({
         : 'text-cyan-400';
   const prefix = isUser
     ? (isOwn ? 'You' : (message.authorName ?? 'You'))
-    : (message.narratorName ?? 'Narrator');
+    : (message.authorName ?? 'Narrator');
 
   return (
     <div

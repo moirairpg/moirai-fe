@@ -18,12 +18,6 @@ type AdventurePageProps = {
   adventureId: string;
 };
 
-const saidPrefixRegex = /^(.+?) said[,:]?\s*/;
-
-function stripSaidPrefix(content: string): string {
-  return content.replace(saidPrefixRegex, '');
-}
-
 type FormatButton = {
   icon: typeof Bold;
   marker: string;
@@ -73,9 +67,12 @@ type ContextMenuState = {
   y: number;
   messageId: string;
   canEdit: boolean;
+  canEditAndGenerate: boolean;
   canRetry: boolean;
   canDelete: boolean;
 } | null;
+
+type EditingState = { messageId: string; mode: 'edit' | 'edit-and-generate' } | null;
 
 export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const { t } = useTranslation('adventure');
@@ -85,7 +82,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<EditingState>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -114,7 +111,6 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     messages,
     loadError,
     adventureName,
-    narratorName,
     roster,
     permissions,
     appendMessage,
@@ -128,13 +124,12 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   } = useAdventureMessages(adventureId);
 
   const myMembership = roster.find((m) => m.playerUsername === user?.username);
-  const myCharacterName = myMembership?.name;
   const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
 
   const reversedMessages = messages.slice().reverse();
   const lastPlayerMessage = reversedMessages.find((m) => m.role === 'user');
   const lastNarratorMessage = reversedMessages.find((m) => m.role === 'narrator');
-  const ownsLastPlayerMessage = Boolean(myCharacterName) && lastPlayerMessage?.authorName === myCharacterName;
+  const ownsLastPlayerMessage = Boolean(user?.publicId) && lastPlayerMessage?.authorId === user?.publicId;
 
   const handleUpdate = useCallback((update: AdventureMessageUpdate) => {
     switch (update.change) {
@@ -147,7 +142,10 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         break;
 
       case 'MESSAGE_EDITED':
-        replaceMessageContent(update.messageId, stripSaidPrefix(update.message.content));
+        replaceMessageContent(update.messageId, update.message.content);
+        break;
+
+      case 'MESSAGES_REMOVED_AFTER':
         removeMessagesAfterId(update.messageId);
         break;
 
@@ -156,9 +154,9 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         const msg: AdventureMessage = {
           id: update.message.id,
           role: isUser ? 'user' : 'narrator',
-          content: stripSaidPrefix(update.message.content),
-          narratorName: !isUser ? narratorName : undefined,
+          content: update.message.content,
           authorName: update.message.authorCharacterName ?? undefined,
+          authorId: update.message.authorId ?? undefined,
         };
 
         appendMessage(msg);
@@ -176,7 +174,6 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesFromIdInclusive,
     removeMessagesAfterId,
     replaceMessageContent,
-    narratorName,
   ]);
 
   const {
@@ -187,6 +184,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     retryFromMessage,
     say,
     editMessage,
+    editMessageAndGenerateOutput,
     deleteMessage,
   } = useAdventureWebSocket(adventureId, handleUpdate);
 
@@ -231,12 +229,15 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const handleContextMenu = (e: React.MouseEvent, message: AdventureMessage) => {
     e.preventDefault();
 
+    const isOwnMessage = Boolean(user?.publicId) && message.authorId === user?.publicId;
+
     if (canManage) {
       setContextMenu({
         x: e.clientX,
         y: e.clientY,
         messageId: message.id,
         canEdit: true,
+        canEditAndGenerate: message.role === 'user',
         canRetry: message.role === 'narrator',
         canDelete: true,
       });
@@ -244,14 +245,14 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
       return;
     }
 
-    if (!ownsLastPlayerMessage) {
+    const isOwnLatestMessage = message.id === lastPlayerMessage?.id && ownsLastPlayerMessage;
+    const isLatestNarration = message.id === lastNarratorMessage?.id;
+
+    if (!isOwnMessage && !isLatestNarration) {
       return;
     }
 
-    const isOwnLatestMessage = message.id === lastPlayerMessage?.id;
-    const isLatestNarration = message.id === lastNarratorMessage?.id;
-
-    if (!isOwnLatestMessage && !isLatestNarration) {
+    if (isLatestNarration && !ownsLastPlayerMessage) {
       return;
     }
 
@@ -259,15 +260,19 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
       x: e.clientX,
       y: e.clientY,
       messageId: message.id,
-      canEdit: isOwnLatestMessage,
-      canRetry: true,
+      canEdit: isOwnMessage,
+      canEditAndGenerate: isOwnLatestMessage,
+      canRetry: isLatestNarration || isOwnLatestMessage,
       canDelete: false,
     });
   };
 
-  const handleContextAction = (action: 'edit' | 'retry' | 'delete', messageId: string) => {
-    if (action === 'edit') {
-      setEditingMessageId(messageId);
+  const handleContextAction = (
+    action: 'edit' | 'edit-and-generate' | 'retry' | 'delete',
+    messageId: string,
+  ) => {
+    if (action === 'edit' || action === 'edit-and-generate') {
+      setEditing({ messageId, mode: action });
       return;
     }
 
@@ -285,7 +290,15 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   };
 
   const handleEditConfirm = (messageId: string, newContent: string) => {
-    setEditingMessageId(null);
+    const mode = editing?.mode;
+
+    setEditing(null);
+
+    if (mode === 'edit-and-generate') {
+      editMessageAndGenerateOutput(messageId, newContent);
+      return;
+    }
+
     editMessage(messageId, newContent);
   };
 
@@ -335,15 +348,15 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
       <AdventureMessagesPane
         adventureId={adventureId}
         messages={messages}
-        currentCharacterName={myCharacterName}
+        currentUserId={user?.publicId}
         isGenerating={isGenerating}
         hasMore={hasMore}
         isFetchingMore={isFetchingMore}
         onFetchMore={fetchMore}
-        editingMessageId={editingMessageId}
+        editingMessageId={editing?.messageId ?? null}
         onContextMenu={handleContextMenu}
         onEditConfirm={handleEditConfirm}
-        onEditCancel={() => setEditingMessageId(null)}
+        onEditCancel={() => setEditing(null)}
       />
 
       {contextMenu &&
@@ -352,6 +365,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
             x={contextMenu.x}
             y={contextMenu.y}
             canEdit={contextMenu.canEdit}
+            canEditAndGenerate={contextMenu.canEditAndGenerate}
             canRetry={contextMenu.canRetry}
             canDelete={contextMenu.canDelete}
             onAction={(action) => handleContextAction(action, contextMenu.messageId)}

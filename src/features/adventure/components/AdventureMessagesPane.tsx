@@ -7,7 +7,7 @@ import type { AdventureMessage } from '../types';
 type AdventureMessagesPaneProps = {
   adventureId: string;
   messages: AdventureMessage[];
-  currentCharacterName?: string;
+  currentUserId?: string;
   isGenerating: boolean;
   hasMore: boolean;
   isFetchingMore: boolean;
@@ -21,7 +21,7 @@ type AdventureMessagesPaneProps = {
 export function AdventureMessagesPane({
   adventureId,
   messages,
-  currentCharacterName,
+  currentUserId,
   isGenerating,
   hasMore,
   isFetchingMore,
@@ -92,7 +92,7 @@ export function AdventureMessagesPane({
             <AdventureMessageBlock
               key={message.id}
               message={message}
-              currentCharacterName={currentCharacterName}
+              currentUserId={currentUserId}
               isEditing={editingMessageId === message.id}
               onContextMenu={(e) => onContextMenu?.(e, message)}
               onEditConfirm={(newContent) => onEditConfirm?.(message.id, newContent)}

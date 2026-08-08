@@ -4,7 +4,6 @@ export type AdventureMessage = {
   id: string;
   role: AdventureMessageRole;
   content: string;
-  narratorName?: string;
   authorName?: string;
   authorId?: string;
 };
