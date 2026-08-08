@@ -44,7 +44,7 @@ const EMPTY: FormState = {
   moderation: 'STRICT',
   adventureStart: '',
   modelConfiguration: { aiModel: 'GPT54_MINI', maxTokenLimit: 100, temperature: 0.8 },
-  contextAttributes: { nudge: '', authorsNote: '', bump: '', bumpFrequency: 0 },
+  contextAttributes: { nudge: '', authorsNote: '', scene: '', bump: '', bumpFrequency: 0 },
 };
 
 

@@ -3,6 +3,7 @@ import { apiFetch } from '../../../utils/api';
 import { parseCommand } from '../commands/parser';
 import type { AdventureMessage } from '../types';
 import type { ParsedCommand } from '../commands/types';
+import type { ContextAttributes } from '../../sidebar/types';
 
 export type AdventureActions = {
   startAdventure: () => void;
@@ -17,12 +18,18 @@ type UseAdventureCommandsResult = {
     appendMessage: (msg: AdventureMessage) => void,
     setIsGenerating: (v: boolean) => void,
   ) => boolean;
+  handleParsedCommand: (
+    command: ParsedCommand,
+    appendMessage: (msg: AdventureMessage) => void,
+    setIsGenerating: (v: boolean) => void,
+  ) => void;
 };
 
 export function useAdventureCommands(
   adventureId: string,
   messages: AdventureMessage[],
   actions: AdventureActions,
+  onContextUpdated: (patch: Partial<ContextAttributes>) => void,
 ): UseAdventureCommandsResult {
   const handleInput = useCallback(
     (
@@ -54,13 +61,24 @@ export function useAdventureCommands(
         return true;
       }
 
-      dispatchCommand(parsed, adventureId, messages, actions, appendMessage, setIsGenerating);
+      dispatchCommand(parsed, adventureId, messages, actions, appendMessage, setIsGenerating, onContextUpdated);
       return true;
     },
-    [adventureId, messages, actions],
+    [adventureId, messages, actions, onContextUpdated],
   );
 
-  return { handleInput };
+  const handleParsedCommand = useCallback(
+    (
+      command: ParsedCommand,
+      appendMessage: (msg: AdventureMessage) => void,
+      setIsGenerating: (v: boolean) => void,
+    ) => {
+      dispatchCommand(command, adventureId, messages, actions, appendMessage, setIsGenerating, onContextUpdated);
+    },
+    [adventureId, messages, actions, onContextUpdated],
+  );
+
+  return { handleInput, handleParsedCommand };
 }
 
 function systemMessage(content: string): AdventureMessage {
@@ -74,6 +92,7 @@ function dispatchCommand(
   actions: AdventureActions,
   appendMessage: (msg: AdventureMessage) => void,
   setIsGenerating: (v: boolean) => void,
+  onContextUpdated: (patch: Partial<ContextAttributes>) => void,
 ) {
   switch (command.name) {
     case 'start':
@@ -109,7 +128,10 @@ function dispatchCommand(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nudge: command.text }),
       })
-        .then(() => appendMessage(systemMessage('Nudge updated.')))
+        .then(() => {
+          onContextUpdated({ nudge: command.text });
+          appendMessage(systemMessage('Nudge updated.'));
+        })
         .catch(() => appendMessage(systemMessage('Failed to update nudge.')));
       break;
 
@@ -119,7 +141,10 @@ function dispatchCommand(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ authorsNote: command.text }),
       })
-        .then(() => appendMessage(systemMessage("Author's note updated.")))
+        .then(() => {
+          onContextUpdated({ authorsNote: command.text });
+          appendMessage(systemMessage("Author's note updated."));
+        })
         .catch(() => appendMessage(systemMessage("Failed to update author's note.")));
       break;
 
@@ -129,7 +154,10 @@ function dispatchCommand(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scene: command.text }),
       })
-        .then(() => appendMessage(systemMessage('Scene updated.')))
+        .then(() => {
+          onContextUpdated({ scene: command.text });
+          appendMessage(systemMessage('Scene updated.'));
+        })
         .catch(() => appendMessage(systemMessage('Failed to update scene.')));
       break;
 
@@ -139,7 +167,10 @@ function dispatchCommand(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bump: command.text, bumpFrequency: command.frequency }),
       })
-        .then(() => appendMessage(systemMessage(`Bump updated (every ${command.frequency} messages).`)))
+        .then(() => {
+          onContextUpdated({ bump: command.text, bumpFrequency: command.frequency });
+          appendMessage(systemMessage(`Bump updated (every ${command.frequency} messages).`));
+        })
         .catch(() => appendMessage(systemMessage('Failed to update bump.')));
       break;
   }

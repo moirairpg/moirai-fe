@@ -101,6 +101,15 @@
       "italic": "Italic",
       "strikethrough": "Strikethrough"
     },
+    "commandForm": {
+      "fields": {
+        "say": { "text": "Narrator line" },
+        "nudge": { "text": "Nudge" },
+        "authors-note": { "text": "Author's note" },
+        "scene": { "text": "Scene" },
+        "bump": { "text": "Bump", "frequency": "Bump Frequency" }
+      }
+    },
     "generatingPhrases": [
       "Weaving the tale...",
       "Consulting the oracle...",

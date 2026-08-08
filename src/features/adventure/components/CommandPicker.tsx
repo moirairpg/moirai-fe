@@ -55,12 +55,7 @@ export function CommandPicker({ input, onSelect, onDismiss }: CommandPickerProps
             i === activeIndex ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent/50'
           }`}
         >
-          <span className="font-mono text-primary">
-            /{cmd.name}
-            {cmd.args.map((arg) => (
-              <span key={arg.name} className="text-muted-foreground"> {arg.name}:{arg.type}</span>
-            ))}
-          </span>
+          <span className="font-mono text-primary">/{cmd.name}</span>
           <span className="text-muted-foreground">{cmd.description}</span>
         </button>
       ))}
