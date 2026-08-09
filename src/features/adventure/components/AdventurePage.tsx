@@ -257,6 +257,8 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const handleContextMenu = (e: React.MouseEvent, message: AdventureMessage) => {
     e.preventDefault();
 
+    if (isGenerating) return;
+
     const isOwnMessage = Boolean(user?.publicId) && message.authorId === user?.publicId;
 
     if (canManage) {
@@ -387,7 +389,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         onEditCancel={() => setEditing(null)}
       />
 
-      {contextMenu &&
+      {contextMenu && !isGenerating &&
         createPortal(
           <AdventureMessageContextMenu
             x={contextMenu.x}
@@ -408,6 +410,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
           <CommandArgumentForm
             command={activeCommand}
             contextAttributes={contextAttributes}
+            isGenerating={isGenerating}
             onSubmit={handleCommandFormSubmit}
             onCancel={handleCommandFormCancel}
           />
@@ -419,15 +422,16 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
                   key={marker}
                   type="button"
                   title={t(titleKey)}
+                  disabled={isGenerating}
                   onMouseDown={(e) => { e.preventDefault(); handleFormat(marker); }}
-                  className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
                 >
                   <Icon className="h-3.5 w-3.5" />
                 </button>
               ))}
             </div>
 
-            {pickerOpen && (
+            {pickerOpen && !isGenerating && (
               <CommandPicker
                 input={input}
                 onSelect={handleCommandSelect}

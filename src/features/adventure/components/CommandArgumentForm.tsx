@@ -4,12 +4,13 @@ import { useCommandForm } from '../hooks/useCommandForm';
 import type { CommandDefinition, ParsedCommand } from '../commands/types';
 import type { ContextAttributes } from '../../sidebar/types';
 
-const INPUT_CLASS = 'rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring';
+const INPUT_CLASS = 'rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 const TEXTAREA_CLASS = `resize-y ${INPUT_CLASS}`;
 
 type CommandArgumentFormProps = {
   command: CommandDefinition;
   contextAttributes: ContextAttributes;
+  isGenerating: boolean;
   onSubmit: (command: ParsedCommand) => void;
   onCancel: () => void;
 };
@@ -17,6 +18,7 @@ type CommandArgumentFormProps = {
 export function CommandArgumentForm({
   command,
   contextAttributes,
+  isGenerating,
   onSubmit,
   onCancel,
 }: CommandArgumentFormProps) {
@@ -26,7 +28,7 @@ export function CommandArgumentForm({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!isValid) return;
+    if (!isValid || isGenerating) return;
 
     const parsed = toCommand(command, values);
 
@@ -69,6 +71,7 @@ export function CommandArgumentForm({
               value={values[arg.name] ?? ''}
               onChange={(e) => setValue(arg.name, e.target.value)}
               className={INPUT_CLASS}
+              disabled={isGenerating}
               autoFocus={index === 0}
             />
           ) : (
@@ -78,6 +81,7 @@ export function CommandArgumentForm({
               value={values[arg.name] ?? ''}
               onChange={(e) => setValue(arg.name, e.target.value)}
               className={TEXTAREA_CLASS}
+              disabled={isGenerating}
               autoFocus={index === 0}
             />
           )}
@@ -87,8 +91,8 @@ export function CommandArgumentForm({
       <div className="flex gap-2">
         <button
           type="submit"
-          disabled={!isValid}
-          className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          disabled={!isValid || isGenerating}
+          className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {t('form.actions.save')}
         </button>
