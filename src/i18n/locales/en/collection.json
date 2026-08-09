@@ -32,5 +32,10 @@
     "loading": "Loading...",
     "empty": "Nothing here yet.",
     "loadMore": "Load more"
+  },
+  "create": {
+    "adventure": "New adventure",
+    "world": "New world",
+    "character": "New character"
   }
 }

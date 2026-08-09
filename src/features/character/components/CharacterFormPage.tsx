@@ -35,6 +35,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const [loading, setLoading] = useState(mode !== 'create');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [imagePromptOpen, setImagePromptOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -147,7 +148,18 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
     e.preventDefault();
     setSubmitted(true);
     setError('');
+
     if (!canSave) return;
+
+    if (mode === 'create' && !imageFile && !imageUrl) {
+      setImagePromptOpen(true);
+      return;
+    }
+
+    await submitCharacter(false);
+  };
+
+  const submitCharacter = async (shouldGenerateImage: boolean) => {
     setSaving(true);
 
     const body = {
@@ -171,12 +183,17 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
         const data = await res.json();
         const id = data.id;
 
-        const file = imageFile ?? await (async () => {
-          const blob = await api.imageGenerations.generate(buildPrompt(), { silent: true });
-          return new File([blob], 'generated.png', { type: 'image/png' });
-        })();
-        const uploadRes = await api.character.uploadImage(id, file, { silent: true });
-        if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
+        const file = imageFile ?? (shouldGenerateImage
+          ? await (async () => {
+              const blob = await api.imageGenerations.generate(buildPrompt(), { silent: true });
+              return new File([blob], 'generated.png', { type: 'image/png' });
+            })()
+          : null);
+
+        if (file) {
+          const uploadRes = await api.character.uploadImage(id, file, { silent: true });
+          if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
+        }
 
         navigate(`/character/${id}/view`);
       } else {
@@ -349,6 +366,19 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           message={t('confirm.deleteCharacter', { ns: 'common' })}
           onConfirm={handleDelete}
           onClose={() => setConfirmingDelete(false)}
+        />
+      )}
+
+      {imagePromptOpen && (
+        <ConfirmDialog
+          message={t('imagePrompt.message', { ns: 'common' })}
+          confirmLabel={t('imagePrompt.generate', { ns: 'common' })}
+          cancelLabel={t('imagePrompt.skip', { ns: 'common' })}
+          dismissLabel={t('imagePrompt.cancel', { ns: 'common' })}
+          confirmVariant="primary"
+          onConfirm={() => { setImagePromptOpen(false); submitCharacter(true); }}
+          onCancel={() => { setImagePromptOpen(false); submitCharacter(false); }}
+          onClose={() => setImagePromptOpen(false)}
         />
       )}
     </form>

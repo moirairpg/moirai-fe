@@ -44,6 +44,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const [loading, setLoading] = useState(mode !== 'create');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [imagePromptOpen, setImagePromptOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uiImagePositionX, setUiImagePositionX] = useState(0.5);
@@ -178,7 +179,18 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     e.preventDefault();
     setSubmitted(true);
     setError('');
+
     if (!isValid) return;
+
+    if (mode === 'create' && !imageFile && !imageUrl) {
+      setImagePromptOpen(true);
+      return;
+    }
+
+    await submitWorld(false);
+  };
+
+  const submitWorld = async (shouldGenerateImage: boolean) => {
     setSaving(true);
 
     try {
@@ -207,7 +219,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         if (imageFile) {
           const uploadRes = await api.world.uploadImage(id, imageFile, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
-        } else {
+        } else if (shouldGenerateImage) {
           const prompt = buildImagePrompt({
             subject: 'world',
             fields: [
@@ -471,6 +483,19 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
           message={t('confirm.deleteWorld', { ns: 'common' })}
           onConfirm={handleDelete}
           onClose={() => setConfirmingDelete(false)}
+        />
+      )}
+
+      {imagePromptOpen && (
+        <ConfirmDialog
+          message={t('imagePrompt.message', { ns: 'common' })}
+          confirmLabel={t('imagePrompt.generate', { ns: 'common' })}
+          cancelLabel={t('imagePrompt.skip', { ns: 'common' })}
+          dismissLabel={t('imagePrompt.cancel', { ns: 'common' })}
+          confirmVariant="primary"
+          onConfirm={() => { setImagePromptOpen(false); submitWorld(true); }}
+          onCancel={() => { setImagePromptOpen(false); submitWorld(false); }}
+          onClose={() => setImagePromptOpen(false)}
         />
       )}
     </form>

@@ -19,6 +19,12 @@
     "removeCharacter": "Remover este personagem da aventura?",
     "leaveAdventure": "Sair desta aventura?"
   },
+  "imagePrompt": {
+    "message": "Este item não tem imagem. Deseja gerar uma?",
+    "generate": "Gerar imagem",
+    "skip": "Criar sem imagem",
+    "cancel": "Cancelar"
+  },
   "imageBanner": {
     "dragHint": "Clique e segure para arrastar e reposicionar a imagem",
     "viewImage": "Ver imagem",
