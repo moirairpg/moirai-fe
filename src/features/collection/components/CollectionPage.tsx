@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../utils/api';
 import { useAdventureCollection } from '../hooks/useAdventureCollection';
@@ -7,16 +7,14 @@ import { useCharacterCollection } from '../hooks/useCharacterCollection';
 import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
 import { CardGrid } from './CardGrid';
 import { EntityCard } from './EntityCard';
+import { CreateAssetCard } from './CreateAssetCard';
 import type { CollectionView, CollectionTab } from '../types';
 
 type TabProps = { view: CollectionView };
 
 function AdventureTab({ view }: TabProps) {
-  const navigate = useNavigate();
+  const { t } = useTranslation('collection');
   const { items, isLoading, hasMore, loadMore, removeItem } = useAdventureCollection(view);
-  const handlePlay = (id: string) => navigate(`/adventure/play/${id}`);
-  const handleView = (id: string) => navigate(`/adventure/${id}/view`);
-  const handleEdit = (id: string) => navigate(`/adventure/${id}/edit`);
   const handleDelete = (id: string) => apiFetch(`/api/adventures/${id}`, { method: 'DELETE' }).then((res) => {
     if (!res.ok) return;
     removeItem(id);
@@ -25,37 +23,34 @@ function AdventureTab({ view }: TabProps) {
 
   return (
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
+      {view === 'MY_STUFF' && <CreateAssetCard to="/adventure/new" label={t('create.adventure')} />}
       {items.map((a) => (
-        <EntityCard key={a.id} kind="adventure" id={a.id} name={a.name} description={a.description} visibility={a.visibility} imageUrl={a.imageUrl} canWrite={a.canWrite} onPlay={handlePlay} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
+        <EntityCard key={a.id} kind="adventure" id={a.id} name={a.name} description={a.description} visibility={a.visibility} imageUrl={a.imageUrl} canWrite={a.canWrite} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );
 }
 
 function WorldTab({ view }: TabProps) {
-  const navigate = useNavigate();
+  const { t } = useTranslation('collection');
   const { items, isLoading, hasMore, loadMore, removeItem } = useWorldCollection(view);
-  const handleView = (id: string) => navigate(`/world/${id}/view`);
-  const handleEdit = (id: string) => navigate(`/world/${id}/edit`);
   const handleDelete = (id: string) => apiFetch(`/api/worlds/${id}`, { method: 'DELETE' }).then((res) => { if (res.ok) removeItem(id); }).catch(() => {});
 
   return (
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
+      {view === 'MY_STUFF' && <CreateAssetCard to="/world/new" label={t('create.world')} />}
       {items.map((w) => (
-        <EntityCard key={w.id} kind="world" id={w.id} name={w.name} description={w.description} visibility={w.visibility} imageUrl={w.imageUrl} canWrite={w.canWrite} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
+        <EntityCard key={w.id} kind="world" id={w.id} name={w.name} description={w.description} visibility={w.visibility} imageUrl={w.imageUrl} canWrite={w.canWrite} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );
 }
 
 function CharacterTab() {
-  const navigate = useNavigate();
   const { t } = useTranslation('character');
   const { items, isLoading, hasMore, loadMore, removeItem } = useCharacterCollection();
   const { labelOf } = useCharacterClasses();
 
-  const handleView = (id: string) => navigate(`/character/${id}/view`);
-  const handleEdit = (id: string) => navigate(`/character/${id}/edit`);
   const handleDelete = (id: string) => apiFetch(`/api/player-characters/${id}`, { method: 'DELETE' }).then((res) => { if (res.ok) removeItem(id); }).catch(() => {});
 
   const classLabelOf = (characterClass: string | null) => {
@@ -65,8 +60,9 @@ function CharacterTab() {
 
   return (
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
+      <CreateAssetCard to="/character/new" label={t('create.character', { ns: 'collection' })} />
       {items.map((c) => (
-        <EntityCard key={c.id} kind="character" id={c.id} name={c.name} classLabel={classLabelOf(c.characterClass)} imageUrl={c.imageUrl} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
+        <EntityCard key={c.id} kind="character" id={c.id} name={c.name} classLabel={classLabelOf(c.characterClass)} imageUrl={c.imageUrl} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );

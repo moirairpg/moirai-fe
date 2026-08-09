@@ -1,7 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../../../utils/api';
 import type { AdventureMessage } from '../types';
-import type { AdventureMembershipSummary, Permission } from '../../sidebar/types';
+import type { AdventureMembershipSummary, ContextAttributes, Permission } from '../../sidebar/types';
+
+const EMPTY_CONTEXT_ATTRIBUTES: ContextAttributes = {
+  nudge: '',
+  authorsNote: '',
+  scene: '',
+  bump: '',
+  bumpFrequency: 0,
+};
 
 type AdventureData = {
   name: string | null;
@@ -9,6 +17,13 @@ type AdventureData = {
   adventureStart: string | null;
   roster: AdventureMembershipSummary[] | null;
   permissions: Permission[] | null;
+  contextAttributes: {
+    nudge: string | null;
+    authorsNote: string | null;
+    scene: string | null;
+    bump: string | null;
+    bumpFrequency: number | null;
+  } | null;
 };
 
 type MessageSummary = {
@@ -33,6 +48,8 @@ type UseAdventureMessagesResult = {
   narratorName: string | undefined;
   roster: AdventureMembershipSummary[];
   permissions: Permission[];
+  contextAttributes: ContextAttributes;
+  updateContextAttributes: (patch: Partial<ContextAttributes>) => void;
   appendMessage: (message: AdventureMessage) => void;
   fetchMore: () => void;
   hasMore: boolean;
@@ -58,6 +75,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   const [narratorName, setNarratorName] = useState<string | undefined>(undefined);
   const [roster, setRoster] = useState<AdventureMembershipSummary[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [contextAttributes, setContextAttributes] = useState<ContextAttributes>(EMPTY_CONTEXT_ATTRIBUTES);
   const [messages, setMessages] = useState<AdventureMessage[]>([]);
   const [loadError, setLoadError] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -71,6 +89,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     setNarratorName(undefined);
     setRoster([]);
     setPermissions([]);
+    setContextAttributes(EMPTY_CONTEXT_ATTRIBUTES);
     setLoadError(false);
     knownIds.current = new Set();
 
@@ -85,6 +104,13 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
         setNarratorName(name);
         setRoster(adv.roster ?? []);
         setPermissions(adv.permissions ?? []);
+        setContextAttributes({
+          nudge: adv.contextAttributes?.nudge ?? '',
+          authorsNote: adv.contextAttributes?.authorsNote ?? '',
+          scene: adv.contextAttributes?.scene ?? '',
+          bump: adv.contextAttributes?.bump ?? '',
+          bumpFrequency: adv.contextAttributes?.bumpFrequency ?? 0,
+        });
 
         return apiFetch(`/api/adventures/${adventureId}/messages?size=50`)
           .then((res) => res.json())
@@ -122,6 +148,10 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
       .catch(() => {})
       .finally(() => setIsFetchingMore(false));
   }, [adventureId, messages, isFetchingMore]);
+
+  const updateContextAttributes = useCallback((patch: Partial<ContextAttributes>) => {
+    setContextAttributes((prev) => ({ ...prev, ...patch }));
+  }, []);
 
   const appendMessage = useCallback((message: AdventureMessage) => {
     if (knownIds.current.has(message.id)) return;
@@ -167,6 +197,8 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     narratorName,
     roster,
     permissions,
+    contextAttributes,
+    updateContextAttributes,
     appendMessage,
     fetchMore,
     hasMore,

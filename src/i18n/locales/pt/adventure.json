@@ -101,6 +101,15 @@
       "italic": "Itálico",
       "strikethrough": "Tachado"
     },
+    "commandForm": {
+      "fields": {
+        "say": { "text": "Fala do narrador" },
+        "nudge": { "text": "Dica" },
+        "authors-note": { "text": "Nota do autor" },
+        "scene": { "text": "Cena" },
+        "bump": { "text": "Lembrete", "frequency": "Frequência de lembrete" }
+      }
+    },
     "generatingPhrases": [
       "Tecendo a história...",
       "Consultando o oráculo...",

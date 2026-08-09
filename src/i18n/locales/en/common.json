@@ -19,6 +19,12 @@
     "removeCharacter": "Remove this character from the adventure?",
     "leaveAdventure": "Leave this adventure?"
   },
+  "imagePrompt": {
+    "message": "This asset has no image. Would you like to generate one?",
+    "generate": "Generate image",
+    "skip": "Create without image",
+    "cancel": "Cancel"
+  },
   "imageBanner": {
     "dragHint": "Click and hold to drag and reposition image",
     "viewImage": "View image",

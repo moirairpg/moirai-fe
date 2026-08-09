@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,13 +6,16 @@ import { Bold, Italic, Strikethrough, Pencil, Eye } from 'lucide-react';
 import { AdventureMessagesPane } from './AdventureMessagesPane';
 import { AdventureMessageContextMenu } from './AdventureMessageContextMenu';
 import { CommandPicker } from './CommandPicker';
+import { CommandArgumentForm } from './CommandArgumentForm';
 import { useAdventureMessages } from '../hooks/useAdventureMessages';
 import { useAdventureWebSocket } from '../hooks/useAdventureWebSocket';
 import { useAdventureCommands } from '../hooks/useAdventureCommands';
+import { speakerKey, useSpeakerColors } from '../hooks/useSpeakerColors';
 import { useAuth } from '../../../components/auth/context/AuthContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 import type { AdventureMessageUpdate } from '../hooks/useAdventureWebSocket';
 import type { AdventureMessage } from '../types';
-import type { CommandDefinition } from '../commands/types';
+import type { CommandDefinition, ParsedCommand } from '../commands/types';
 
 type AdventurePageProps = {
   adventureId: string;
@@ -78,22 +81,31 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const { t } = useTranslation('adventure');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDarkMode } = useTheme();
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
   const [editing, setEditing] = useState<EditingState>(null);
+  const [activeCommand, setActiveCommand] = useState<CommandDefinition | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isCommandFormOpen = activeCommand !== null;
 
   useEffect(() => {
+    if (isCommandFormOpen) return;
+
     textareaRef.current?.focus();
-  }, [adventureId]);
+  }, [adventureId, isCommandFormOpen]);
 
   useEffect(() => {
-    if (!isGenerating) textareaRef.current?.focus();
-  }, [isGenerating]);
+    if (isGenerating || isCommandFormOpen) return;
+
+    textareaRef.current?.focus();
+  }, [isGenerating, isCommandFormOpen]);
 
   useEffect(() => {
+    if (isCommandFormOpen) return;
+
     const onFocus = () => { if (!textareaRef.current?.disabled) textareaRef.current?.focus(); };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onFocus);
@@ -101,7 +113,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onFocus);
     };
-  }, []);
+  }, [isCommandFormOpen]);
 
   useEffect(() => {
     setPickerOpen(input.startsWith('/'));
@@ -113,6 +125,8 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     adventureName,
     roster,
     permissions,
+    contextAttributes,
+    updateContextAttributes,
     appendMessage,
     fetchMore,
     hasMore,
@@ -122,6 +136,15 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesAfterId,
     replaceMessageContent,
   } = useAdventureMessages(adventureId);
+
+  const speakerKeys = useMemo(
+    () => Array.from(new Set(messages.filter((m) => m.role !== 'system').map(speakerKey))),
+    [messages],
+  );
+
+  const speakerColors = useSpeakerColors(adventureId, speakerKeys, isDarkMode);
+
+  const getSpeakerColor = (message: AdventureMessage) => speakerColors[speakerKey(message)];
 
   const myMembership = roster.find((m) => m.playerUsername === user?.username);
   const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
@@ -188,10 +211,11 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     deleteMessage,
   } = useAdventureWebSocket(adventureId, handleUpdate);
 
-  const { handleInput } = useAdventureCommands(
+  const { handleInput, handleParsedCommand } = useAdventureCommands(
     adventureId,
     messages,
     { startAdventure, go, retry, say },
+    updateContextAttributes,
   );
 
   const submit = useCallback(() => {
@@ -221,13 +245,31 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   };
 
   const handleCommandSelect = (cmd: CommandDefinition) => {
-    setInput(`/${cmd.name}${cmd.args.length > 0 ? ' ' : ''}`);
+    if (cmd.args.length > 0) {
+      setInput('');
+      setPickerOpen(false);
+      setActiveCommand(cmd);
+      return;
+    }
+
+    setInput(`/${cmd.name}`);
     setPickerOpen(false);
     textareaRef.current?.focus();
   };
 
+  const handleCommandFormSubmit = (command: ParsedCommand) => {
+    setActiveCommand(null);
+    handleParsedCommand(command, appendMessage, setIsGenerating);
+  };
+
+  const handleCommandFormCancel = () => {
+    setActiveCommand(null);
+  };
+
   const handleContextMenu = (e: React.MouseEvent, message: AdventureMessage) => {
     e.preventDefault();
+
+    if (isGenerating) return;
 
     const isOwnMessage = Boolean(user?.publicId) && message.authorId === user?.publicId;
 
@@ -349,6 +391,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         adventureId={adventureId}
         messages={messages}
         currentUserId={user?.publicId}
+        getSpeakerColor={getSpeakerColor}
         isGenerating={isGenerating}
         hasMore={hasMore}
         isFetchingMore={isFetchingMore}
@@ -359,7 +402,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         onEditCancel={() => setEditing(null)}
       />
 
-      {contextMenu &&
+      {contextMenu && !isGenerating &&
         createPortal(
           <AdventureMessageContextMenu
             x={contextMenu.x}
@@ -376,52 +419,65 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
       {myMembership && (
       <div className="border-t border-border/50 p-4">
-        <div className="flex gap-1 mb-1.5">
-          {FORMAT_BUTTONS.map(({ icon: Icon, marker, titleKey }) => (
-            <button
-              key={marker}
-              type="button"
-              title={t(titleKey)}
-              onMouseDown={(e) => { e.preventDefault(); handleFormat(marker); }}
-              className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
-            >
-              <Icon className="h-3.5 w-3.5" />
-            </button>
-          ))}
-        </div>
-
-        {pickerOpen && (
-          <CommandPicker
-            input={input}
-            onSelect={handleCommandSelect}
-            onDismiss={() => setPickerOpen(false)}
+        {activeCommand ? (
+          <CommandArgumentForm
+            command={activeCommand}
+            contextAttributes={contextAttributes}
+            isGenerating={isGenerating}
+            onSubmit={handleCommandFormSubmit}
+            onCancel={handleCommandFormCancel}
           />
+        ) : (
+          <>
+            <div className="flex gap-1 mb-1.5">
+              {FORMAT_BUTTONS.map(({ icon: Icon, marker, titleKey }) => (
+                <button
+                  key={marker}
+                  type="button"
+                  title={t(titleKey)}
+                  disabled={isGenerating}
+                  onMouseDown={(e) => { e.preventDefault(); handleFormat(marker); }}
+                  className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                </button>
+              ))}
+            </div>
+
+            {pickerOpen && !isGenerating && (
+              <CommandPicker
+                input={input}
+                onSelect={handleCommandSelect}
+                onDismiss={() => setPickerOpen(false)}
+              />
+            )}
+
+            <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="flex gap-2">
+              <textarea
+                ref={textareaRef}
+                rows={1}
+                className="flex-1 resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+                style={{ minHeight: '2.25rem', maxHeight: '8rem', overflowY: 'auto' }}
+                placeholder={t('page.inputPlaceholder')}
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
+                }}
+                onKeyDown={handleKeyDown}
+                disabled={isGenerating}
+              />
+              <button
+                type="submit"
+                disabled={isGenerating || !input.trim()}
+                className="self-end rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+              >
+                {t('page.send')}
+              </button>
+            </form>
+          </>
         )}
-
-        <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="flex gap-2">
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            className="flex-1 resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-            style={{ minHeight: '2.25rem', maxHeight: '8rem', overflowY: 'auto' }}
-            placeholder={t('page.inputPlaceholder')}
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              e.target.style.height = 'auto';
-              e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
-            }}
-            onKeyDown={handleKeyDown}
-            disabled={isGenerating}
-          />
-          <button
-            type="submit"
-            disabled={isGenerating || !input.trim()}
-            className="self-end rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {t('page.send')}
-          </button>
-        </form>
       </div>
       )}
     </div>

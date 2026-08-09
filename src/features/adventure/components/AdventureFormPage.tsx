@@ -44,7 +44,7 @@ const EMPTY: FormState = {
   moderation: 'STRICT',
   adventureStart: '',
   modelConfiguration: { aiModel: 'GPT54_MINI', maxTokenLimit: 100, temperature: 0.8 },
-  contextAttributes: { nudge: '', authorsNote: '', bump: '', bumpFrequency: 0 },
+  contextAttributes: { nudge: '', authorsNote: '', scene: '', bump: '', bumpFrequency: 0 },
 };
 
 
@@ -172,6 +172,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [imagePromptOpen, setImagePromptOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [worldName, setWorldName] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -496,7 +497,18 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     e.preventDefault();
     setSubmitted(true);
     setError('');
+
     if (!isValid) return;
+
+    if (mode === 'create' && !imageFile && !imageUrl) {
+      setImagePromptOpen(true);
+      return;
+    }
+
+    await submitAdventure(false);
+  };
+
+  const submitAdventure = async (shouldGenerateImage: boolean) => {
     setSaving(true);
 
     try {
@@ -537,7 +549,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           const file = new File([blob], 'world-image.png', { type: blob.type || 'image/png' });
           const uploadRes = await api.adventure.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
-        } else {
+        } else if (shouldGenerateImage) {
           const prompt = buildImagePrompt({
             subject: 'adventure',
             fields: [
@@ -1091,6 +1103,19 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           confirmLabel={t('form.actions.leave')}
           onConfirm={handleLeave}
           onClose={() => setConfirmingLeave(false)}
+        />
+      )}
+
+      {imagePromptOpen && (
+        <ConfirmDialog
+          message={t('imagePrompt.message', { ns: 'common' })}
+          confirmLabel={t('imagePrompt.generate', { ns: 'common' })}
+          cancelLabel={t('imagePrompt.skip', { ns: 'common' })}
+          dismissLabel={t('imagePrompt.cancel', { ns: 'common' })}
+          confirmVariant="primary"
+          onConfirm={() => { setImagePromptOpen(false); submitAdventure(true); }}
+          onCancel={() => { setImagePromptOpen(false); submitAdventure(false); }}
+          onClose={() => setImagePromptOpen(false)}
         />
       )}
     </form>

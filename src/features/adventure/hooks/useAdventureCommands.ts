@@ -1,8 +1,17 @@
 import { useCallback } from 'react';
-import { apiFetch } from '../../../utils/api';
+import { apiFetch, extractApiError } from '../../../utils/api';
 import { parseCommand } from '../commands/parser';
 import type { AdventureMessage } from '../types';
 import type { ParsedCommand } from '../commands/types';
+import type { ContextAttributes } from '../../sidebar/types';
+
+type ContextUpdate = {
+  path: string;
+  body: Record<string, unknown>;
+  patch: Partial<ContextAttributes>;
+  successMessage: string;
+  failureMessage: string;
+};
 
 export type AdventureActions = {
   startAdventure: () => void;
@@ -17,12 +26,18 @@ type UseAdventureCommandsResult = {
     appendMessage: (msg: AdventureMessage) => void,
     setIsGenerating: (v: boolean) => void,
   ) => boolean;
+  handleParsedCommand: (
+    command: ParsedCommand,
+    appendMessage: (msg: AdventureMessage) => void,
+    setIsGenerating: (v: boolean) => void,
+  ) => void;
 };
 
 export function useAdventureCommands(
   adventureId: string,
   messages: AdventureMessage[],
   actions: AdventureActions,
+  onContextUpdated: (patch: Partial<ContextAttributes>) => void,
 ): UseAdventureCommandsResult {
   const handleInput = useCallback(
     (
@@ -54,13 +69,24 @@ export function useAdventureCommands(
         return true;
       }
 
-      dispatchCommand(parsed, adventureId, messages, actions, appendMessage, setIsGenerating);
+      dispatchCommand(parsed, adventureId, messages, actions, appendMessage, setIsGenerating, onContextUpdated);
       return true;
     },
-    [adventureId, messages, actions],
+    [adventureId, messages, actions, onContextUpdated],
   );
 
-  return { handleInput };
+  const handleParsedCommand = useCallback(
+    (
+      command: ParsedCommand,
+      appendMessage: (msg: AdventureMessage) => void,
+      setIsGenerating: (v: boolean) => void,
+    ) => {
+      dispatchCommand(command, adventureId, messages, actions, appendMessage, setIsGenerating, onContextUpdated);
+    },
+    [adventureId, messages, actions, onContextUpdated],
+  );
+
+  return { handleInput, handleParsedCommand };
 }
 
 function systemMessage(content: string): AdventureMessage {
@@ -74,6 +100,7 @@ function dispatchCommand(
   actions: AdventureActions,
   appendMessage: (msg: AdventureMessage) => void,
   setIsGenerating: (v: boolean) => void,
+  onContextUpdated: (patch: Partial<ContextAttributes>) => void,
 ) {
   switch (command.name) {
     case 'start':
@@ -104,43 +131,68 @@ function dispatchCommand(
       break;
 
     case 'nudge':
-      apiFetch(`/api/adventures/${adventureId}/nudge`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nudge: command.text }),
-      })
-        .then(() => appendMessage(systemMessage('Nudge updated.')))
-        .catch(() => appendMessage(systemMessage('Failed to update nudge.')));
+      applyContextUpdate({
+        path: 'nudge',
+        body: { nudge: command.text },
+        patch: { nudge: command.text },
+        successMessage: 'Nudge updated.',
+        failureMessage: 'Failed to update nudge.',
+      }, adventureId, appendMessage, onContextUpdated);
       break;
 
     case 'authors-note':
-      apiFetch(`/api/adventures/${adventureId}/authors-note`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ authorsNote: command.text }),
-      })
-        .then(() => appendMessage(systemMessage("Author's note updated.")))
-        .catch(() => appendMessage(systemMessage("Failed to update author's note.")));
+      applyContextUpdate({
+        path: 'authors-note',
+        body: { authorsNote: command.text },
+        patch: { authorsNote: command.text },
+        successMessage: "Author's note updated.",
+        failureMessage: "Failed to update author's note.",
+      }, adventureId, appendMessage, onContextUpdated);
       break;
 
     case 'scene':
-      apiFetch(`/api/adventures/${adventureId}/scene`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scene: command.text }),
-      })
-        .then(() => appendMessage(systemMessage('Scene updated.')))
-        .catch(() => appendMessage(systemMessage('Failed to update scene.')));
+      applyContextUpdate({
+        path: 'scene',
+        body: { scene: command.text },
+        patch: { scene: command.text },
+        successMessage: 'Scene updated.',
+        failureMessage: 'Failed to update scene.',
+      }, adventureId, appendMessage, onContextUpdated);
       break;
 
     case 'bump':
-      apiFetch(`/api/adventures/${adventureId}/bump`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bump: command.text, bumpFrequency: command.frequency }),
-      })
-        .then(() => appendMessage(systemMessage(`Bump updated (every ${command.frequency} messages).`)))
-        .catch(() => appendMessage(systemMessage('Failed to update bump.')));
+      applyContextUpdate({
+        path: 'bump',
+        body: { bump: command.text, bumpFrequency: command.frequency },
+        patch: { bump: command.text, bumpFrequency: command.frequency },
+        successMessage: `Bump updated (every ${command.frequency} messages).`,
+        failureMessage: 'Failed to update bump.',
+      }, adventureId, appendMessage, onContextUpdated);
       break;
   }
+}
+
+function applyContextUpdate(
+  update: ContextUpdate,
+  adventureId: string,
+  appendMessage: (msg: AdventureMessage) => void,
+  onContextUpdated: (patch: Partial<ContextAttributes>) => void,
+) {
+  apiFetch(`/api/adventures/${adventureId}/${update.path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(update.body),
+    silent: true,
+  })
+    .then(async (res: Response) => {
+      if (!res.ok) {
+        const detail = await extractApiError(res);
+        appendMessage(systemMessage(detail ? `${update.failureMessage} ${detail}` : update.failureMessage));
+        return;
+      }
+
+      onContextUpdated(update.patch);
+      appendMessage(systemMessage(update.successMessage));
+    })
+    .catch(() => appendMessage(systemMessage(update.failureMessage)));
 }

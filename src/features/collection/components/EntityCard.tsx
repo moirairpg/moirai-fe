@@ -1,6 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Eye, Pencil, Play, Trash2 } from 'lucide-react';
+
+const BASE_PATH = {
+  adventure: '/adventure',
+  world: '/world',
+  character: '/character',
+};
 
 type AdventureCardProps = {
   kind: 'adventure';
@@ -10,9 +17,6 @@ type AdventureCardProps = {
   visibility: string;
   imageUrl?: string | null;
   canWrite: boolean;
-  onPlay: (id: string) => void;
-  onView: (id: string) => void;
-  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 };
 
@@ -24,8 +28,6 @@ type WorldCardProps = {
   visibility: string;
   imageUrl?: string | null;
   canWrite: boolean;
-  onView: (id: string) => void;
-  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 };
 
@@ -35,8 +37,6 @@ type CharacterCardProps = {
   name: string;
   classLabel: string | null;
   imageUrl?: string | null;
-  onView: (id: string) => void;
-  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 };
 
@@ -48,13 +48,15 @@ export function EntityCard(props: EntityCardProps) {
   const { t } = useTranslation('collection');
 
   const bodyText = props.kind === 'character' ? null : props.description;
+  const viewPath = `${BASE_PATH[props.kind]}/${props.id}/view`;
+  const editPath = `${BASE_PATH[props.kind]}/${props.id}/edit`;
 
   const handleDeleteClick = () => setIsConfirming(true);
   const handleConfirmDelete = () => { setIsConfirming(false); props.onDelete(props.id); };
   const handleCancel = () => { setIsConfirming(false); };
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
+    <div className="col-span-2 flex h-72 flex-col overflow-hidden rounded-lg border border-border bg-card">
       <div
         className="relative h-40 flex-shrink-0 bg-muted"
         onMouseEnter={() => setHovered(true)}
@@ -87,32 +89,32 @@ export function EntityCard(props: EntityCardProps) {
         {!isConfirming && hovered && (
           <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60">
             {props.kind === 'adventure' && (
-              <button
-                onClick={() => props.onPlay(props.id)}
+              <Link
+                to={`/adventure/play/${props.id}`}
                 className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               >
                 <Play className="h-3.5 w-3.5" />
                 {t('card.actions.play')}
-              </button>
+              </Link>
             )}
 
-            <button
-              onClick={() => props.onView(props.id)}
+            <Link
+              to={viewPath}
               className="flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent/80"
             >
               <Eye className="h-3.5 w-3.5" />
               {t('card.actions.view')}
-            </button>
+            </Link>
 
             {(props.kind === 'character' || props.canWrite) && (
               <>
-                <button
-                  onClick={() => props.onEdit(props.id)}
+                <Link
+                  to={editPath}
                   className="flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent/80"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                   {t('card.actions.edit')}
-                </button>
+                </Link>
                 <button
                   onClick={handleDeleteClick}
                   className="flex items-center gap-1 rounded-md bg-destructive px-3 py-1.5 text-sm font-medium text-destructive-foreground hover:bg-destructive/90"
