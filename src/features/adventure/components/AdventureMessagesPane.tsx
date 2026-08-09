@@ -8,6 +8,7 @@ type AdventureMessagesPaneProps = {
   adventureId: string;
   messages: AdventureMessage[];
   currentUserId?: string;
+  getSpeakerColor?: (message: AdventureMessage) => string | undefined;
   isGenerating: boolean;
   hasMore: boolean;
   isFetchingMore: boolean;
@@ -22,6 +23,7 @@ export function AdventureMessagesPane({
   adventureId,
   messages,
   currentUserId,
+  getSpeakerColor,
   isGenerating,
   hasMore,
   isFetchingMore,
@@ -93,6 +95,7 @@ export function AdventureMessagesPane({
               key={message.id}
               message={message}
               currentUserId={currentUserId}
+              nameColor={getSpeakerColor?.(message)}
               isEditing={editingMessageId === message.id}
               onContextMenu={(e) => onContextMenu?.(e, message)}
               onEditConfirm={(newContent) => onEditConfirm?.(message.id, newContent)}

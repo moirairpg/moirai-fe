@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +10,9 @@ import { CommandArgumentForm } from './CommandArgumentForm';
 import { useAdventureMessages } from '../hooks/useAdventureMessages';
 import { useAdventureWebSocket } from '../hooks/useAdventureWebSocket';
 import { useAdventureCommands } from '../hooks/useAdventureCommands';
+import { speakerKey, useSpeakerColors } from '../hooks/useSpeakerColors';
 import { useAuth } from '../../../components/auth/context/AuthContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 import type { AdventureMessageUpdate } from '../hooks/useAdventureWebSocket';
 import type { AdventureMessage } from '../types';
 import type { CommandDefinition, ParsedCommand } from '../commands/types';
@@ -79,6 +81,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const { t } = useTranslation('adventure');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDarkMode } = useTheme();
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -133,6 +136,15 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesAfterId,
     replaceMessageContent,
   } = useAdventureMessages(adventureId);
+
+  const speakerKeys = useMemo(
+    () => Array.from(new Set(messages.filter((m) => m.role !== 'system').map(speakerKey))),
+    [messages],
+  );
+
+  const speakerColors = useSpeakerColors(adventureId, speakerKeys, isDarkMode);
+
+  const getSpeakerColor = (message: AdventureMessage) => speakerColors[speakerKey(message)];
 
   const myMembership = roster.find((m) => m.playerUsername === user?.username);
   const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
@@ -379,6 +391,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         adventureId={adventureId}
         messages={messages}
         currentUserId={user?.publicId}
+        getSpeakerColor={getSpeakerColor}
         isGenerating={isGenerating}
         hasMore={hasMore}
         isFetchingMore={isFetchingMore}
