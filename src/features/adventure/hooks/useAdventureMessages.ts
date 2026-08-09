@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../../../utils/api';
 import type { AdventureMessage } from '../types';
-import type { AdventureMembershipSummary, ContextAttributes, Permission } from '../../sidebar/types';
+import type { AdventureMembershipSummary, ContextAttributes } from '../../sidebar/types';
 
 const EMPTY_CONTEXT_ATTRIBUTES: ContextAttributes = {
   nudge: '',
@@ -16,7 +16,7 @@ type AdventureData = {
   narratorName: string | null;
   adventureStart: string | null;
   roster: AdventureMembershipSummary[] | null;
-  permissions: Permission[] | null;
+  canManage: boolean | null;
   contextAttributes: {
     nudge: string | null;
     authorsNote: string | null;
@@ -47,7 +47,7 @@ type UseAdventureMessagesResult = {
   adventureName: string | undefined;
   narratorName: string | undefined;
   roster: AdventureMembershipSummary[];
-  permissions: Permission[];
+  canManage: boolean;
   contextAttributes: ContextAttributes;
   updateContextAttributes: (patch: Partial<ContextAttributes>) => void;
   appendMessage: (message: AdventureMessage) => void;
@@ -74,7 +74,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   const [adventureName, setAdventureName] = useState<string | undefined>(undefined);
   const [narratorName, setNarratorName] = useState<string | undefined>(undefined);
   const [roster, setRoster] = useState<AdventureMembershipSummary[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [canManage, setCanManage] = useState(false);
   const [contextAttributes, setContextAttributes] = useState<ContextAttributes>(EMPTY_CONTEXT_ATTRIBUTES);
   const [messages, setMessages] = useState<AdventureMessage[]>([]);
   const [loadError, setLoadError] = useState(false);
@@ -88,7 +88,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     setAdventureName(undefined);
     setNarratorName(undefined);
     setRoster([]);
-    setPermissions([]);
+    setCanManage(false);
     setContextAttributes(EMPTY_CONTEXT_ATTRIBUTES);
     setLoadError(false);
     knownIds.current = new Set();
@@ -103,7 +103,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
         setAdventureName(adv.name ?? undefined);
         setNarratorName(name);
         setRoster(adv.roster ?? []);
-        setPermissions(adv.permissions ?? []);
+        setCanManage(adv.canManage ?? false);
         setContextAttributes({
           nudge: adv.contextAttributes?.nudge ?? '',
           authorsNote: adv.contextAttributes?.authorsNote ?? '',
@@ -196,7 +196,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
     adventureName,
     narratorName,
     roster,
-    permissions,
+    canManage,
     contextAttributes,
     updateContextAttributes,
     appendMessage,

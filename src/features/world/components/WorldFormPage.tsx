@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Info, Pencil, Trash2, Plus, Loader2 } from 'lucide-react';
-import type { WorldDetails, Permission } from '../../sidebar/types';
+import type { WorldDetails } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
-import { useAuth } from '../../../components/auth';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
 import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
@@ -32,8 +31,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const navigate = useNavigate();
   const { worldId } = useParams<{ worldId: string }>();
   const { t } = useTranslation('world');
-  const { user } = useAuth();
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [canManage, setCanManage] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
@@ -53,8 +51,8 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const [lorebookFilter, setLorebookFilter] = useState('');
 
   const readOnly = mode === 'view';
-  const canEdit = mode === 'view' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
-  const canDelete = mode !== 'create' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
+  const canEdit = mode === 'view' && canManage;
+  const canDelete = mode !== 'create' && canManage;
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -73,7 +71,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     setError('');
     setLorebookFilter('');
     setDeletedIds([]);
-    setPermissions([]);
+    setCanManage(false);
     if (mode === 'create') {
       setForm(EMPTY);
       setLorebook([]);
@@ -96,7 +94,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         setImageUrl(data.imageUrl ?? null);
         setUiImagePositionX(data.uiImagePositionX ?? 0.5);
         setUiImagePositionY(data.uiImagePositionY ?? 0.5);
-        setPermissions(data.permissions ?? []);
+        setCanManage(data.canManage);
         setLoading(false);
       })
       .catch(() => {
@@ -201,7 +199,6 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         visibility: form.visibility,
         narratorName: form.narratorName || null,
         narratorPersonality: form.narratorPersonality || null,
-        permissions: mode === 'create' ? [] : permissions,
         uiImagePositionX,
         uiImagePositionY,
       };

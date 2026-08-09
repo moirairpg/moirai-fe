@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Info, Pencil, Play, Plus, Trash2, Loader2 } from 'lucide-react';
-import type { AdventureDetails, ModelConfiguration, ContextAttributes, Permission, AdventureMembershipSummary } from '../../sidebar/types';
+import type { AdventureDetails, ModelConfiguration, ContextAttributes, AdventureMembershipSummary } from '../../sidebar/types';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { useAuth } from '../../../components/auth';
 import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
@@ -159,7 +159,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const { user } = useAuth();
   const { labelOf } = useCharacterClasses();
   const [form, setForm] = useState<FormState>(EMPTY);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [canManage, setCanManage] = useState(false);
   const [roster, setRoster] = useState<AdventureMembershipSummary[]>([]);
   const [worlds, setWorlds] = useState<SelectOption[]>([]);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
@@ -186,7 +186,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const [lorebookFilter, setLorebookFilter] = useState('');
 
   const readOnly = mode === 'view';
-  const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
   const canEdit = mode === 'view' && canManage;
   const errorBorder = (value: string, required = true) => required && submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
@@ -270,7 +269,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     setDeletedIds([]);
     setLorebook([]);
     setCreateLorebook([]);
-    setPermissions([]);
+    setCanManage(false);
     setRoster([]);
     let restoredFromSnapshot = false;
 
@@ -314,7 +313,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             setImageUrl(data.imageUrl ?? null);
             setUiImagePositionX(data.uiImagePositionX ?? 0.5);
             setUiImagePositionY(data.uiImagePositionY ?? 0.5);
-            setPermissions(data.permissions ?? []);
+            setCanManage(data.canManage);
             setRoster(data.roster ?? []);
           })
       );
@@ -528,7 +527,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           })),
           uiImagePositionX,
           uiImagePositionY,
-          permissions: [],
           modelConfiguration: form.modelConfiguration,
           contextAttributes: form.contextAttributes,
         };
@@ -574,7 +572,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           visibility: form.visibility,
           moderation: form.moderation,
           adventureStart: form.adventureStart,
-          permissions,
           modelConfiguration: form.modelConfiguration,
           contextAttributes: form.contextAttributes,
           uiImagePositionX,

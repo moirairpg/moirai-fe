@@ -124,7 +124,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     loadError,
     adventureName,
     roster,
-    permissions,
+    canManage,
     contextAttributes,
     updateContextAttributes,
     appendMessage,
@@ -147,7 +147,6 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const getSpeakerColor = (message: AdventureMessage) => speakerColors[speakerKey(message)];
 
   const myMembership = roster.find((m) => m.playerUsername === user?.username);
-  const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
 
   const reversedMessages = messages.slice().reverse();
   const lastPlayerMessage = reversedMessages.find((m) => m.role === 'user');

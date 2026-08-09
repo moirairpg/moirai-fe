@@ -5,7 +5,6 @@ import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react
 import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
-import { useAuth } from '../../../components/auth';
 import { useCharacterClasses } from '../hooks/useCharacterClasses';
 import { useCharacterAdventures } from '../hooks/useCharacterAdventures';
 import { useJsonImport, parseCharacterJson } from '../../../utils/jsonImport';
@@ -28,7 +27,6 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const navigate = useNavigate();
   const { characterId } = useParams<{ characterId: string }>();
   const { t } = useTranslation('character');
-  const { user } = useAuth();
   const { classes } = useCharacterClasses();
 
   const [form, setForm] = useState<CharacterFormInput>(EMPTY);
@@ -41,11 +39,11 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uiImagePositionX, setUiImagePositionX] = useState(0.5);
   const [uiImagePositionY, setUiImagePositionY] = useState(0.5);
-  const [ownerUsername, setOwnerUsername] = useState<string | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   const readOnly = mode === 'view';
-  const canEdit = mode === 'view' && ownerUsername !== null && ownerUsername === user?.username;
-  const canDelete = mode !== 'create' && ownerUsername !== null && ownerUsername === user?.username;
+  const canEdit = mode === 'view' && isOwner;
+  const canDelete = mode !== 'create' && isOwner;
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -99,7 +97,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
         setImageUrl(data.imageUrl ?? null);
         setUiImagePositionX(data.uiImagePositionX ?? 0.5);
         setUiImagePositionY(data.uiImagePositionY ?? 0.5);
-        setOwnerUsername(data.ownerUsername);
+        setIsOwner(data.isOwner);
       })
       .catch(() => setError(t('form.errors.loadFailed')))
       .finally(() => setLoading(false));
