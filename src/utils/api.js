@@ -103,4 +103,14 @@ export const api = {
     removeImage: (id) =>
       apiFetch(`/api/player-characters/${id}/image`, { method: 'DELETE' }),
   },
+  assetPermissions: {
+    list: (assetKind, assetId) => apiFetch(`/api/${assetKind}/${assetId}/permissions`),
+    save: (assetKind, assetId, members, options = {}) =>
+      apiFetch(`/api/${assetKind}/${assetId}/permissions`, {
+        ...options,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ members }),
+      }),
+  },
 };

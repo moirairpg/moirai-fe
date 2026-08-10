@@ -14,6 +14,7 @@ import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { useSystemNotificationsWebSocket } from '../../notifications/hooks/useSystemNotificationsWebSocket';
 import { useAiModels } from '../hooks/useAiModels';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { AssetMembersSection } from '../../../shared/components/AssetMembersSection';
 import { changesRoster } from '../../notifications/constants';
 import { InvitePlayersField } from './InvitePlayersField';
 
@@ -160,6 +161,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const { labelOf } = useCharacterClasses();
   const [form, setForm] = useState<FormState>(EMPTY);
   const [canManage, setCanManage] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [roster, setRoster] = useState<AdventureMembershipSummary[]>([]);
   const [worlds, setWorlds] = useState<SelectOption[]>([]);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
@@ -314,6 +316,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             setUiImagePositionX(data.uiImagePositionX ?? 0.5);
             setUiImagePositionY(data.uiImagePositionY ?? 0.5);
             setCanManage(data.canManage);
+            setIsOwner(data.isOwner);
             setRoster(data.roster ?? []);
           })
       );
@@ -868,6 +871,16 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               </div>
             </div>
           </div>
+
+          {mode !== 'create' && adventureId && isOwner && (
+            <AssetMembersSection
+              assetKind="adventures"
+              assetId={adventureId}
+              isOwner={isOwner}
+              visibility={form.visibility}
+              readOnly={readOnly}
+            />
+          )}
 
           <div className="flex flex-col gap-5 rounded-md border border-border p-4">
             <div className="flex items-center justify-between gap-3">

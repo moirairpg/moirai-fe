@@ -19,6 +19,16 @@
     "removeCharacter": "Remover este personagem da aventura?",
     "leaveAdventure": "Sair desta aventura?"
   },
+  "access": {
+    "title": "Acesso",
+    "usernamePlaceholder": "Nome de usuário",
+    "loading": "Carregando membros...",
+    "empty": "Ninguém mais tem acesso ainda.",
+    "unsavedChanges": "Alterações não salvas",
+    "readHasNoEffect": "Este item é público, então o acesso de leitura não muda nada.",
+    "levels": { "read": "Leitura", "write": "Escrita", "owner": "Proprietário" },
+    "actions": { "add": "Adicionar", "remove": "Remover", "save": "Salvar acesso" }
+  },
   "imagePrompt": {
     "message": "Este item não tem imagem. Deseja gerar uma?",
     "generate": "Gerar imagem",
