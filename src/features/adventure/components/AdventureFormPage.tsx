@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Info, Pencil, Play, Plus, Trash2, Loader2 } from 'lucide-react';
-import type { AdventureDetails, ModelConfiguration, ContextAttributes, Permission, AdventureMembershipSummary } from '../../sidebar/types';
-import { apiFetch, api, extractApiError } from '../../../utils/api';
+import type { AdventureDetails, ModelConfiguration, ContextAttributes, AdventureMembershipSummary } from '../../sidebar/types';
+import { apiFetch, api, extractApiError, notifyError, notifySuccess } from '../../../utils/api';
 import { useAuth } from '../../../components/auth';
+import { useAssetMembers } from '../../../shared/hooks/useAssetMembers';
 import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
 import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm';
@@ -14,6 +15,7 @@ import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { useSystemNotificationsWebSocket } from '../../notifications/hooks/useSystemNotificationsWebSocket';
 import { useAiModels } from '../hooks/useAiModels';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { AssetMembersSection } from '../../../shared/components/AssetMembersSection';
 import { changesRoster } from '../../notifications/constants';
 import { InvitePlayersField } from './InvitePlayersField';
 
@@ -46,6 +48,9 @@ const EMPTY: FormState = {
   modelConfiguration: { aiModel: 'GPT54_MINI', maxTokenLimit: 100, temperature: 0.8 },
   contextAttributes: { nudge: '', authorsNote: '', scene: '', bump: '', bumpFrequency: 0 },
 };
+
+const assetSignatureOf = (form: FormState, lorebook: LorebookEntry[], deletedIds: string[], x: number, y: number) =>
+  JSON.stringify({ ...form, visibility: '', lorebook, deletedIds, x, y });
 
 
 function CardPicker({
@@ -159,7 +164,8 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const { user } = useAuth();
   const { labelOf } = useCharacterClasses();
   const [form, setForm] = useState<FormState>(EMPTY);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [canManage, setCanManage] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [roster, setRoster] = useState<AdventureMembershipSummary[]>([]);
   const [worlds, setWorlds] = useState<SelectOption[]>([]);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
@@ -184,10 +190,28 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const [worldPage, setWorldPage] = useState(1);
   const [worldTotalPages, setWorldTotalPages] = useState(1);
   const [lorebookFilter, setLorebookFilter] = useState('');
+  const [savedAssetSignature, setSavedAssetSignature] = useState('');
+  const [savedVisibility, setSavedVisibility] = useState('PRIVATE');
 
   const readOnly = mode === 'view';
-  const canManage = permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
-  const canEdit = mode === 'view' && canManage;
+  const isAdmin = user?.role === 'ADMIN';
+  const canEdit = mode === 'view' && (canManage || isAdmin);
+  const canManageAccess = isOwner || isAdmin;
+
+  const {
+    members,
+    isLoading: membersLoading,
+    error: membersError,
+    hasUnsavedChanges: hasMemberChanges,
+    addMember,
+    changeLevel,
+    removeMember,
+    save: saveMembers,
+  } = useAssetMembers('adventures', adventureId, mode !== 'create' && canManageAccess);
+
+  const hasAssetChanges = assetSignatureOf(form, lorebook, deletedIds, uiImagePositionX, uiImagePositionY) !== savedAssetSignature;
+  const hasAccessChanges = hasMemberChanges || form.visibility !== savedVisibility;
+  const canSave = mode === 'create' || hasAssetChanges || (canManageAccess && hasAccessChanges);
   const errorBorder = (value: string, required = true) => required && submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
 
@@ -247,7 +271,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     }
   };
 
-  const canDelete = mode !== 'create' && canManage;
+  const canDelete = mode !== 'create' && (isOwner || isAdmin);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -270,7 +294,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     setDeletedIds([]);
     setLorebook([]);
     setCreateLorebook([]);
-    setPermissions([]);
+    setCanManage(false);
     setRoster([]);
     let restoredFromSnapshot = false;
 
@@ -294,7 +318,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
         apiFetch(`/api/adventures/${adventureId}`)
           .then((r) => r.json())
           .then((data: AdventureDetails) => {
-            setForm({
+            const loadedForm: FormState = {
               name: data.name,
               description: data.description,
               worldId: data.worldId ?? null,
@@ -305,17 +329,23 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               adventureStart: data.adventureStart,
               modelConfiguration: data.modelConfiguration,
               contextAttributes: data.contextAttributes,
-            });
-            setLorebook((data.lorebook ?? []).map((e) => ({
+            };
+            const loadedLorebook = (data.lorebook ?? []).map((e) => ({
               id: e.id,
               name: e.name,
               description: e.description,
-            })));
+            }));
+
+            setForm(loadedForm);
+            setLorebook(loadedLorebook);
             setImageUrl(data.imageUrl ?? null);
             setUiImagePositionX(data.uiImagePositionX ?? 0.5);
             setUiImagePositionY(data.uiImagePositionY ?? 0.5);
-            setPermissions(data.permissions ?? []);
+            setCanManage(data.canManage);
+            setIsOwner(data.isOwner);
             setRoster(data.roster ?? []);
+            setSavedAssetSignature(assetSignatureOf(loadedForm, loadedLorebook, [], data.uiImagePositionX ?? 0.5, data.uiImagePositionY ?? 0.5));
+            setSavedVisibility(data.visibility);
           })
       );
     }
@@ -499,6 +529,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     setError('');
 
     if (!isValid) return;
+    if (mode !== 'create' && !canSave) return;
 
     if (mode === 'create' && !imageFile && !imageUrl) {
       setImagePromptOpen(true);
@@ -528,7 +559,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           })),
           uiImagePositionX,
           uiImagePositionY,
-          permissions: [],
           modelConfiguration: form.modelConfiguration,
           contextAttributes: form.contextAttributes,
         };
@@ -564,39 +594,65 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
         window.dispatchEvent(new Event('adventure-list-changed'));
+        notifySuccess(t('toast.saved', { ns: 'common' }));
         navigate(`/adventure/${id}/view`);
       } else {
-        const body = {
-          name: form.name,
-          description: form.description,
-          narratorName: form.narratorName || null,
-          narratorPersonality: form.narratorPersonality || null,
-          visibility: form.visibility,
-          moderation: form.moderation,
-          adventureStart: form.adventureStart,
-          permissions,
-          modelConfiguration: form.modelConfiguration,
-          contextAttributes: form.contextAttributes,
-          uiImagePositionX,
-          uiImagePositionY,
-        };
-        const updateRes = await apiFetch(`/api/adventures/${adventureId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          silent: true,
-          body: JSON.stringify({
-            ...body,
-            lorebookEntriesToAdd: lorebook
-              .filter((e) => !e.id)
-              .map(({ name, description }) => ({ name, description })),
-            lorebookEntriesToUpdate: lorebook
-              .filter((e) => !!e.id)
-              .map(({ id, name, description }) => ({ id, name, description })),
-            lorebookEntriesToDelete: deletedIds,
-          }),
-        });
-        if (!updateRes.ok) throw new Error(await extractApiError(updateRes) ?? t('form.errors.saveFailed'));
-        navigate(`/adventure/${adventureId}/view`);
+        let allSaved = true;
+
+        if (hasAssetChanges) {
+          const body = {
+            name: form.name,
+            description: form.description,
+            narratorName: form.narratorName || null,
+            narratorPersonality: form.narratorPersonality || null,
+            moderation: form.moderation,
+            adventureStart: form.adventureStart,
+            modelConfiguration: form.modelConfiguration,
+            contextAttributes: form.contextAttributes,
+            uiImagePositionX,
+            uiImagePositionY,
+          };
+          const updateRes = await apiFetch(`/api/adventures/${adventureId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            silent: true,
+            body: JSON.stringify({
+              ...body,
+              lorebookEntriesToAdd: lorebook
+                .filter((e) => !e.id)
+                .map(({ name, description }) => ({ name, description })),
+              lorebookEntriesToUpdate: lorebook
+                .filter((e) => !!e.id)
+                .map(({ id, name, description }) => ({ id, name, description })),
+              lorebookEntriesToDelete: deletedIds,
+            }),
+          });
+
+          if (updateRes.ok) {
+            setDeletedIds([]);
+            setSavedAssetSignature(assetSignatureOf(form, lorebook, [], uiImagePositionX, uiImagePositionY));
+          } else {
+            allSaved = false;
+            notifyError(await extractApiError(updateRes) ?? t('form.errors.saveFailed'));
+          }
+        }
+
+        if (canManageAccess && hasAccessChanges) {
+          const accessSaved = await saveMembers(form.visibility);
+
+          if (accessSaved) setSavedVisibility(form.visibility);
+          else {
+            allSaved = false;
+            notifyError(t('access.errors.saveFailed', { ns: 'common' }));
+          }
+        }
+
+        if (allSaved) {
+          notifySuccess(t('toast.saved', { ns: 'common' }));
+          navigate(`/adventure/${adventureId}/view`);
+        } else {
+          setSaving(false);
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : t('form.errors.saveFailed'));
@@ -672,54 +728,6 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             onGenerate={handleImageGenerate}
           />
 
-          {mode !== 'create' && (
-            <div className="flex flex-col gap-4 rounded-md border border-border p-4">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {t('form.sections.roster', { count: roster.length, max: 5 })}
-              </span>
-
-              {canManage && adventureId && <InvitePlayersField adventureId={adventureId} />}
-
-              {roster.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('form.empty.noRegisteredCharacters')}</p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {roster.map((member) => (
-                    <div key={member.playerCharacterId} className="relative">
-                      <a
-                        href={`/character/${member.playerCharacterId}/view`}
-                        className="flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/50"
-                      >
-                        <div className="relative h-32 flex-shrink-0 bg-muted">
-                          {member.imageUrl && (
-                            <img src={member.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                          )}
-                        </div>
-                        <div className="flex flex-col gap-1 p-3">
-                          <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
-                          <span className="inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                            {member.characterClass ? labelOf(member.characterClass) : t('card.noClass', { ns: 'collection' })}
-                          </span>
-                          <p className="truncate text-xs text-muted-foreground">@{member.playerUsername}</p>
-                        </div>
-                      </a>
-                      {canManage && (
-                        <button
-                          type="button"
-                          onClick={() => setConfirmingRemoveId(member.playerCharacterId)}
-                          className="absolute right-2 top-2 rounded-full bg-background/80 p-1 text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
-                          aria-label={t('form.actions.removeCharacter')}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
           <div className="flex flex-col gap-5 rounded-md border border-border p-4">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.basicData')}</span>
 
@@ -729,6 +737,18 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               <input type="text" value={form.name} onChange={set('name')} disabled={readOnly} className={`${INPUT_CLASS}${errorBorder(form.name)}`} />
             </div>
             )}
+
+            <div className="flex flex-col gap-1.5">
+              <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                {t('form.fields.moderation')}
+                <Tooltip content={t('form.tooltips.moderation')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
+              </label>
+              <select value={form.moderation} onChange={set('moderation')} disabled={readOnly} className={INPUT_CLASS}>
+                <option value="STRICT">{t('form.options.strict')}</option>
+                <option value="PERMISSIVE">{t('form.options.permissive')}</option>
+                <option value="DISABLED">{t('form.options.disabled')}</option>
+              </select>
+            </div>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground">{t('form.fields.description')}</label>
@@ -843,11 +863,59 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-5 rounded-md border border-border p-4">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.visibilityControl')}</span>
+          {mode !== 'create' && (
+            <div className="flex flex-col gap-4 rounded-md border border-border p-4">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t('form.sections.roster', { count: roster.length, max: 5 })}
+              </span>
 
-            <div className="flex gap-4">
-              <div className="flex flex-1 flex-col gap-1.5">
+              {canManage && adventureId && <InvitePlayersField adventureId={adventureId} />}
+
+              {roster.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t('form.empty.noRegisteredCharacters')}</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {roster.map((member) => (
+                    <div key={member.playerCharacterId} className="relative">
+                      <a
+                        href={`/character/${member.playerCharacterId}/view`}
+                        className="flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/50"
+                      >
+                        <div className="relative h-32 flex-shrink-0 bg-muted">
+                          {member.imageUrl && (
+                            <img src={member.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-1 p-3">
+                          <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
+                          <span className="inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            {member.characterClass ? labelOf(member.characterClass) : t('card.noClass', { ns: 'collection' })}
+                          </span>
+                          <p className="truncate text-xs text-muted-foreground">@{member.playerUsername}</p>
+                        </div>
+                      </a>
+                      {canManage && (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingRemoveId(member.playerCharacterId)}
+                          className="absolute right-2 top-2 rounded-full bg-background/80 p-1 text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                          aria-label={t('form.actions.removeCharacter')}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {(mode === 'create' || canManageAccess) && (
+            <div className="flex flex-col gap-5 rounded-md border border-border p-4">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.visibilityControl')}</span>
+
+              <div className="flex flex-col gap-1.5">
                 <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                   {t('form.fields.visibility')}
                   <Tooltip content={t('form.tooltips.visibility')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
@@ -858,19 +926,20 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                 </select>
               </div>
 
-              <div className="flex flex-1 flex-col gap-1.5">
-                <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                  {t('form.fields.moderation')}
-                  <Tooltip content={t('form.tooltips.moderation')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
-                </label>
-                <select value={form.moderation} onChange={set('moderation')} disabled={readOnly} className={INPUT_CLASS}>
-                  <option value="STRICT">{t('form.options.strict')}</option>
-                  <option value="PERMISSIVE">{t('form.options.permissive')}</option>
-                  <option value="DISABLED">{t('form.options.disabled')}</option>
-                </select>
-              </div>
+              {mode !== 'create' && adventureId && canManageAccess && (
+                <AssetMembersSection
+                  members={members}
+                  visibility={form.visibility}
+                  readOnly={readOnly}
+                  isLoading={membersLoading}
+                  error={membersError}
+                  onAdd={addMember}
+                  onLevelChange={changeLevel}
+                  onRemove={removeMember}
+                />
+              )}
             </div>
-          </div>
+          )}
 
           <div className="flex flex-col gap-5 rounded-md border border-border p-4">
             <div className="flex items-center justify-between gap-3">
@@ -1070,7 +1139,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
       {!readOnly && (
         <div className="border-t border-border bg-background px-6 py-4">
           <div className="mx-auto flex w-full max-w-5xl gap-3">
-            <button type="submit" disabled={saving} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+            <button type="submit" disabled={saving || !canSave} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
               {saving ? t('form.actions.saving') : t('form.actions.save')}
             </button>
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">

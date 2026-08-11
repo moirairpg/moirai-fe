@@ -1,8 +1,3 @@
-export type Permission = {
-  userId: string;
-  level: string;
-};
-
 export type ModelConfiguration = {
   aiModel: string;
   maxTokenLimit: number;
@@ -43,7 +38,8 @@ export type AdventureDetails = {
   lastUpdateDate: string;
   modelConfiguration: ModelConfiguration;
   contextAttributes: ContextAttributes;
-  permissions: Permission[];
+  canManage: boolean;
+  isOwner: boolean;
   lorebook: AdventureLorebookEntry[];
   roster: AdventureMembershipSummary[];
   uiImagePositionX: number | null;
@@ -77,7 +73,8 @@ export type WorldDetails = {
   narratorPersonality: string | null;
   visibility: string;
   imageUrl: string | null;
-  permissions: Permission[];
+  canManage: boolean;
+  isOwner: boolean;
   lorebook: WorldLorebookEntry[];
   creationDate: string;
   lastUpdateDate: string;

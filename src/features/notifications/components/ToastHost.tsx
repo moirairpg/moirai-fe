@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TOAST_EVENT } from '../../../utils/api';
 
+type ToastVariant = 'error' | 'success';
+
 type Toast = {
   key: number;
   message: string;
+  variant: ToastVariant;
 };
 
 const AUTO_REMOVE_MS = 6000;
@@ -16,11 +19,12 @@ export function ToastHost() {
 
   useEffect(() => {
     const onToast = (e: Event) => {
-      const detail = (e as CustomEvent<{ message: string | null }>).detail;
+      const detail = (e as CustomEvent<{ message: string | null; variant?: ToastVariant }>).detail;
 
       const entry: Toast = {
         key: Date.now() + Math.random(),
         message: detail?.message || t('toast.unexpectedError'),
+        variant: detail?.variant ?? 'error',
       };
 
       setToasts((prev) => [...prev, entry]);
@@ -57,7 +61,9 @@ export function ToastHost() {
       {toasts.map((toast) => (
         <div
           key={toast.key}
-          className="relative flex items-center justify-center bg-red-600 px-4 py-2 text-sm font-medium text-white"
+          className={`relative flex items-center justify-center px-4 py-2 text-sm font-medium text-white ${
+            toast.variant === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
         >
           <span className="text-center">{toast.message}</span>
           <button

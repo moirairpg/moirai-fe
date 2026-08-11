@@ -7,6 +7,7 @@
   "darkModeToggle": "Toggle dark mode",
   "toast": {
     "unexpectedError": "Something went wrong. Please try again.",
+    "saved": "Saved successfully.",
     "dismiss": "Dismiss"
   },
   "selectAdventure": "Select an adventure to begin.",
@@ -18,6 +19,16 @@
     "deleteCharacter": "Delete this character? This cannot be undone.",
     "removeCharacter": "Remove this character from the adventure?",
     "leaveAdventure": "Leave this adventure?"
+  },
+  "access": {
+    "title": "Access",
+    "usernamePlaceholder": "Username",
+    "loading": "Loading members...",
+    "empty": "Nobody else has access yet.",
+    "readHasNoEffect": "This asset is public, so read access changes nothing.",
+    "levels": { "read": "Read", "write": "Write", "owner": "Owner" },
+    "actions": { "add": "Add", "remove": "Remove" },
+    "errors": { "saveFailed": "Access changes could not be saved." }
   },
   "imagePrompt": {
     "message": "This asset has no image. Would you like to generate one?",

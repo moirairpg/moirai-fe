@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Info, Pencil, Trash2, Plus, Loader2 } from 'lucide-react';
-import type { WorldDetails, Permission } from '../../sidebar/types';
-import { apiFetch, api, extractApiError } from '../../../utils/api';
-import { useAuth } from '../../../components/auth';
+import type { WorldDetails } from '../../sidebar/types';
+import { apiFetch, api, extractApiError, notifyError, notifySuccess } from '../../../utils/api';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
 import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { AssetMembersSection } from '../../../shared/components/AssetMembersSection';
+import { useAssetMembers } from '../../../shared/hooks/useAssetMembers';
+import { useAuth } from '../../../components/auth';
 import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseWorldJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
@@ -25,6 +27,9 @@ type FormState = {
 
 const EMPTY: FormState = { name: '', description: '', adventureStart: '', visibility: 'PRIVATE', narratorName: '', narratorPersonality: '' };
 
+const assetSignatureOf = (form: FormState, lorebook: LorebookEntry[], deletedIds: string[], x: number, y: number) =>
+  JSON.stringify({ ...form, visibility: '', lorebook, deletedIds, x, y });
+
 const INPUT_CLASS = 'rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50';
 const TEXTAREA_CLASS = `resize-y ${INPUT_CLASS}`;
 
@@ -33,7 +38,8 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const { worldId } = useParams<{ worldId: string }>();
   const { t } = useTranslation('world');
   const { user } = useAuth();
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [canManage, setCanManage] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [lorebook, setLorebook] = useState<LorebookEntry[]>([]);
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
@@ -51,11 +57,30 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const [uiImagePositionY, setUiImagePositionY] = useState(0.5);
   const [submitted, setSubmitted] = useState(false);
   const [lorebookFilter, setLorebookFilter] = useState('');
+  const [savedAssetSignature, setSavedAssetSignature] = useState('');
+  const [savedVisibility, setSavedVisibility] = useState('PRIVATE');
 
   const readOnly = mode === 'view';
-  const canEdit = mode === 'view' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
-  const canDelete = mode !== 'create' && permissions.some((p) => p.userId === user?.publicId && (p.level === 'OWNER' || p.level === 'WRITE'));
+  const isAdmin = user?.role === 'ADMIN';
+  const canEdit = mode === 'view' && (canManage || isAdmin);
+  const canDelete = mode !== 'create' && (isOwner || isAdmin);
+  const canManageAccess = isOwner || isAdmin;
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const {
+    members,
+    isLoading: membersLoading,
+    error: membersError,
+    hasUnsavedChanges: hasMemberChanges,
+    addMember,
+    changeLevel,
+    removeMember,
+    save: saveMembers,
+  } = useAssetMembers('worlds', worldId, mode !== 'create' && canManageAccess);
+
+  const hasAssetChanges = assetSignatureOf(form, lorebook, deletedIds, uiImagePositionX, uiImagePositionY) !== savedAssetSignature;
+  const hasAccessChanges = hasMemberChanges || form.visibility !== savedVisibility;
+  const canSave = mode === 'create' || hasAssetChanges || (canManageAccess && hasAccessChanges);
 
   const handleDelete = async () => {
     setConfirmingDelete(false);
@@ -73,7 +98,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     setError('');
     setLorebookFilter('');
     setDeletedIds([]);
-    setPermissions([]);
+    setCanManage(false);
     if (mode === 'create') {
       setForm(EMPTY);
       setLorebook([]);
@@ -91,12 +116,18 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     apiFetch(`/api/worlds/${worldId}`)
       .then((r) => r.json())
       .then((data: WorldDetails) => {
-        setForm({ name: data.name, description: data.description, adventureStart: data.adventureStart, visibility: data.visibility, narratorName: data.narratorName ?? '', narratorPersonality: data.narratorPersonality ?? '' });
-        setLorebook((data.lorebook ?? []).map((e) => ({ id: e.id, name: e.name, description: e.description })));
+        const loadedForm: FormState = { name: data.name, description: data.description, adventureStart: data.adventureStart, visibility: data.visibility, narratorName: data.narratorName ?? '', narratorPersonality: data.narratorPersonality ?? '' };
+        const loadedLorebook = (data.lorebook ?? []).map((e) => ({ id: e.id, name: e.name, description: e.description }));
+
+        setForm(loadedForm);
+        setLorebook(loadedLorebook);
         setImageUrl(data.imageUrl ?? null);
         setUiImagePositionX(data.uiImagePositionX ?? 0.5);
         setUiImagePositionY(data.uiImagePositionY ?? 0.5);
-        setPermissions(data.permissions ?? []);
+        setCanManage(data.canManage);
+        setIsOwner(data.isOwner);
+        setSavedAssetSignature(assetSignatureOf(loadedForm, loadedLorebook, [], data.uiImagePositionX ?? 0.5, data.uiImagePositionY ?? 0.5));
+        setSavedVisibility(data.visibility);
         setLoading(false);
       })
       .catch(() => {
@@ -181,6 +212,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     setError('');
 
     if (!isValid) return;
+    if (mode !== 'create' && !canSave) return;
 
     if (mode === 'create' && !imageFile && !imageUrl) {
       setImagePromptOpen(true);
@@ -198,10 +230,8 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         name: form.name,
         description: form.description,
         adventureStart: form.adventureStart,
-        visibility: form.visibility,
         narratorName: form.narratorName || null,
         narratorPersonality: form.narratorPersonality || null,
-        permissions: mode === 'create' ? [] : permissions,
         uiImagePositionX,
         uiImagePositionY,
       };
@@ -210,7 +240,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         const res = await apiFetch('/api/worlds', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...baseBody, lorebook: lorebook.map(({ name, description }) => ({ name, description })) }),
+          body: JSON.stringify({ ...baseBody, visibility: form.visibility, lorebook: lorebook.map(({ name, description }) => ({ name, description })) }),
           silent: true,
         });
         if (!res.ok) throw new Error(await extractApiError(res) ?? t('form.errors.saveFailed'));
@@ -233,25 +263,53 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
           const uploadRes = await api.world.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
+        notifySuccess(t('toast.saved', { ns: 'common' }));
         navigate(`/world/${id}/view`);
       } else {
-        const updateRes = await apiFetch(`/api/worlds/${worldId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...baseBody,
-            lorebookEntriesToAdd: lorebook
-              .filter((e) => !e.id)
-              .map(({ name, description }) => ({ name, description })),
-            lorebookEntriesToUpdate: lorebook
-              .filter((e) => !!e.id)
-              .map(({ id, name, description }) => ({ id, name, description })),
-            lorebookEntriesToDelete: deletedIds,
-          }),
-          silent: true,
-        });
-        if (!updateRes.ok) throw new Error(await extractApiError(updateRes) ?? t('form.errors.saveFailed'));
-        navigate(`/world/${worldId}/view`);
+        let allSaved = true;
+
+        if (hasAssetChanges) {
+          const updateRes = await apiFetch(`/api/worlds/${worldId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...baseBody,
+              lorebookEntriesToAdd: lorebook
+                .filter((e) => !e.id)
+                .map(({ name, description }) => ({ name, description })),
+              lorebookEntriesToUpdate: lorebook
+                .filter((e) => !!e.id)
+                .map(({ id, name, description }) => ({ id, name, description })),
+              lorebookEntriesToDelete: deletedIds,
+            }),
+            silent: true,
+          });
+
+          if (updateRes.ok) {
+            setDeletedIds([]);
+            setSavedAssetSignature(assetSignatureOf(form, lorebook, [], uiImagePositionX, uiImagePositionY));
+          } else {
+            allSaved = false;
+            notifyError(await extractApiError(updateRes) ?? t('form.errors.saveFailed'));
+          }
+        }
+
+        if (canManageAccess && hasAccessChanges) {
+          const accessSaved = await saveMembers(form.visibility);
+
+          if (accessSaved) setSavedVisibility(form.visibility);
+          else {
+            allSaved = false;
+            notifyError(t('access.errors.saveFailed', { ns: 'common' }));
+          }
+        }
+
+        if (allSaved) {
+          notifySuccess(t('toast.saved', { ns: 'common' }));
+          navigate(`/world/${worldId}/view`);
+        } else {
+          setSaving(false);
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : t('form.errors.saveFailed'));
@@ -360,20 +418,35 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-5 rounded-md border border-border p-4">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.visibilityControl')}</span>
+          {(mode === 'create' || canManageAccess) && (
+            <div className="flex flex-col gap-5 rounded-md border border-border p-4">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.visibilityControl')}</span>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                {t('form.fields.visibility')}
-                <Tooltip content={t('form.tooltips.visibility')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
-              </label>
-              <select value={form.visibility} onChange={set('visibility')} disabled={readOnly} className={INPUT_CLASS}>
-                <option value="PUBLIC">{t('form.options.public')}</option>
-                <option value="PRIVATE">{t('form.options.private')}</option>
-              </select>
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                  {t('form.fields.visibility')}
+                  <Tooltip content={t('form.tooltips.visibility')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
+                </label>
+                <select value={form.visibility} onChange={set('visibility')} disabled={readOnly} className={INPUT_CLASS}>
+                  <option value="PUBLIC">{t('form.options.public')}</option>
+                  <option value="PRIVATE">{t('form.options.private')}</option>
+                </select>
+              </div>
+
+              {mode !== 'create' && worldId && canManageAccess && (
+                <AssetMembersSection
+                  members={members}
+                  visibility={form.visibility}
+                  readOnly={readOnly}
+                  isLoading={membersLoading}
+                  error={membersError}
+                  onAdd={addMember}
+                  onLevelChange={changeLevel}
+                  onRemove={removeMember}
+                />
+              )}
             </div>
-          </div>
+          )}
 
           <div className="flex flex-col gap-5 rounded-md border border-border p-4">
             <div className="flex items-center justify-between gap-3">
@@ -468,7 +541,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
       {!readOnly && (
         <div className="border-t border-border bg-background px-6 py-4">
           <div className="mx-auto flex w-full max-w-5xl gap-3">
-            <button type="submit" disabled={saving} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+            <button type="submit" disabled={saving || !canSave} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
               {saving ? t('form.actions.saving') : t('form.actions.save')}
             </button>
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">

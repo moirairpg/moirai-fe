@@ -8,6 +8,8 @@ export type PlayerCharacterDetails = {
   imageUrl: string | null;
   uiImagePositionX: number | null;
   uiImagePositionY: number | null;
+  canManage: boolean;
+  isOwner: boolean;
   creationDate: string;
   lastUpdateDate: string;
 };

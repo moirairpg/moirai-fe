@@ -1,7 +1,11 @@
 export const TOAST_EVENT = 'app-toast';
 
 export const notifyError = (message) => {
-  window.dispatchEvent(new CustomEvent(TOAST_EVENT, { detail: { message: message ?? null } }));
+  window.dispatchEvent(new CustomEvent(TOAST_EVENT, { detail: { message: message ?? null, variant: 'error' } }));
+};
+
+export const notifySuccess = (message) => {
+  window.dispatchEvent(new CustomEvent(TOAST_EVENT, { detail: { message, variant: 'success' } }));
 };
 
 export const extractApiError = async (res) => {
@@ -102,5 +106,15 @@ export const api = {
     },
     removeImage: (id) =>
       apiFetch(`/api/player-characters/${id}/image`, { method: 'DELETE' }),
+  },
+  assetPermissions: {
+    list: (assetKind, assetId) => apiFetch(`/api/${assetKind}/${assetId}/permissions`),
+    save: (assetKind, assetId, visibility, members, options = {}) =>
+      apiFetch(`/api/${assetKind}/${assetId}/permissions`, {
+        ...options,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visibility, members }),
+      }),
   },
 };
