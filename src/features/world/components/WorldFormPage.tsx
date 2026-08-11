@@ -8,6 +8,7 @@ import { EntityBanner, Tooltip } from '../../../shared/view/ui';
 import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { AssetMembersSection } from '../../../shared/components/AssetMembersSection';
+import { useAuth } from '../../../components/auth';
 import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseWorldJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
@@ -32,6 +33,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const navigate = useNavigate();
   const { worldId } = useParams<{ worldId: string }>();
   const { t } = useTranslation('world');
+  const { user } = useAuth();
   const [canManage, setCanManage] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -53,8 +55,9 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const [lorebookFilter, setLorebookFilter] = useState('');
 
   const readOnly = mode === 'view';
-  const canEdit = mode === 'view' && canManage;
-  const canDelete = mode !== 'create' && canManage;
+  const isAdmin = user?.role === 'ADMIN';
+  const canEdit = mode === 'view' && (canManage || isAdmin);
+  const canDelete = mode !== 'create' && (isOwner || isAdmin);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -373,17 +376,17 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
                 <option value="PRIVATE">{t('form.options.private')}</option>
               </select>
             </div>
-          </div>
 
-          {mode !== 'create' && worldId && isOwner && (
-            <AssetMembersSection
-              assetKind="worlds"
-              assetId={worldId}
-              isOwner={isOwner}
-              visibility={form.visibility}
-              readOnly={readOnly}
-            />
-          )}
+            {mode !== 'create' && worldId && isOwner && (
+              <AssetMembersSection
+                assetKind="worlds"
+                assetId={worldId}
+                isOwner={isOwner}
+                visibility={form.visibility}
+                readOnly={readOnly}
+              />
+            )}
+          </div>
 
           <div className="flex flex-col gap-5 rounded-md border border-border p-4">
             <div className="flex items-center justify-between gap-3">

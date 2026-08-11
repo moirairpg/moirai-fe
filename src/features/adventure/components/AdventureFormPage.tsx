@@ -188,7 +188,8 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   const [lorebookFilter, setLorebookFilter] = useState('');
 
   const readOnly = mode === 'view';
-  const canEdit = mode === 'view' && canManage;
+  const isAdmin = user?.role === 'ADMIN';
+  const canEdit = mode === 'view' && (canManage || isAdmin);
   const errorBorder = (value: string, required = true) => required && submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
 
@@ -248,7 +249,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     }
   };
 
-  const canDelete = mode !== 'create' && canManage;
+  const canDelete = mode !== 'create' && (isOwner || isAdmin);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -870,17 +871,17 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                 </select>
               </div>
             </div>
-          </div>
 
-          {mode !== 'create' && adventureId && isOwner && (
-            <AssetMembersSection
-              assetKind="adventures"
-              assetId={adventureId}
-              isOwner={isOwner}
-              visibility={form.visibility}
-              readOnly={readOnly}
-            />
-          )}
+            {mode !== 'create' && adventureId && isOwner && (
+              <AssetMembersSection
+                assetKind="adventures"
+                assetId={adventureId}
+                isOwner={isOwner}
+                visibility={form.visibility}
+                readOnly={readOnly}
+              />
+            )}
+          </div>
 
           <div className="flex flex-col gap-5 rounded-md border border-border p-4">
             <div className="flex items-center justify-between gap-3">

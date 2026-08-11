@@ -85,7 +85,7 @@ export function AssetMembersSection({
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded-md border border-border p-4">
+    <div className="flex flex-col gap-4 border-t border-border pt-5">
       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {t('access.title')}
       </span>

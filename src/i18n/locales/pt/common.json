@@ -26,7 +26,7 @@
     "empty": "Ninguém mais tem acesso ainda.",
     "unsavedChanges": "Alterações não salvas",
     "readHasNoEffect": "Este item é público, então o acesso de leitura não muda nada.",
-    "levels": { "read": "Leitura", "write": "Escrita", "owner": "Proprietário" },
+    "levels": { "read": "Leitura", "write": "Escrita", "owner": "Dono" },
     "actions": { "add": "Adicionar", "remove": "Remover", "save": "Salvar acesso" }
   },
   "imagePrompt": {

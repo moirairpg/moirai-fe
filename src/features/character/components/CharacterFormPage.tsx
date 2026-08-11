@@ -6,6 +6,7 @@ import { apiFetch, api, extractApiError } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { useCharacterClasses } from '../hooks/useCharacterClasses';
+import { useAuth } from '../../../components/auth';
 import { useCharacterAdventures } from '../hooks/useCharacterAdventures';
 import { useJsonImport, parseCharacterJson } from '../../../utils/jsonImport';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
@@ -41,9 +42,12 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const [uiImagePositionY, setUiImagePositionY] = useState(0.5);
   const [isOwner, setIsOwner] = useState(false);
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
   const readOnly = mode === 'view';
-  const canEdit = mode === 'view' && isOwner;
-  const canDelete = mode !== 'create' && isOwner;
+  const canEdit = mode === 'view' && (isOwner || isAdmin);
+  const canDelete = mode !== 'create' && (isOwner || isAdmin);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
