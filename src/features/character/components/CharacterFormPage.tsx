@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { apiFetch, api, extractApiError } from '../../../utils/api';
+import { apiFetch, api, extractApiError, notifySuccess } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { useCharacterClasses } from '../hooks/useCharacterClasses';
@@ -197,6 +197,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
 
+        notifySuccess(t('toast.saved', { ns: 'common' }));
         navigate(`/character/${id}/view`);
       } else {
         const res = await apiFetch(`/api/player-characters/${characterId}`, {
@@ -212,6 +213,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
         }
 
+        notifySuccess(t('toast.saved', { ns: 'common' }));
         navigate(`/character/${characterId}/view`);
       }
     } catch (err) {

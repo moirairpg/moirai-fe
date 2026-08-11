@@ -7,6 +7,7 @@
   "darkModeToggle": "Alternar modo escuro",
   "toast": {
     "unexpectedError": "Algo deu errado. Tente novamente.",
+    "saved": "Salvo com sucesso.",
     "dismiss": "Dispensar"
   },
   "selectAdventure": "Selecione uma aventura para começar.",
@@ -24,10 +25,10 @@
     "usernamePlaceholder": "Nome de usuário",
     "loading": "Carregando membros...",
     "empty": "Ninguém mais tem acesso ainda.",
-    "unsavedChanges": "Alterações não salvas",
     "readHasNoEffect": "Este item é público, então o acesso de leitura não muda nada.",
     "levels": { "read": "Leitura", "write": "Escrita", "owner": "Dono" },
-    "actions": { "add": "Adicionar", "remove": "Remover", "save": "Salvar acesso" }
+    "actions": { "add": "Adicionar", "remove": "Remover" },
+    "errors": { "saveFailed": "Não foi possível salvar as alterações de acesso." }
   },
   "imagePrompt": {
     "message": "Este item não tem imagem. Deseja gerar uma?",

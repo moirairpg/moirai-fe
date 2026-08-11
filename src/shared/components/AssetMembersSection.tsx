@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAssetMembers } from '../hooks/useAssetMembers';
-import type { AssetMemberDraft, ManagedAssetKind, PermissionLevel } from '../types/permissions';
+import type { AssetMemberDraft, PermissionLevel } from '../types/permissions';
 
 type AssetMemberRowProps = {
   member: AssetMemberDraft;
@@ -51,37 +50,35 @@ function AssetMemberRow({ member, isPublic, readOnly, onLevelChange, onRemove }:
 }
 
 type AssetMembersSectionProps = {
-  assetKind: ManagedAssetKind;
-  assetId: string;
-  isOwner: boolean;
+  members: AssetMemberDraft[];
   visibility: string;
   readOnly: boolean;
+  isLoading: boolean;
+  error: string;
+  onAdd: (username: string, level: PermissionLevel) => void;
+  onLevelChange: (username: string, level: PermissionLevel) => void;
+  onRemove: (username: string) => void;
 };
 
 export function AssetMembersSection({
-  assetKind,
-  assetId,
-  isOwner,
+  members,
   visibility,
   readOnly,
+  isLoading,
+  error,
+  onAdd,
+  onLevelChange,
+  onRemove,
 }: AssetMembersSectionProps) {
   const { t } = useTranslation('common');
-  const { members, isLoading, isSaving, error, hasUnsavedChanges, addMember, changeLevel, removeMember, save } =
-    useAssetMembers(assetKind, assetId, isOwner);
 
   const isPublic = visibility === 'PUBLIC';
   const [username, setUsername] = useState('');
   const [level, setLevel] = useState<PermissionLevel>(isPublic ? 'WRITE' : 'READ');
 
-  if (!isOwner) return null;
-
   const handleAdd = () => {
-    addMember(username, level);
+    onAdd(username, level);
     setUsername('');
-  };
-
-  const handleSave = () => {
-    save();
   };
 
   return (
@@ -135,27 +132,11 @@ export function AssetMembersSection({
             member={member}
             isPublic={isPublic}
             readOnly={readOnly}
-            onLevelChange={(next) => changeLevel(member.username, next)}
-            onRemove={() => removeMember(member.username)}
+            onLevelChange={(next) => onLevelChange(member.username, next)}
+            onRemove={() => onRemove(member.username)}
           />
         ))}
       </div>
-
-      {!readOnly && (
-        <div className="flex items-center justify-end gap-3">
-          {hasUnsavedChanges && (
-            <span className="text-sm text-muted-foreground">{t('access.unsavedChanges')}</span>
-          )}
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={!hasUnsavedChanges || isSaving}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {t('access.actions.save')}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -66,7 +66,7 @@ export function useAssetMembers(assetKind: ManagedAssetKind, assetId: string | u
     );
   };
 
-  const save = async () => {
+  const save = async (visibility: string) => {
     if (!assetId) return false;
     setError('');
     setIsSaving(true);
@@ -76,7 +76,7 @@ export function useAssetMembers(assetKind: ManagedAssetKind, assetId: string | u
       .map((member) => ({ username: member.username, level: member.level }));
 
     try {
-      const res = await api.assetPermissions.save(assetKind, assetId, payload, { silent: true });
+      const res = await api.assetPermissions.save(assetKind, assetId, visibility, payload, { silent: true });
 
       if (!res.ok) {
         setError((await extractApiError(res)) ?? '');
