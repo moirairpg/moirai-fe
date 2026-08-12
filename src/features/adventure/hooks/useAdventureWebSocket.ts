@@ -20,7 +20,7 @@ export type AdventureMessageUpdate =
   | { change: 'NARRATION_FAILED'; messageId: null; message: null; isNarrationPending: false };
 
 type UseAdventureWebSocketResult = {
-  sendMessage: (content: string) => void;
+  sendMessage: (content: string, isNarrationRequested: boolean) => void;
   startAdventure: () => void;
   go: () => void;
   retry: () => void;
@@ -61,7 +61,8 @@ export function useAdventureWebSocket(
   );
 
   return {
-    sendMessage: (content) => send('/messages', { content }),
+    sendMessage: (content, isNarrationRequested) =>
+      send('/messages', { content, generateNarration: isNarrationRequested }),
     startAdventure: () => send('/start'),
     go: () => send('/go'),
     retry: () => send('/retry'),

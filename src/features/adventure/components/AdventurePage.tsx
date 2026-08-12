@@ -7,6 +7,7 @@ import { AdventureMessagesPane } from './AdventureMessagesPane';
 import { AdventureMessageContextMenu } from './AdventureMessageContextMenu';
 import { CommandPicker } from './CommandPicker';
 import { CommandArgumentForm } from './CommandArgumentForm';
+import { NarrationCheckbox } from './NarrationCheckbox';
 import { useAdventureMessages } from '../hooks/useAdventureMessages';
 import { useAdventureWebSocket } from '../hooks/useAdventureWebSocket';
 import { useAdventureCommands } from '../hooks/useAdventureCommands';
@@ -84,6 +85,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const { isDarkMode } = useTheme();
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isNarrationRequested, setIsNarrationRequested] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
   const [editing, setEditing] = useState<EditingState>(null);
@@ -96,6 +98,10 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
     textareaRef.current?.focus();
   }, [adventureId, isCommandFormOpen]);
+
+  useEffect(() => {
+    setIsNarrationRequested(true);
+  }, [adventureId]);
 
   useEffect(() => {
     if (isGenerating || isCommandFormOpen) return;
@@ -227,9 +233,13 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
 
     if (handled) return;
 
-    setIsGenerating(true);
-    sendMessage(trimmed);
-  }, [input, isGenerating, sendMessage, handleInput, appendMessage]);
+    if (isNarrationRequested) {
+      setIsGenerating(true);
+    }
+
+    sendMessage(trimmed, isNarrationRequested);
+    setIsNarrationRequested(true);
+  }, [input, isGenerating, isNarrationRequested, sendMessage, handleInput, appendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -428,19 +438,27 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
           />
         ) : (
           <>
-            <div className="flex gap-1 mb-1.5">
-              {FORMAT_BUTTONS.map(({ icon: Icon, marker, titleKey }) => (
-                <button
-                  key={marker}
-                  type="button"
-                  title={t(titleKey)}
-                  disabled={isGenerating}
-                  onMouseDown={(e) => { e.preventDefault(); handleFormat(marker); }}
-                  className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </button>
-              ))}
+            <div className="mb-1.5 flex items-center justify-between">
+              <div className="flex gap-1">
+                {FORMAT_BUTTONS.map(({ icon: Icon, marker, titleKey }) => (
+                  <button
+                    key={marker}
+                    type="button"
+                    title={t(titleKey)}
+                    disabled={isGenerating}
+                    onMouseDown={(e) => { e.preventDefault(); handleFormat(marker); }}
+                    className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </button>
+                ))}
+              </div>
+
+              <NarrationCheckbox
+                checked={isNarrationRequested}
+                onChange={setIsNarrationRequested}
+                disabled={isGenerating}
+              />
             </div>
 
             {pickerOpen && !isGenerating && (

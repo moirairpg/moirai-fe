@@ -101,6 +101,10 @@
       "italic": "Italic",
       "strikethrough": "Strikethrough"
     },
+    "narration": {
+      "label": "Enable narrator response",
+      "title": "Uncheck to post this message without a reply from the Narrator"
+    },
     "commandForm": {
       "fields": {
         "say": { "text": "Narrator line" },

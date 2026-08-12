@@ -101,6 +101,10 @@
       "italic": "Itálico",
       "strikethrough": "Tachado"
     },
+    "narration": {
+      "label": "Ativar resposta do narrador",
+      "title": "Desmarque para enviar esta mensagem sem resposta do Narrador"
+    },
     "commandForm": {
       "fields": {
         "say": { "text": "Fala do narrador" },
