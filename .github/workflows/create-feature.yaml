@@ -58,7 +58,7 @@ jobs:
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           NUMERIC_VERSION=${CURRENT_VERSION%-SNAPSHOT}
           FEATURE_VERSION="${NUMERIC_VERSION}-${{ inputs.feature_name }}-SNAPSHOT"
-          npm pkg set version="$FEATURE_VERSION"
+          yarn version --new-version "$FEATURE_VERSION" --no-git-tag-version
           git add package.json
           git commit -m "create feature: set version $FEATURE_VERSION"
           git push origin feature/${{ inputs.feature_name }}
