@@ -5,6 +5,7 @@ import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react
 import { apiFetch, api, extractApiError, notifySuccess } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
+import { resolveImagePosition } from '../../../utils/imagePosition';
 import { useCharacterClasses } from '../hooks/useCharacterClasses';
 import { useAuth } from '../../../components/auth';
 import { useCharacterAdventures } from '../hooks/useCharacterAdventures';
@@ -126,9 +127,12 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
     ],
   });
 
-  const handleImageUpload = (file: File) => {
+  const handleImageUpload = async (file: File) => {
     setImageFile(file);
     setImageUrl(URL.createObjectURL(file));
+    const position = await resolveImagePosition(file);
+    setUiImagePositionX(position.x);
+    setUiImagePositionY(position.y);
   };
 
   const handleImageRemove = async () => {
@@ -144,6 +148,9 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
     const file = new File([blob], 'generated.png', { type: 'image/png' });
     setImageFile(file);
     setImageUrl(URL.createObjectURL(blob));
+    const position = await resolveImagePosition(file);
+    setUiImagePositionX(position.x);
+    setUiImagePositionY(position.y);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -195,6 +202,16 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
         if (file) {
           const uploadRes = await api.character.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
+
+          if (!imageFile) {
+            const position = await resolveImagePosition(file);
+            await apiFetch(`/api/player-characters/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...body, uiImagePositionX: position.x, uiImagePositionY: position.y }),
+              silent: true,
+            }).catch(() => {});
+          }
         }
 
         notifySuccess(t('toast.saved', { ns: 'common' }));

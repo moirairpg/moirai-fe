@@ -13,6 +13,7 @@ import { useAuth } from '../../../components/auth';
 import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseWorldJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
+import { resolveImagePosition } from '../../../utils/imagePosition';
 
 type WorldFormPageProps = { mode: 'view' | 'edit' | 'create' };
 
@@ -178,9 +179,12 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     if (data.lorebook.length) setLorebook(data.lorebook.map(({ name, description }) => ({ name, description })));
   });
 
-  const handleImageUpload = (file: File) => {
+  const handleImageUpload = async (file: File) => {
     setImageFile(file);
     setImageUrl(URL.createObjectURL(file));
+    const position = await resolveImagePosition(file);
+    setUiImagePositionX(position.x);
+    setUiImagePositionY(position.y);
   };
 
   const handleImageRemove = async () => {
@@ -204,6 +208,9 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     const file = new File([blob], 'generated.png', { type: 'image/png' });
     setImageFile(file);
     setImageUrl(URL.createObjectURL(blob));
+    const position = await resolveImagePosition(file);
+    setUiImagePositionX(position.x);
+    setUiImagePositionY(position.y);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -262,6 +269,13 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
           const file = new File([blob], 'generated.png', { type: 'image/png' });
           const uploadRes = await api.world.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
+          const position = await resolveImagePosition(file);
+          await apiFetch(`/api/worlds/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...baseBody, uiImagePositionX: position.x, uiImagePositionY: position.y }),
+            silent: true,
+          }).catch(() => {});
         }
         notifySuccess(t('toast.saved', { ns: 'common' }));
         navigate(`/world/${id}/view`);

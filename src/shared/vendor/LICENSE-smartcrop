@@ -1,0 +1,56 @@
+smartcrop.js — vendored third-party dependency
+==============================================
+
+Upstream:  https://github.com/jwagner/smartcrop.js
+Source:    https://unpkg.com/smartcrop@2.0.5/smartcrop.js
+Vendored:  src/shared/vendor/smartcrop.cjs
+Version:   2.0.5 (published 2021-09-01)
+Size:      17674 bytes, 594 lines
+SHA-256:   fbc74cd1edd245b335af2404b5b55e29dca3f0c22053a4b6027df1ae05c340c7
+
+The file is stored with a .cjs extension. The contents are byte-identical to
+upstream — only the extension differs, so the hash below still verifies. The
+extension is required: the file is CommonJS (it ends in `module.exports`), and
+Vite's CommonJS interop only processes node_modules by default, so a .js file
+here is parsed as ESM and the default import fails to resolve at build time.
+The .cjs extension makes both the dev server and the Rollup build treat it as
+CommonJS. Its type declarations are therefore in smartcrop.d.cts, which is where
+TypeScript looks for a .cjs module under moduleResolution "Bundler".
+
+This file is vendored rather than installed from npm. The package has had no
+release since September 2021, so a dependency would buy no future patches while
+leaving an open supply-chain edge. The copy here is frozen at the version that
+was reviewed.
+
+The SHA-256 above was verified identical between the npm artifact and the public
+GitHub source, ruling out a published tarball that differs from the reviewed
+repository. Re-verify with:
+
+    sha256sum src/shared/vendor/smartcrop.js
+
+Replacing this file means re-reviewing it and updating the hash above. Do not
+upgrade it casually.
+
+
+MIT License
+
+Copyright (C) 2018 Jonas Wagner
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

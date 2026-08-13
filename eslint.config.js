@@ -10,7 +10,7 @@ import globals from "globals";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "public/**"],
+    ignores: ["dist/**", "node_modules/**", "public/**", "src/shared/vendor/smartcrop.cjs"],
   },
   {
     files: ["src/**/*.{ts,tsx,js,jsx}"],

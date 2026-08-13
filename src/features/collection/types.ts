@@ -8,6 +8,8 @@ export type AdventureSummary = {
   creationDate: string;
   imageUrl: string | null;
   canWrite: boolean;
+  uiImagePositionX: number | null;
+  uiImagePositionY: number | null;
 };
 
 export type WorldSummary = {
@@ -18,6 +20,8 @@ export type WorldSummary = {
   creationDate: string;
   imageUrl: string | null;
   canWrite: boolean;
+  uiImagePositionX: number | null;
+  uiImagePositionY: number | null;
 };
 
 export type PlayerCharacterSummary = {
@@ -26,6 +30,8 @@ export type PlayerCharacterSummary = {
   name: string;
   characterClass: string | null;
   imageUrl: string | null;
+  uiImagePositionX: number | null;
+  uiImagePositionY: number | null;
 };
 
 export type PaginatedResult<T> = {
