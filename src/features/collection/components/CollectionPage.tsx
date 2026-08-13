@@ -25,7 +25,7 @@ function AdventureTab({ view }: TabProps) {
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
       {view === 'MY_STUFF' && <CreateAssetCard to="/adventure/new" label={t('create.adventure')} />}
       {items.map((a) => (
-        <EntityCard key={a.id} kind="adventure" id={a.id} name={a.name} description={a.description} visibility={a.visibility} imageUrl={a.imageUrl} canWrite={a.canWrite} onDelete={handleDelete} />
+        <EntityCard key={a.id} kind="adventure" id={a.id} name={a.name} description={a.description} visibility={a.visibility} imageUrl={a.imageUrl} uiImagePositionX={a.uiImagePositionX} uiImagePositionY={a.uiImagePositionY} canWrite={a.canWrite} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );
@@ -40,7 +40,7 @@ function WorldTab({ view }: TabProps) {
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
       {view === 'MY_STUFF' && <CreateAssetCard to="/world/new" label={t('create.world')} />}
       {items.map((w) => (
-        <EntityCard key={w.id} kind="world" id={w.id} name={w.name} description={w.description} visibility={w.visibility} imageUrl={w.imageUrl} canWrite={w.canWrite} onDelete={handleDelete} />
+        <EntityCard key={w.id} kind="world" id={w.id} name={w.name} description={w.description} visibility={w.visibility} imageUrl={w.imageUrl} uiImagePositionX={w.uiImagePositionX} uiImagePositionY={w.uiImagePositionY} canWrite={w.canWrite} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );
@@ -62,7 +62,7 @@ function CharacterTab() {
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
       <CreateAssetCard to="/character/new" label={t('create.character', { ns: 'collection' })} />
       {items.map((c) => (
-        <EntityCard key={c.id} kind="character" id={c.id} name={c.name} classLabel={classLabelOf(c.characterClass)} imageUrl={c.imageUrl} onDelete={handleDelete} />
+        <EntityCard key={c.id} kind="character" id={c.id} name={c.name} classLabel={classLabelOf(c.characterClass)} imageUrl={c.imageUrl} uiImagePositionX={c.uiImagePositionX} uiImagePositionY={c.uiImagePositionY} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );

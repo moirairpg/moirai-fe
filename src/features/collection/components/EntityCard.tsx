@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Eye, Pencil, Play, Trash2 } from 'lucide-react';
+import { objectPositionOf } from '../../../utils/imagePosition';
 
 const BASE_PATH = {
   adventure: '/adventure',
@@ -18,6 +19,8 @@ type AdventureCardProps = {
   imageUrl?: string | null;
   canWrite: boolean;
   onDelete: (id: string) => void;
+  uiImagePositionX?: number | null;
+  uiImagePositionY?: number | null;
 };
 
 type WorldCardProps = {
@@ -29,6 +32,8 @@ type WorldCardProps = {
   imageUrl?: string | null;
   canWrite: boolean;
   onDelete: (id: string) => void;
+  uiImagePositionX?: number | null;
+  uiImagePositionY?: number | null;
 };
 
 type CharacterCardProps = {
@@ -38,6 +43,8 @@ type CharacterCardProps = {
   classLabel: string | null;
   imageUrl?: string | null;
   onDelete: (id: string) => void;
+  uiImagePositionX?: number | null;
+  uiImagePositionY?: number | null;
 };
 
 type EntityCardProps = AdventureCardProps | WorldCardProps | CharacterCardProps;
@@ -63,7 +70,12 @@ export function EntityCard(props: EntityCardProps) {
         onMouseLeave={() => { if (!isConfirming) setHovered(false); }}
       >
         {props.imageUrl && (
-          <img src={props.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img
+            src={props.imageUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: objectPositionOf(props.uiImagePositionX, props.uiImagePositionY) }}
+          />
         )}
         {isConfirming && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70">

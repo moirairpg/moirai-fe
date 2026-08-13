@@ -19,7 +19,7 @@ function AdventuresTab() {
   return (
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
       {items.map((a) => (
-        <EntityCard key={a.id} kind="adventure" id={a.id} name={a.name} description={a.description} visibility={a.visibility} imageUrl={a.imageUrl} canWrite={a.canWrite} onDelete={handleDelete} />
+        <EntityCard key={a.id} kind="adventure" id={a.id} name={a.name} description={a.description} visibility={a.visibility} imageUrl={a.imageUrl} uiImagePositionX={a.uiImagePositionX} uiImagePositionY={a.uiImagePositionY} canWrite={a.canWrite} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );
@@ -32,7 +32,7 @@ function WorldsTab() {
   return (
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
       {items.map((w) => (
-        <EntityCard key={w.id} kind="world" id={w.id} name={w.name} description={w.description} visibility={w.visibility} imageUrl={w.imageUrl} canWrite={w.canWrite} onDelete={handleDelete} />
+        <EntityCard key={w.id} kind="world" id={w.id} name={w.name} description={w.description} visibility={w.visibility} imageUrl={w.imageUrl} uiImagePositionX={w.uiImagePositionX} uiImagePositionY={w.uiImagePositionY} canWrite={w.canWrite} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );

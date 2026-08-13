@@ -12,6 +12,7 @@ import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm'
 import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseAdventureJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
+import { resolveImagePosition } from '../../../utils/imagePosition';
 import { useSystemNotificationsWebSocket } from '../../notifications/hooks/useSystemNotificationsWebSocket';
 import { useAiModels } from '../hooks/useAiModels';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
@@ -495,9 +496,12 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     && isTokenLimitValid
     && (mode !== 'create' || (form.description.trim() !== '' && form.adventureStart.trim() !== ''));
 
-  const handleImageUpload = (file: File) => {
+  const handleImageUpload = async (file: File) => {
     setImageFile(file);
     setImageUrl(URL.createObjectURL(file));
+    const position = await resolveImagePosition(file);
+    setUiImagePositionX(position.x);
+    setUiImagePositionY(position.y);
   };
 
   const handleImageRemove = async () => {
@@ -521,6 +525,9 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     const file = new File([blob], 'generated.png', { type: 'image/png' });
     setImageFile(file);
     setImageUrl(URL.createObjectURL(blob));
+    const position = await resolveImagePosition(file);
+    setUiImagePositionX(position.x);
+    setUiImagePositionY(position.y);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -592,6 +599,24 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           const file = new File([blob], 'generated.png', { type: 'image/png' });
           const uploadRes = await api.adventure.uploadImage(id, file, { silent: true });
           if (!uploadRes.ok) throw new Error(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
+          const position = await resolveImagePosition(file);
+          await apiFetch(`/api/adventures/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            silent: true,
+            body: JSON.stringify({
+              name: form.name,
+              description: form.description,
+              narratorName: form.narratorName || null,
+              narratorPersonality: form.narratorPersonality || null,
+              moderation: form.moderation,
+              adventureStart: form.adventureStart,
+              modelConfiguration: form.modelConfiguration,
+              contextAttributes: form.contextAttributes,
+              uiImagePositionX: position.x,
+              uiImagePositionY: position.y,
+            }),
+          }).catch(() => {});
         }
         window.dispatchEvent(new Event('adventure-list-changed'));
         notifySuccess(t('toast.saved', { ns: 'common' }));
