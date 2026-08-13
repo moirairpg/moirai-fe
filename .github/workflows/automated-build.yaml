@@ -15,12 +15,6 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Generate app token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.GH_APP_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
       - name: Checkout branch
         uses: actions/checkout@v6.0.2
@@ -53,12 +47,3 @@ jobs:
         run: |
           docker build -t ${{ env.IMAGE_TAG }} .
           docker push ${{ env.IMAGE_TAG }}
-      - name: Prune untagged images from GitHub Container Registry
-        if: github.ref == 'refs/heads/develop'
-        uses: actions/delete-package-versions@v5
-        with:
-          owner: ${{ vars.DOCKER_REPO }}
-          package-name: ${{ vars.DOCKER_IMAGE_NAME }}
-          package-type: container
-          delete-only-untagged-versions: 'true'
-          token: ${{ steps.app-token.outputs.token }}
