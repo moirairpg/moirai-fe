@@ -8,6 +8,7 @@
   "toast": {
     "unexpectedError": "Algo deu errado. Tente novamente.",
     "saved": "Salvo com sucesso.",
+    "deleted": "Excluído com sucesso.",
     "dismiss": "Dispensar"
   },
   "selectAdventure": "Selecione uma aventura para começar.",

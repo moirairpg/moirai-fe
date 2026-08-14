@@ -86,7 +86,10 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const handleDelete = async () => {
     setConfirmingDelete(false);
     const res = await apiFetch(`/api/worlds/${worldId}`, { method: 'DELETE' });
-    if (res.ok) navigate('/my-stuff');
+    if (res.ok) {
+      notifySuccess(t('toast.deleted', { ns: 'common' }));
+      navigate('/my-stuff');
+    }
   };
 
   const isValid = form.name.trim() !== '' && form.description.trim() !== '' && form.adventureStart.trim() !== '';
@@ -100,6 +103,14 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     setLorebookFilter('');
     setDeletedIds([]);
     setCanManage(false);
+    setIsOwner(false);
+    setImageFile(null);
+    setAddingNew(false);
+    setNewDraft(EMPTY_ENTRY);
+    setEditingIndex(null);
+    setEditDraft(EMPTY_ENTRY);
+    setSavedAssetSignature('');
+    setSavedVisibility('PRIVATE');
     if (mode === 'create') {
       setForm(EMPTY);
       setLorebook([]);
@@ -326,7 +337,9 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('form.errors.saveFailed'));
+      const message = e instanceof Error ? e.message : t('form.errors.saveFailed');
+      setError(message);
+      notifyError(message);
       setSaving(false);
     }
   };

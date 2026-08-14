@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { apiFetch, api, extractApiError, notifySuccess } from '../../../utils/api';
+import { apiFetch, api, extractApiError, notifyError, notifySuccess } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { resolveImagePosition } from '../../../utils/imagePosition';
@@ -11,7 +11,9 @@ import { useAuth } from '../../../components/auth';
 import { useCharacterAdventures } from '../hooks/useCharacterAdventures';
 import { useJsonImport, parseCharacterJson } from '../../../utils/jsonImport';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import type { CharacterFormInput, PlayerCharacterDetails } from '../types';
+import AttributeSection from './AttributeSection';
+import { useAttributeAllocation } from '../hooks/useAttributeAllocation';
+import type { CharacterAttributes, CharacterFormInput, PlayerCharacterDetails } from '../types';
 
 type CharacterFormPageProps = { mode: 'view' | 'edit' | 'create' };
 
@@ -42,6 +44,9 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const [uiImagePositionX, setUiImagePositionX] = useState(0.5);
   const [uiImagePositionY, setUiImagePositionY] = useState(0.5);
   const [isOwner, setIsOwner] = useState(false);
+  const [attributes, setAttributes] = useState<CharacterAttributes | null>(null);
+  const allocation = useAttributeAllocation();
+  const { reset: resetAllocation } = allocation;
 
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
@@ -54,7 +59,10 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const handleDelete = async () => {
     setConfirmingDelete(false);
     const res = await apiFetch(`/api/player-characters/${characterId}`, { method: 'DELETE' });
-    if (res.ok) navigate('/my-stuff');
+    if (res.ok) {
+      notifySuccess(t('toast.deleted', { ns: 'common' }));
+      navigate('/my-stuff');
+    }
   };
   const registeredAdventures = useCharacterAdventures(characterId, mode === 'view');
   const adventuresTrackRef = useRef<HTMLDivElement>(null);
@@ -83,6 +91,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
       setImageFile(null);
       setUiImagePositionX(0.5);
       setUiImagePositionY(0.5);
+      resetAllocation();
       setLoading(false);
       return;
     }
@@ -103,19 +112,22 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
         setUiImagePositionX(data.uiImagePositionX ?? 0.5);
         setUiImagePositionY(data.uiImagePositionY ?? 0.5);
         setIsOwner(data.isOwner);
+        setAttributes(data.attributes);
       })
       .catch(() => setError(t('form.errors.loadFailed')))
       .finally(() => setLoading(false));
-  }, [mode, characterId]);
+  }, [mode, characterId, resetAllocation]);
 
   const set = (field: keyof CharacterFormInput) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const canSave =
+  const hasBasicData =
     form.name.trim() !== '' &&
     form.characterClass !== '' &&
     form.personality.trim() !== '' &&
     form.physicalDescription.trim() !== '';
+
+  const canSave = hasBasicData && (mode !== 'create' || allocation.isComplete);
 
   const buildPrompt = () => buildImagePrompt({
     subject: 'character',
@@ -180,12 +192,14 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
       uiImagePositionY,
     };
 
+    const createBody = { ...body, attributes: allocation.levels };
+
     try {
       if (mode === 'create') {
         const res = await apiFetch('/api/player-characters', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+          body: JSON.stringify(createBody),
           silent: true,
         });
         if (!res.ok) throw new Error(await extractApiError(res) ?? t('form.errors.saveFailed'));
@@ -234,7 +248,9 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
         navigate(`/character/${characterId}/view`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('form.errors.saveFailed'));
+      const message = err instanceof Error ? err.message : t('form.errors.saveFailed');
+      setError(message);
+      notifyError(message);
       setSaving(false);
     }
   };
@@ -285,7 +301,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
             imageUrl={imageUrl}
             name={form.name}
             mode={mode}
-            canGenerate={mode !== 'view' && canSave}
+            canGenerate={mode !== 'view' && hasBasicData}
             uiImagePositionX={uiImagePositionX}
             uiImagePositionY={uiImagePositionY}
             onUiImagePositionChange={(x, y) => { setUiImagePositionX(x); setUiImagePositionY(y); }}
@@ -324,6 +340,9 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
               <textarea rows={4} value={form.physicalDescription} onChange={set('physicalDescription')} disabled={readOnly} className={`${TEXTAREA_CLASS}${errorBorder(form.physicalDescription)}`} />
             </div>
           </div>
+
+          {mode === 'create' && <AttributeSection mode="create" allocation={allocation} />}
+          {mode === 'view' && attributes && <AttributeSection mode="view" values={attributes} />}
 
           {mode === 'view' && registeredAdventures.length > 0 && (
             <div className="flex flex-col gap-3 rounded-md border border-border p-4">
@@ -372,7 +391,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
       {!readOnly && (
         <div className="border-t border-border bg-background px-6 py-4">
           <div className="mx-auto flex w-full max-w-5xl gap-3">
-            <button type="submit" disabled={saving} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+            <button type="submit" disabled={saving || !canSave} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
               {saving ? t('form.actions.saving') : t('form.actions.save')}
             </button>
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">

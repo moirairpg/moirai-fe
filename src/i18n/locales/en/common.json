@@ -8,6 +8,7 @@
   "toast": {
     "unexpectedError": "Something went wrong. Please try again.",
     "saved": "Saved successfully.",
+    "deleted": "Deleted successfully.",
     "dismiss": "Dismiss"
   },
   "selectAdventure": "Select an adventure to begin.",

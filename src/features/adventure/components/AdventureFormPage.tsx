@@ -280,6 +280,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     const res = await apiFetch(`/api/adventures/${adventureId}`, { method: 'DELETE' });
     if (res.ok) {
       window.dispatchEvent(new Event('adventure-list-changed'));
+      notifySuccess(t('toast.deleted', { ns: 'common' }));
       navigate('/my-stuff');
     }
   };
@@ -297,6 +298,14 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     setCreateLorebook([]);
     setCanManage(false);
     setRoster([]);
+    setIsOwner(false);
+    setImageFile(null);
+    setAddingNew(false);
+    setNewDraft(EMPTY_ENTRY);
+    setEditingIndex(null);
+    setEditDraft(EMPTY_ENTRY);
+    setSavedAssetSignature('');
+    setSavedVisibility('PRIVATE');
     let restoredFromSnapshot = false;
 
     if (mode === 'create') {
@@ -307,6 +316,8 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
         setDeletedIds(snapshot.deletedIds);
         restoredFromSnapshot = true;
       } else {
+        setForm(EMPTY);
+        setImageUrl(null);
         setUiImagePositionX(0.5);
         setUiImagePositionY(0.5);
       }
@@ -680,7 +691,9 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
         }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('form.errors.saveFailed'));
+      const message = e instanceof Error ? e.message : t('form.errors.saveFailed');
+      setError(message);
+      notifyError(message);
       setSaving(false);
     }
   };

@@ -16,6 +16,21 @@
       "physicalDescription": "Descrição física"
     },
     "classPlaceholder": "Selecione uma classe",
+    "attributes": {
+      "title": "Atributos",
+      "remaining": "Pontos restantes: {{count}}",
+      "reset": "Redefinir",
+      "increase": "Aumentar",
+      "decrease": "Diminuir",
+      "names": {
+        "STRENGTH": "Força",
+        "AGILITY": "Agilidade",
+        "VIGOR": "Vigor",
+        "INTELLIGENCE": "Inteligência",
+        "AWARENESS": "Perspicácia",
+        "CHARISMA": "Carisma"
+      }
+    },
     "actions": {
       "back": "Voltar",
       "save": "Salvar",

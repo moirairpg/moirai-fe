@@ -1,6 +1,6 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { apiFetch } from '../../../utils/api';
+import { apiFetch, notifySuccess } from '../../../utils/api';
 import { useAdventureCollection } from '../hooks/useAdventureCollection';
 import { useWorldCollection } from '../hooks/useWorldCollection';
 import { CardGrid } from './CardGrid';
@@ -9,11 +9,13 @@ import { EntityCard } from './EntityCard';
 type BrowseTab = 'adventures' | 'worlds';
 
 function AdventuresTab() {
+  const { t } = useTranslation('common');
   const { items, isLoading, hasMore, loadMore, removeItem } = useAdventureCollection('EXPLORE');
   const handleDelete = (id: string) => apiFetch(`/api/adventures/${id}`, { method: 'DELETE' }).then((res) => {
     if (!res.ok) return;
     removeItem(id);
     window.dispatchEvent(new Event('adventure-list-changed'));
+    notifySuccess(t('toast.deleted'));
   }).catch(() => {});
 
   return (
@@ -26,8 +28,13 @@ function AdventuresTab() {
 }
 
 function WorldsTab() {
+  const { t } = useTranslation('common');
   const { items, isLoading, hasMore, loadMore, removeItem } = useWorldCollection('EXPLORE');
-  const handleDelete = (id: string) => apiFetch(`/api/worlds/${id}`, { method: 'DELETE' }).then((res) => { if (res.ok) removeItem(id); }).catch(() => {});
+  const handleDelete = (id: string) => apiFetch(`/api/worlds/${id}`, { method: 'DELETE' }).then((res) => {
+    if (!res.ok) return;
+    removeItem(id);
+    notifySuccess(t('toast.deleted'));
+  }).catch(() => {});
 
   return (
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>

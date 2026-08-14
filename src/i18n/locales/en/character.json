@@ -16,6 +16,21 @@
       "physicalDescription": "Physical Description"
     },
     "classPlaceholder": "Select a class",
+    "attributes": {
+      "title": "Attributes",
+      "remaining": "Points remaining: {{count}}",
+      "reset": "Reset",
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "names": {
+        "STRENGTH": "Strength",
+        "AGILITY": "Agility",
+        "VIGOR": "Vigor",
+        "INTELLIGENCE": "Intelligence",
+        "AWARENESS": "Awareness",
+        "CHARISMA": "Charisma"
+      }
+    },
     "actions": {
       "back": "Back",
       "save": "Save",

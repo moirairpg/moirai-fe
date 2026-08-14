@@ -1,3 +1,8 @@
+import type { CHARACTER_ATTRIBUTES } from './attributes';
+
+export type CharacterAttributeName = (typeof CHARACTER_ATTRIBUTES)[number];
+export type CharacterAttributes = Record<CharacterAttributeName, number>;
+
 export type PlayerCharacterDetails = {
   id: string;
   ownerUsername: string;
@@ -5,6 +10,7 @@ export type PlayerCharacterDetails = {
   characterClass: string | null;
   personality: string;
   physicalDescription: string;
+  attributes: CharacterAttributes;
   imageUrl: string | null;
   uiImagePositionX: number | null;
   uiImagePositionY: number | null;
