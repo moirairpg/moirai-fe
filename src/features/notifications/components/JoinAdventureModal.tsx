@@ -96,6 +96,11 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
                 <p className="whitespace-pre-wrap text-sm text-muted-foreground">{detail.physicalDescription}</p>
               </div>
             </div>
+            {detail.characterClass === null && (
+              <span className="self-start rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                {t('invite.join.needsClass')}
+              </span>
+            )}
             <div className="flex justify-between">
               <button
                 type="button"
@@ -107,7 +112,7 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
               <button
                 type="button"
                 onClick={() => choose(detail.id)}
-                disabled={joiningId !== null}
+                disabled={joiningId !== null || detail.characterClass === null}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 {joiningId === detail.id ? t('invite.join.joining') : t('invite.join.choose')}
@@ -161,11 +166,16 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
                       )}
                       <span className="truncate text-sm font-medium text-foreground">{character.name}</span>
                       <span className="truncate text-xs text-muted-foreground">{labelOf(character.characterClass)}</span>
+                      {character.characterClass === null && (
+                        <span className="self-start rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                          {t('invite.join.needsClass')}
+                        </span>
+                      )}
                       <div className="mt-1 flex gap-1.5">
                         <button
                           type="button"
                           onClick={() => choose(character.id)}
-                          disabled={joiningId !== null}
+                          disabled={joiningId !== null || character.characterClass === null}
                           className="flex-1 rounded-md bg-primary px-2 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                         >
                           {joiningId === character.id ? t('invite.join.joining') : t('invite.join.choose')}

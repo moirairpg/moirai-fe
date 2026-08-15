@@ -16,6 +16,13 @@
       "physicalDescription": "Physical Description"
     },
     "classPlaceholder": "Select a class",
+    "overspent": "Too many points spent",
+    "respec": {
+      "button": "Respec",
+      "title": "Respec — {{name}}",
+      "attributePointsLeft": "Attribute points left: {{count}}",
+      "skillPointsLeft": "Skill points left: {{count}}"
+    },
     "attributes": {
       "title": "Attributes",
       "remaining": "Points remaining: {{count}}",
@@ -29,6 +36,50 @@
         "INTELLIGENCE": "Intelligence",
         "AWARENESS": "Awareness",
         "CHARISMA": "Charisma"
+      }
+    },
+    "skills": {
+      "title": "Skills",
+      "classSkills": "Class Skills",
+      "otherSkills": "Other Skills",
+      "signatureBadge": "Signature",
+      "costPerLevel_one": "{{count}} point per level",
+      "costPerLevel_other": "{{count}} points per level",
+      "remaining": "Points remaining: {{count}}",
+      "needsClass": "Character needs a class",
+      "reset": "Reset",
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "names": {
+        "ATHLETICS": "Athletics",
+        "ACROBATICS": "Acrobatics",
+        "STEALTH": "Stealth",
+        "ENDURANCE": "Endurance",
+        "LORE": "Lore",
+        "ALCHEMY": "Alchemy",
+        "DESTRUCTION": "Destruction",
+        "RESTORATION": "Restoration",
+        "ILLUSION": "Illusion",
+        "CONJURATION": "Conjuration",
+        "ALTERATION": "Alteration",
+        "PERCEPTION": "Perception",
+        "SURVIVAL": "Survival",
+        "INTUITION": "Intuition",
+        "PERSUASION": "Persuasion",
+        "DECEPTION": "Deception",
+        "INTIMIDATION": "Intimidation",
+        "PERFORMANCE": "Performance"
+      },
+      "signatures": {
+        "INSPIRE": "Inspire",
+        "DEADEYE": "Deadeye",
+        "BERSERK": "Berserk",
+        "ZEAL": "Zeal",
+        "SPELLWEAVE": "Spellweave",
+        "BACKSTAB": "Backstab",
+        "HEX": "Hex",
+        "BLESSING": "Blessing",
+        "COMMUNE": "Commune"
       }
     },
     "actions": {

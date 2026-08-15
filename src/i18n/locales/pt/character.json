@@ -16,6 +16,13 @@
       "physicalDescription": "Descrição física"
     },
     "classPlaceholder": "Selecione uma classe",
+    "overspent": "Pontos gastos em excesso",
+    "respec": {
+      "button": "Redistribuir pontos",
+      "title": "Redistribuir pontos — {{name}}",
+      "attributePointsLeft": "Pontos de atributo restantes: {{count}}",
+      "skillPointsLeft": "Pontos de perícia restantes: {{count}}"
+    },
     "attributes": {
       "title": "Atributos",
       "remaining": "Pontos restantes: {{count}}",
@@ -29,6 +36,50 @@
         "INTELLIGENCE": "Inteligência",
         "AWARENESS": "Perspicácia",
         "CHARISMA": "Carisma"
+      }
+    },
+    "skills": {
+      "title": "Perícias",
+      "classSkills": "Perícias de classe",
+      "otherSkills": "Outras perícias",
+      "signatureBadge": "Assinatura",
+      "costPerLevel_one": "{{count}} ponto por nível",
+      "costPerLevel_other": "{{count}} pontos por nível",
+      "remaining": "Pontos restantes: {{count}}",
+      "needsClass": "O personagem precisa de uma classe",
+      "reset": "Redefinir",
+      "increase": "Aumentar",
+      "decrease": "Diminuir",
+      "names": {
+        "ATHLETICS": "Atletismo",
+        "ACROBATICS": "Acrobacia",
+        "STEALTH": "Furtividade",
+        "ENDURANCE": "Resistência",
+        "LORE": "Conhecimento",
+        "ALCHEMY": "Alquimia",
+        "DESTRUCTION": "Destruição",
+        "RESTORATION": "Restauração",
+        "ILLUSION": "Ilusão",
+        "CONJURATION": "Conjuração",
+        "ALTERATION": "Alteração",
+        "PERCEPTION": "Percepção",
+        "SURVIVAL": "Sobrevivência",
+        "INTUITION": "Intuição",
+        "PERSUASION": "Persuasão",
+        "DECEPTION": "Dissimulação",
+        "INTIMIDATION": "Intimidação",
+        "PERFORMANCE": "Performance"
+      },
+      "signatures": {
+        "INSPIRE": "Inspiração",
+        "DEADEYE": "Olho Certeiro",
+        "BERSERK": "Frenesi",
+        "ZEAL": "Fervor",
+        "SPELLWEAVE": "Tecelagem Arcana",
+        "BACKSTAB": "Apunhalada",
+        "HEX": "Maldição",
+        "BLESSING": "Bênção",
+        "COMMUNE": "Comunhão"
       }
     },
     "actions": {
@@ -54,6 +105,7 @@
     "MAGE": "Mago",
     "CLERIC": "Clérigo",
     "ROGUE": "Ladino",
-    "WITCH": "Bruxo"
+    "WITCH": "Bruxo",
+    "DRUID": "Druida"
   }
 }

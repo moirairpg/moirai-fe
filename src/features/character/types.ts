@@ -1,7 +1,35 @@
-import type { CHARACTER_ATTRIBUTES } from './attributes';
+export type CharacterAttributes = Record<string, number>;
+export type CharacterSkills = Record<string, number>;
+export type CharacterSignatures = Record<string, number>;
 
-export type CharacterAttributeName = (typeof CHARACTER_ATTRIBUTES)[number];
-export type CharacterAttributes = Record<CharacterAttributeName, number>;
+export type AttributeOption = { name: string; label: string };
+export type SkillOption = { name: string; label: string; attribute: string };
+export type SignatureOption = { name: string; label: string; attribute: string };
+
+export type AttributeVocabulary = {
+  attributes: AttributeOption[];
+  maxLevel: number;
+  creation: { points: number; levelCap: number };
+};
+
+export type SkillVocabulary = {
+  skills: SkillOption[];
+  maxLevel: number;
+  creation: {
+    points: number;
+    levelCap: number;
+    favoredCost: number;
+    offClassCost: number;
+    signatureStartingLevel: number;
+  };
+};
+
+export type CharacterClassOption = {
+  name: string;
+  label: string;
+  signatureSkill: SignatureOption;
+  favoredSkills: string[];
+};
 
 export type PlayerCharacterDetails = {
   id: string;
@@ -11,6 +39,8 @@ export type PlayerCharacterDetails = {
   personality: string;
   physicalDescription: string;
   attributes: CharacterAttributes;
+  skills: CharacterSkills;
+  signatureSkill: CharacterSignatures;
   imageUrl: string | null;
   uiImagePositionX: number | null;
   uiImagePositionY: number | null;
@@ -25,11 +55,6 @@ export type CharacterFormInput = {
   characterClass: string;
   personality: string;
   physicalDescription: string;
-};
-
-export type CharacterClassOption = {
-  name: string;
-  label: string;
 };
 
 export type CharacterAdventureSummary = {

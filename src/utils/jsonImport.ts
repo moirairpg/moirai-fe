@@ -88,16 +88,31 @@ type CharacterImport = {
   characterClass: string;
   personality: string;
   physicalDescription: string;
+  attributes: Record<string, number>;
+  skills: Record<string, number>;
+  signatureSkill: Record<string, number>;
 };
 
+function numberMap(val: unknown): Record<string, number> {
+  if (typeof val !== 'object' || val === null) return {};
+  return Object.fromEntries(
+    Object.entries(val as Record<string, unknown>).filter(
+      (entry): entry is [string, number] => typeof entry[1] === 'number',
+    ),
+  );
+}
+
 export function parseCharacterJson(raw: unknown): CharacterImport {
-  if (typeof raw !== 'object' || raw === null) return { name: '', characterClass: '', personality: '', physicalDescription: '' };
+  if (typeof raw !== 'object' || raw === null) return { name: '', characterClass: '', personality: '', physicalDescription: '', attributes: {}, skills: {}, signatureSkill: {} };
   const j = raw as Record<string, unknown>;
   return {
     name: str(j.name),
     characterClass: str(j.characterClass),
     personality: str(j.personality),
     physicalDescription: str(j.physicalDescription),
+    attributes: numberMap(j.attributes),
+    skills: numberMap(j.skills),
+    signatureSkill: numberMap(j.signatureSkill),
   };
 }
 

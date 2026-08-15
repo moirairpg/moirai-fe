@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'lucide-react';
 import { apiFetch, api, extractApiError, notifyError, notifySuccess } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
@@ -11,9 +11,18 @@ import { useAuth } from '../../../components/auth';
 import { useCharacterAdventures } from '../hooks/useCharacterAdventures';
 import { useJsonImport, parseCharacterJson } from '../../../utils/jsonImport';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import AttributeSection from './AttributeSection';
 import { useAttributeAllocation } from '../hooks/useAttributeAllocation';
-import type { CharacterAttributes, CharacterFormInput, PlayerCharacterDetails } from '../types';
+import { useSkillAllocation } from '../hooks/useSkillAllocation';
+import type {
+  CharacterAttributes,
+  CharacterFormInput,
+  CharacterSignatures,
+  CharacterSkills,
+  PlayerCharacterDetails,
+} from '../types';
+import AttributeSection from './AttributeSection';
+import RespecModal from './RespecModal';
+import SkillSection from './SkillSection';
 
 type CharacterFormPageProps = { mode: 'view' | 'edit' | 'create' };
 
@@ -45,8 +54,12 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const [uiImagePositionY, setUiImagePositionY] = useState(0.5);
   const [isOwner, setIsOwner] = useState(false);
   const [attributes, setAttributes] = useState<CharacterAttributes | null>(null);
+  const [skills, setSkills] = useState<CharacterSkills | null>(null);
+  const [signatureSkill, setSignatureSkill] = useState<CharacterSignatures | null>(null);
   const allocation = useAttributeAllocation();
   const { reset: resetAllocation } = allocation;
+  const skillAllocation = useSkillAllocation(form.characterClass);
+  const [respecOpen, setRespecOpen] = useState(false);
 
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
@@ -54,6 +67,8 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const readOnly = mode === 'view';
   const canEdit = mode === 'view' && (isOwner || isAdmin);
   const canDelete = mode !== 'create' && (isOwner || isAdmin);
+  const isClassless = mode !== 'create' && form.characterClass === '';
+  const canRespec = mode !== 'create' && (isOwner || isAdmin);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -69,6 +84,8 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const scrollAdventures = (direction: number) => adventuresTrackRef.current?.scrollBy({ left: direction * 240, behavior: 'smooth' });
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
 
+  const [importedSheet, setImportedSheet] = useState<ReturnType<typeof parseCharacterJson> | null>(null);
+
   const handleJsonImport = useJsonImport((raw) => {
     const data = parseCharacterJson(raw);
     setForm({
@@ -77,7 +94,20 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
       personality: data.personality,
       physicalDescription: data.physicalDescription,
     });
+    setImportedSheet(data);
   });
+
+  useEffect(() => {
+    if (!importedSheet) return;
+    if (form.characterClass !== importedSheet.characterClass) return;
+    if (allocation.attributes.length === 0) return;
+    if (skillAllocation.skills.length === 0 || !skillAllocation.profile) return;
+
+    allocation.importLevels(importedSheet.attributes);
+    const signatureLevel = importedSheet.signatureSkill[skillAllocation.profile.signatureSkill.name] ?? 0;
+    skillAllocation.importLevels(importedSheet.skills, signatureLevel);
+    setImportedSheet(null);
+  }, [importedSheet, form.characterClass, allocation, skillAllocation]);
   const errorBorder = (value: string) => submitted && !value.trim() ? ' border-red-500' : '';
 
   useEffect(() => {
@@ -113,6 +143,8 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
         setUiImagePositionY(data.uiImagePositionY ?? 0.5);
         setIsOwner(data.isOwner);
         setAttributes(data.attributes);
+        setSkills(data.skills);
+        setSignatureSkill(data.signatureSkill);
       })
       .catch(() => setError(t('form.errors.loadFailed')))
       .finally(() => setLoading(false));
@@ -127,7 +159,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
     form.personality.trim() !== '' &&
     form.physicalDescription.trim() !== '';
 
-  const canSave = hasBasicData && (mode !== 'create' || allocation.isComplete);
+  const canSave = hasBasicData && (mode !== 'create' || (allocation.isComplete && skillAllocation.isComplete));
 
   const buildPrompt = () => buildImagePrompt({
     subject: 'character',
@@ -185,14 +217,19 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
 
     const body = {
       name: form.name,
-      characterClass: form.characterClass,
       personality: form.personality,
       physicalDescription: form.physicalDescription,
       uiImagePositionX,
       uiImagePositionY,
     };
 
-    const createBody = { ...body, attributes: allocation.levels };
+    const createBody = {
+      ...body,
+      characterClass: form.characterClass,
+      attributes: allocation.levels,
+      skills: skillAllocation.levels,
+      signatureSkill: skillAllocation.signatureSkill,
+    };
 
     try {
       if (mode === 'create') {
@@ -277,6 +314,12 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
                   <input type="file" accept=".json" className="sr-only" onChange={handleJsonImport} />
                 </label>
               )}
+              {canRespec && (
+                <button type="button" onClick={() => setRespecOpen(true)} className="flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  {t('form.respec.button')}
+                </button>
+              )}
               {canEdit && (
                 <button type="button" onClick={() => navigate(`/character/${characterId}/edit`)} className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                   <Pencil className="h-3.5 w-3.5" />
@@ -318,17 +361,19 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
               <input type="text" value={form.name} onChange={set('name')} disabled={readOnly} className={`${INPUT_CLASS}${errorBorder(form.name)}`} />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground">{t('form.fields.class')}</label>
-              <select value={form.characterClass} onChange={set('characterClass')} disabled={readOnly} className={`${INPUT_CLASS}${submitted && form.characterClass === '' ? ' border-red-500' : ''}`}>
-                <option value="" disabled>{t('form.classPlaceholder')}</option>
-                {classes.map((option) => (
-                  <option key={option.name} value={option.name}>
-                    {t(`classes.${option.name}`, { defaultValue: option.label })}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {mode !== 'create' && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground">{t('form.fields.class')}</label>
+                <select value={form.characterClass} onChange={set('characterClass')} disabled className={INPUT_CLASS}>
+                  <option value="" disabled>{t('form.classPlaceholder')}</option>
+                  {classes.map((option) => (
+                    <option key={option.name} value={option.name}>
+                      {t(`classes.${option.name}`, { defaultValue: option.label })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground">{t('form.fields.personality')}</label>
@@ -343,6 +388,35 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
 
           {mode === 'create' && <AttributeSection mode="create" allocation={allocation} />}
           {mode === 'view' && attributes && <AttributeSection mode="view" values={attributes} />}
+
+          {mode === 'create' && (
+            <SkillSection
+              mode="create"
+              characterClass={form.characterClass}
+              allocation={skillAllocation}
+              classSelector={
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-foreground">{t('form.fields.class')}</label>
+                  <select value={form.characterClass} onChange={set('characterClass')} className={`${INPUT_CLASS}${submitted && form.characterClass === '' ? ' border-red-500' : ''}`}>
+                    <option value="" disabled>{t('form.classPlaceholder')}</option>
+                    {classes.map((option) => (
+                      <option key={option.name} value={option.name}>
+                        {t(`classes.${option.name}`, { defaultValue: option.label })}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              }
+            />
+          )}
+          {mode === 'view' && skills && signatureSkill && (
+            <SkillSection
+              mode="view"
+              characterClass={form.characterClass || null}
+              skills={skills}
+              signatureSkill={signatureSkill}
+            />
+          )}
 
           {mode === 'view' && registeredAdventures.length > 0 && (
             <div className="flex flex-col gap-3 rounded-md border border-border p-4">
@@ -397,8 +471,30 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
               {t('form.actions.cancel')}
             </button>
+            {mode === 'edit' && isClassless && (
+              <span className="self-center rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                {t('form.skills.needsClass')}
+              </span>
+            )}
           </div>
         </div>
+      )}
+
+      {respecOpen && characterId && (
+        <RespecModal
+          characterId={characterId}
+          characterName={form.name}
+          currentClass={form.characterClass}
+          onSaved={(details) => {
+            setForm((prev) => ({ ...prev, characterClass: details.characterClass ?? '' }));
+            setAttributes(details.attributes);
+            setSkills(details.skills);
+            setSignatureSkill(details.signatureSkill);
+            setRespecOpen(false);
+            navigate(`/character/${characterId}/view`);
+          }}
+          onClose={() => setRespecOpen(false)}
+        />
       )}
 
       {confirmingDelete && (

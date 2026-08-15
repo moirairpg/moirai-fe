@@ -1,36 +1,56 @@
 import { useCallback, useState } from 'react';
-import { ATTRIBUTE_CREATION_CAP, ATTRIBUTE_CREATION_POINTS, CHARACTER_ATTRIBUTES } from '../attributes';
-import type { CharacterAttributeName, CharacterAttributes } from '../types';
-
-const EMPTY_ALLOCATION: CharacterAttributes = {
-  STRENGTH: 0,
-  AGILITY: 0,
-  VIGOR: 0,
-  INTELLIGENCE: 0,
-  AWARENESS: 0,
-  CHARISMA: 0,
-};
+import type { CharacterAttributes } from '../types';
+import { useAttributeVocabulary } from './useAttributeVocabulary';
 
 export function useAttributeAllocation() {
-  const [levels, setLevels] = useState<CharacterAttributes>(EMPTY_ALLOCATION);
+  const { vocabulary } = useAttributeVocabulary();
+  const [pending, setPending] = useState<Record<string, number>>({});
 
-  const spent = CHARACTER_ATTRIBUTES.reduce((sum, attribute) => sum + levels[attribute], 0);
-  const remaining = ATTRIBUTE_CREATION_POINTS - spent;
+  const attributes = vocabulary?.attributes ?? [];
+  const creation = vocabulary?.creation ?? null;
 
-  const increment = (attribute: CharacterAttributeName) =>
-    setLevels((prev) => ({ ...prev, [attribute]: prev[attribute] + 1 }));
+  const levelOf = (attribute: string) => pending[attribute] ?? 0;
+  const spent = attributes.reduce((sum, attribute) => sum + levelOf(attribute.name), 0);
+  const remaining = (creation?.points ?? 0) - spent;
 
-  const decrement = (attribute: CharacterAttributeName) =>
-    setLevels((prev) => ({ ...prev, [attribute]: prev[attribute] - 1 }));
+  const increment = (attribute: string) =>
+    setPending((prev) => ({ ...prev, [attribute]: (prev[attribute] ?? 0) + 1 }));
 
-  const reset = useCallback(() => setLevels(EMPTY_ALLOCATION), []);
+  const decrement = (attribute: string) =>
+    setPending((prev) => ({ ...prev, [attribute]: (prev[attribute] ?? 0) - 1 }));
 
-  const canIncrement = (attribute: CharacterAttributeName) =>
-    levels[attribute] < ATTRIBUTE_CREATION_CAP && remaining > 0;
+  const reset = useCallback(() => setPending({}), []);
 
-  const canDecrement = (attribute: CharacterAttributeName) => levels[attribute] > 0;
+  const importLevels = (importedLevels: Record<string, number>) => {
+    const cap = creation?.levelCap ?? 0;
+    setPending(Object.fromEntries(
+      Object.entries(importedLevels).map(([name, level]) => [name, Math.min(Math.max(level, 0), cap)]),
+    ));
+  };
 
-  const isComplete = remaining === 0;
+  const canIncrement = (attribute: string) =>
+    creation !== null && levelOf(attribute) < creation.levelCap && remaining > 0;
 
-  return { levels, remaining, isComplete, increment, decrement, reset, canIncrement, canDecrement };
+  const canDecrement = (attribute: string) => levelOf(attribute) > 0;
+
+  const isComplete = creation !== null && remaining === 0;
+
+  const levels: CharacterAttributes = Object.fromEntries(
+    attributes.map((attribute) => [attribute.name, levelOf(attribute.name)]),
+  );
+
+  return {
+    attributes,
+    maxLevel: vocabulary?.maxLevel ?? 0,
+    levels,
+    remaining,
+    isComplete,
+    increment,
+    decrement,
+    reset,
+    importLevels,
+    canIncrement,
+    canDecrement,
+    levelOf,
+  };
 }

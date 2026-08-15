@@ -17,7 +17,7 @@ export function useCharacterClasses(): {
       return;
     }
 
-    apiFetch('/api/character-classes')
+    apiFetch('/api/player-characters/classes')
       .then((res) => res.json())
       .then((json: CharacterClassOption[]) => {
         cache = json;
