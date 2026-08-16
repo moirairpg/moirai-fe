@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
+import { objectPositionOf } from '../../../utils/imagePosition';
 import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
 import type { PlayerCharacterSummary } from '../../collection/types';
 import type { PlayerCharacterDetails } from '../../character/types';
@@ -83,7 +84,12 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
           <div className="flex flex-col gap-4">
             <div className="flex gap-4">
               {detail.imageUrl ? (
-                <img src={detail.imageUrl} alt={detail.name} className="h-40 w-32 flex-shrink-0 rounded-md object-cover" />
+                <img
+                  src={detail.imageUrl}
+                  alt={detail.name}
+                  className="h-40 w-32 flex-shrink-0 rounded-md object-cover"
+                  style={{ objectPosition: objectPositionOf(detail.uiImagePositionX, detail.uiImagePositionY) }}
+                />
               ) : (
                 <div className="flex h-40 w-32 flex-shrink-0 items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
                   {detail.name.charAt(0)}
@@ -158,7 +164,12 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
                       className="flex w-40 flex-shrink-0 flex-col gap-2 rounded-md border border-border p-2"
                     >
                       {character.imageUrl ? (
-                        <img src={character.imageUrl} alt={character.name} className="h-28 w-full rounded object-cover" />
+                        <img
+                          src={character.imageUrl}
+                          alt={character.name}
+                          className="h-28 w-full rounded object-cover"
+                          style={{ objectPosition: objectPositionOf(character.uiImagePositionX, character.uiImagePositionY) }}
+                        />
                       ) : (
                         <div className="flex h-28 w-full items-center justify-center rounded bg-muted text-lg text-muted-foreground">
                           {character.name.charAt(0)}

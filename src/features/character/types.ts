@@ -61,4 +61,6 @@ export type CharacterAdventureSummary = {
   publicId: string;
   name: string;
   imageUrl: string | null;
+  uiImagePositionX: number | null;
+  uiImagePositionY: number | null;
 };

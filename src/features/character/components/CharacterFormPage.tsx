@@ -5,7 +5,7 @@ import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'l
 import { apiFetch, api, extractApiError, notifyError, notifySuccess } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
-import { resolveImagePosition } from '../../../utils/imagePosition';
+import { objectPositionOf, resolveImagePosition } from '../../../utils/imagePosition';
 import { useCharacterClasses } from '../hooks/useCharacterClasses';
 import { useAuth } from '../../../components/auth';
 import { useCharacterAdventures } from '../hooks/useCharacterAdventures';
@@ -440,7 +440,12 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
                     >
                       <div className="relative h-28 flex-shrink-0 bg-muted">
                         {adventure.imageUrl && (
-                          <img src={adventure.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                          <img
+                            src={adventure.imageUrl}
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover"
+                            style={{ objectPosition: objectPositionOf(adventure.uiImagePositionX, adventure.uiImagePositionY) }}
+                          />
                         )}
                       </div>
                       <p className="truncate p-3 text-sm font-semibold text-foreground">{adventure.name}</p>

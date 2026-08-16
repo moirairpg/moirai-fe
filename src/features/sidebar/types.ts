@@ -54,6 +54,8 @@ export type AdventureMembershipSummary = {
   name: string;
   characterClass: string | null;
   imageUrl: string | null;
+  uiImagePositionX: number | null;
+  uiImagePositionY: number | null;
 };
 
 export type WorldLorebookEntry = {

@@ -12,7 +12,7 @@ import { LorebookEntryForm } from '../../../shared/components/LorebookEntryForm'
 import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
 import { useJsonImport, parseAdventureJson } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
-import { resolveImagePosition } from '../../../utils/imagePosition';
+import { objectPositionOf, resolveImagePosition } from '../../../utils/imagePosition';
 import { useSystemNotificationsWebSocket } from '../../notifications/hooks/useSystemNotificationsWebSocket';
 import { useAiModels } from '../hooks/useAiModels';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
@@ -22,7 +22,7 @@ import { InvitePlayersField } from './InvitePlayersField';
 
 type AdventureFormPageProps = { mode: 'view' | 'edit' | 'create' };
 
-type SelectOption = { id: string; name: string; description?: string; visibility?: string; imageUrl?: string | null };
+type SelectOption = { id: string; name: string; description?: string; visibility?: string; imageUrl?: string | null; uiImagePositionX?: number | null; uiImagePositionY?: number | null };
 
 type FormState = {
   name: string;
@@ -118,7 +118,12 @@ function CardPicker({
         >
           <div className="relative h-40 flex-shrink-0 bg-muted">
             {option.imageUrl && (
-              <img src={option.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              <img
+                src={option.imageUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{ objectPosition: objectPositionOf(option.uiImagePositionX, option.uiImagePositionY) }}
+              />
             )}
             {onView ? (
               <button
@@ -378,8 +383,9 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
     apiFetch(url)
       .then((r) => r.json())
       .then((d) => {
-        setWorlds((d.data ?? []).map((w: { id: string; name: string; description?: string; visibility?: string; imageUrl?: string | null }) => ({
+        setWorlds((d.data ?? []).map((w: { id: string; name: string; description?: string; visibility?: string; imageUrl?: string | null; uiImagePositionX?: number | null; uiImagePositionY?: number | null }) => ({
           id: w.id, name: w.name, description: w.description, visibility: w.visibility, imageUrl: w.imageUrl,
+          uiImagePositionX: w.uiImagePositionX, uiImagePositionY: w.uiImagePositionY,
         })));
         setWorldTotalPages(d.totalPages ?? 1);
       });
@@ -941,7 +947,12 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                       >
                         <div className="relative h-32 flex-shrink-0 bg-muted">
                           {member.imageUrl && (
-                            <img src={member.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                            <img
+                              src={member.imageUrl}
+                              alt=""
+                              className="absolute inset-0 h-full w-full object-cover"
+                              style={{ objectPosition: objectPositionOf(member.uiImagePositionX, member.uiImagePositionY) }}
+                            />
                           )}
                         </div>
                         <div className="flex flex-col gap-1 p-3">
