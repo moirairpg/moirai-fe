@@ -11,13 +11,26 @@ type MessageSummary = {
   creationDate: string;
 };
 
+export type DiceRollSummary = {
+  characterName: string;
+  attribute: string | null;
+  skill: string | null;
+  difficulty: string;
+  dc: number;
+  naturalRoll: number;
+  modifier: number;
+  total: number;
+  outcome: string;
+};
+
 export type AdventureMessageUpdate =
-  | { change: 'MESSAGE_ADDED'; messageId: string; message: MessageSummary; isNarrationPending: boolean }
-  | { change: 'MESSAGE_EDITED'; messageId: string; message: MessageSummary; isNarrationPending: boolean }
-  | { change: 'MESSAGE_REMOVED'; messageId: string; message: null; isNarrationPending: boolean }
-  | { change: 'MESSAGES_REMOVED_FROM'; messageId: string; message: null; isNarrationPending: boolean }
-  | { change: 'MESSAGES_REMOVED_AFTER'; messageId: string; message: null; isNarrationPending: boolean }
-  | { change: 'NARRATION_FAILED'; messageId: null; message: null; isNarrationPending: false };
+  | { change: 'MESSAGE_ADDED'; messageId: string; message: MessageSummary; roll: null; isNarrationPending: boolean }
+  | { change: 'MESSAGE_EDITED'; messageId: string; message: MessageSummary; roll: null; isNarrationPending: boolean }
+  | { change: 'MESSAGE_REMOVED'; messageId: string; message: null; roll: null; isNarrationPending: boolean }
+  | { change: 'MESSAGES_REMOVED_FROM'; messageId: string; message: null; roll: null; isNarrationPending: boolean }
+  | { change: 'MESSAGES_REMOVED_AFTER'; messageId: string; message: null; roll: null; isNarrationPending: boolean }
+  | { change: 'NARRATION_FAILED'; messageId: null; message: null; roll: null; isNarrationPending: false }
+  | { change: 'DICE_ROLLED'; messageId: null; message: null; roll: DiceRollSummary; isNarrationPending: boolean };
 
 type UseAdventureWebSocketResult = {
   sendMessage: (content: string, isNarrationRequested: boolean) => void;

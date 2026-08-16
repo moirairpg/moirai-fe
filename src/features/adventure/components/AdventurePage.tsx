@@ -14,7 +14,7 @@ import { useAdventureCommands } from '../hooks/useAdventureCommands';
 import { speakerKey, useSpeakerColors } from '../hooks/useSpeakerColors';
 import { useAuth } from '../../../components/auth/context/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
-import type { AdventureMessageUpdate } from '../hooks/useAdventureWebSocket';
+import type { AdventureMessageUpdate, DiceRollSummary } from '../hooks/useAdventureWebSocket';
 import type { AdventureMessage } from '../types';
 import type { CommandDefinition, ParsedCommand } from '../commands/types';
 
@@ -159,6 +159,19 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const lastNarratorMessage = reversedMessages.find((m) => m.role === 'narrator');
   const ownsLastPlayerMessage = Boolean(user?.publicId) && lastPlayerMessage?.authorId === user?.publicId;
 
+  const rollTargetLabel = useCallback((roll: DiceRollSummary) => {
+    if (roll.skill) {
+      return t([`form.skills.names.${roll.skill}`, `form.skills.signatures.${roll.skill}`], {
+        ns: 'character',
+        defaultValue: roll.skill,
+      });
+    }
+
+    return roll.attribute
+      ? t(`form.attributes.names.${roll.attribute}`, { ns: 'character', defaultValue: roll.attribute })
+      : '';
+  }, [t]);
+
   const handleUpdate = useCallback((update: AdventureMessageUpdate) => {
     switch (update.change) {
       case 'MESSAGE_REMOVED':
@@ -191,6 +204,23 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         break;
       }
 
+      case 'DICE_ROLLED':
+        appendMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          content: t('game.roll.line', {
+            character: update.roll.characterName,
+            target: rollTargetLabel(update.roll),
+            difficulty: t(`game.roll.difficulties.${update.roll.difficulty}`),
+            dc: update.roll.dc,
+            natural: update.roll.naturalRoll,
+            modifier: update.roll.modifier,
+            total: update.roll.total,
+            outcome: t(`game.roll.outcomes.${update.roll.outcome}`),
+          }),
+        });
+        break;
+
       case 'NARRATION_FAILED':
         break;
     }
@@ -202,6 +232,8 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesFromIdInclusive,
     removeMessagesAfterId,
     replaceMessageContent,
+    rollTargetLabel,
+    t,
   ]);
 
   const {

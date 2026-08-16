@@ -127,6 +127,24 @@
       "Ancient forces stir..."
     ]
   },
+  "game": {
+    "roll": {
+      "line": "{{character}} attempts {{target}} — {{difficulty}} (DC {{dc}}): d20 {{natural}} + {{modifier}} = {{total}} — {{outcome}}",
+      "difficulties": {
+        "EASY": "Easy",
+        "MEDIUM": "Medium",
+        "HARD": "Hard",
+        "VERY_HARD": "Very hard",
+        "FORMIDABLE": "Formidable"
+      },
+      "outcomes": {
+        "CRITICAL_FAILURE": "CRITICAL FAILURE",
+        "FAILURE": "Failure",
+        "SUCCESS": "Success",
+        "CRITICAL_SUCCESS": "CRITICAL SUCCESS"
+      }
+    }
+  },
   "invite": {
     "title": "Invite players",
     "placeholder": "Type usernames, comma-separated",

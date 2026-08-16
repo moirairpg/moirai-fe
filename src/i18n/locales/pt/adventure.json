@@ -127,6 +127,24 @@
       "Forças ancestrais despertam..."
     ]
   },
+  "game": {
+    "roll": {
+      "line": "{{character}} tenta {{target}} — {{difficulty}} (DC {{dc}}): d20 {{natural}} + {{modifier}} = {{total}} — {{outcome}}",
+      "difficulties": {
+        "EASY": "Fácil",
+        "MEDIUM": "Média",
+        "HARD": "Difícil",
+        "VERY_HARD": "Muito difícil",
+        "FORMIDABLE": "Formidável"
+      },
+      "outcomes": {
+        "CRITICAL_FAILURE": "FALHA CRÍTICA",
+        "FAILURE": "Falha",
+        "SUCCESS": "Sucesso",
+        "CRITICAL_SUCCESS": "SUCESSO CRÍTICO"
+      }
+    }
+  },
   "invite": {
     "title": "Convidar jogadores",
     "placeholder": "Digite nomes de usuário separados por vírgula",
