@@ -129,7 +129,8 @@
   },
   "game": {
     "roll": {
-      "line": "{{character}} tenta {{target}} — {{difficulty}} (DC {{dc}}): d20 {{natural}} + {{modifier}} = {{total}} — {{outcome}}",
+      "line": "{{character}} tenta {{target}} — {{difficulty}} (DC {{dc}}): d20 {{natural}}{{breakdown}} = {{total}} — {{outcome}}",
+      "impossibleLine": "{{character}} tenta {{target}} — Impossível — FALHA CRÍTICA",
       "difficulties": {
         "EASY": "Fácil",
         "MEDIUM": "Média",

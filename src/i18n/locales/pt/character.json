@@ -53,6 +53,9 @@
       "names": {
         "ATHLETICS": "Atletismo",
         "ACROBATICS": "Acrobacia",
+        "MELEE": "Corpo a corpo",
+        "MARKSMANSHIP": "Pontaria",
+        "BRAWL": "Briga",
         "STEALTH": "Furtividade",
         "ENDURANCE": "Resistência",
         "LORE": "Conhecimento",

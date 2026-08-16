@@ -159,17 +159,36 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const lastNarratorMessage = reversedMessages.find((m) => m.role === 'narrator');
   const ownsLastPlayerMessage = Boolean(user?.publicId) && lastPlayerMessage?.authorId === user?.publicId;
 
-  const rollTargetLabel = useCallback((roll: DiceRollSummary) => {
-    if (roll.skill) {
-      return t([`form.skills.names.${roll.skill}`, `form.skills.signatures.${roll.skill}`], {
+  const rollTargetLabel = useCallback((target: { attribute: string | null; skill: string | null }) => {
+    if (target.skill) {
+      return t([`form.skills.names.${target.skill}`, `form.skills.signatures.${target.skill}`], {
         ns: 'character',
-        defaultValue: roll.skill,
+        defaultValue: target.skill,
       });
     }
 
-    return roll.attribute
-      ? t(`form.attributes.names.${roll.attribute}`, { ns: 'character', defaultValue: roll.attribute })
+    return target.attribute
+      ? t(`form.attributes.names.${target.attribute}`, { ns: 'character', defaultValue: target.attribute })
       : '';
+  }, [t]);
+
+  const rollBreakdown = useCallback((roll: DiceRollSummary) => {
+    const parts: string[] = [];
+
+    if (roll.attribute) {
+      const label = t(`form.attributes.names.${roll.attribute}`, { ns: 'character', defaultValue: roll.attribute });
+      parts.push(`${label} ${roll.attributeLevel}`);
+    }
+
+    if (roll.skill) {
+      const label = t([`form.skills.names.${roll.skill}`, `form.skills.signatures.${roll.skill}`], {
+        ns: 'character',
+        defaultValue: roll.skill,
+      });
+      parts.push(`${label} ${roll.skillLevel}`);
+    }
+
+    return parts.map((part) => ` + ${part}`).join('');
   }, [t]);
 
   const handleUpdate = useCallback((update: AdventureMessageUpdate) => {
@@ -208,15 +227,28 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         appendMessage({
           id: crypto.randomUUID(),
           role: 'system',
+          relatedMessageId: update.messageId,
           content: t('game.roll.line', {
             character: update.roll.characterName,
             target: rollTargetLabel(update.roll),
             difficulty: t(`game.roll.difficulties.${update.roll.difficulty}`),
             dc: update.roll.dc,
             natural: update.roll.naturalRoll,
-            modifier: update.roll.modifier,
+            breakdown: rollBreakdown(update.roll),
             total: update.roll.total,
             outcome: t(`game.roll.outcomes.${update.roll.outcome}`),
+          }),
+        });
+        break;
+
+      case 'IMPOSSIBLE_ACTION_ATTEMPTED':
+        appendMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          relatedMessageId: update.messageId,
+          content: t('game.roll.impossibleLine', {
+            character: update.impossibleAction.characterName,
+            target: rollTargetLabel(update.impossibleAction),
           }),
         });
         break;
@@ -233,6 +265,7 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesAfterId,
     replaceMessageContent,
     rollTargetLabel,
+    rollBreakdown,
     t,
   ]);
 

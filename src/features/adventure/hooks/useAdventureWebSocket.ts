@@ -14,7 +14,9 @@ type MessageSummary = {
 export type DiceRollSummary = {
   characterName: string;
   attribute: string | null;
+  attributeLevel: number;
   skill: string | null;
+  skillLevel: number;
   difficulty: string;
   dc: number;
   naturalRoll: number;
@@ -23,14 +25,21 @@ export type DiceRollSummary = {
   outcome: string;
 };
 
+export type ImpossibleActionSummary = {
+  characterName: string;
+  attribute: string | null;
+  skill: string | null;
+};
+
 export type AdventureMessageUpdate =
-  | { change: 'MESSAGE_ADDED'; messageId: string; message: MessageSummary; roll: null; isNarrationPending: boolean }
-  | { change: 'MESSAGE_EDITED'; messageId: string; message: MessageSummary; roll: null; isNarrationPending: boolean }
-  | { change: 'MESSAGE_REMOVED'; messageId: string; message: null; roll: null; isNarrationPending: boolean }
-  | { change: 'MESSAGES_REMOVED_FROM'; messageId: string; message: null; roll: null; isNarrationPending: boolean }
-  | { change: 'MESSAGES_REMOVED_AFTER'; messageId: string; message: null; roll: null; isNarrationPending: boolean }
-  | { change: 'NARRATION_FAILED'; messageId: null; message: null; roll: null; isNarrationPending: false }
-  | { change: 'DICE_ROLLED'; messageId: null; message: null; roll: DiceRollSummary; isNarrationPending: boolean };
+  | { change: 'MESSAGE_ADDED'; messageId: string; message: MessageSummary; roll: null; impossibleAction: null; isNarrationPending: boolean }
+  | { change: 'MESSAGE_EDITED'; messageId: string; message: MessageSummary; roll: null; impossibleAction: null; isNarrationPending: boolean }
+  | { change: 'MESSAGE_REMOVED'; messageId: string; message: null; roll: null; impossibleAction: null; isNarrationPending: boolean }
+  | { change: 'MESSAGES_REMOVED_FROM'; messageId: string; message: null; roll: null; impossibleAction: null; isNarrationPending: boolean }
+  | { change: 'MESSAGES_REMOVED_AFTER'; messageId: string; message: null; roll: null; impossibleAction: null; isNarrationPending: boolean }
+  | { change: 'NARRATION_FAILED'; messageId: null; message: null; roll: null; impossibleAction: null; isNarrationPending: false }
+  | { change: 'DICE_ROLLED'; messageId: string; message: null; roll: DiceRollSummary; impossibleAction: null; isNarrationPending: boolean }
+  | { change: 'IMPOSSIBLE_ACTION_ATTEMPTED'; messageId: string; message: null; roll: null; impossibleAction: ImpossibleActionSummary; isNarrationPending: boolean };
 
 type UseAdventureWebSocketResult = {
   sendMessage: (content: string, isNarrationRequested: boolean) => void;

@@ -160,7 +160,7 @@ export function useAdventureMessages(adventureId: string): UseAdventureMessagesR
   }, []);
 
   const removeMessage = useCallback((id: string) => {
-    setMessages((prev) => prev.filter((m) => m.id !== id));
+    setMessages((prev) => prev.filter((m) => m.id !== id && m.relatedMessageId !== id));
     knownIds.current.delete(id);
   }, []);
 

@@ -53,6 +53,9 @@
       "names": {
         "ATHLETICS": "Athletics",
         "ACROBATICS": "Acrobatics",
+        "MELEE": "Melee",
+        "MARKSMANSHIP": "Marksmanship",
+        "BRAWL": "Brawl",
         "STEALTH": "Stealth",
         "ENDURANCE": "Endurance",
         "LORE": "Lore",

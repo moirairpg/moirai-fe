@@ -6,4 +6,5 @@ export type AdventureMessage = {
   content: string;
   authorName?: string;
   authorId?: string;
+  relatedMessageId?: string;
 };
