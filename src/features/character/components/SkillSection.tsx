@@ -12,7 +12,13 @@ type SkillSectionProps =
       allocation: ReturnType<typeof useSkillAllocation>;
       classSelector?: React.ReactNode;
     }
-  | { mode: 'view'; characterClass: string | null; skills: CharacterSkills; signatureSkill: CharacterSignatures };
+  | {
+      mode: 'view';
+      characterClass: string | null;
+      skills: CharacterSkills;
+      signatureSkill: CharacterSignatures;
+      classSelector?: React.ReactNode;
+    };
 
 type SkillRowProps = {
   label: string;
@@ -164,7 +170,7 @@ export default function SkillSection(props: SkillSectionProps) {
         )}
       </div>
 
-      {props.mode === 'create' && props.classSelector}
+      {props.classSelector}
 
       {isClassless && (
         <span className="self-start rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">

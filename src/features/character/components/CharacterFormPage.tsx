@@ -361,20 +361,6 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
               <input type="text" value={form.name} onChange={set('name')} disabled={readOnly} className={`${INPUT_CLASS}${errorBorder(form.name)}`} />
             </div>
 
-            {mode !== 'create' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-foreground">{t('form.fields.class')}</label>
-                <select value={form.characterClass} onChange={set('characterClass')} disabled className={INPUT_CLASS}>
-                  <option value="" disabled>{t('form.classPlaceholder')}</option>
-                  {classes.map((option) => (
-                    <option key={option.name} value={option.name}>
-                      {t(`classes.${option.name}`, { defaultValue: option.label })}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground">{t('form.fields.personality')}</label>
               <textarea rows={4} value={form.personality} onChange={set('personality')} disabled={readOnly} className={`${TEXTAREA_CLASS}${errorBorder(form.personality)}`} />
@@ -415,6 +401,19 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
               characterClass={form.characterClass || null}
               skills={skills}
               signatureSkill={signatureSkill}
+              classSelector={
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-foreground">{t('form.fields.class')}</label>
+                  <select value={form.characterClass} disabled className={INPUT_CLASS}>
+                    <option value="" disabled>{t('form.classPlaceholder')}</option>
+                    {classes.map((option) => (
+                      <option key={option.name} value={option.name}>
+                        {t(`classes.${option.name}`, { defaultValue: option.label })}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              }
             />
           )}
 

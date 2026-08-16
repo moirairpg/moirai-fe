@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Minus, Plus, Star } from 'lucide-react';
@@ -74,6 +74,17 @@ export default function RespecModal({ characterId, characterName, currentClass, 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const profile = skillAllocation.profile;
   const favored = profile?.favoredSkills ?? [];
   const favoredOptions = favored
@@ -115,12 +126,14 @@ export default function RespecModal({ characterId, characterName, currentClass, 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="flex max-h-[85vh] w-full max-w-5xl flex-col gap-4 overflow-y-auto rounded-lg border border-border bg-background p-6 shadow-xl"
+        className="flex max-h-[85vh] w-full max-w-5xl flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-foreground">{t('form.respec.title', { name: characterName })}</h2>
 
         {error && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>}
+
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
 
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground">{t('form.fields.class')}</label>
@@ -277,6 +290,8 @@ export default function RespecModal({ characterId, characterName, currentClass, 
                 />
               ))}
           </div>
+        </div>
+
         </div>
 
         <div className="flex items-center justify-end border-t border-border pt-4">
