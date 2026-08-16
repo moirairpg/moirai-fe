@@ -32,6 +32,7 @@ type FormState = {
   narratorPersonality: string;
   visibility: string;
   moderation: string;
+  rpgMechanicsEnabled: boolean;
   adventureStart: string;
   modelConfiguration: ModelConfiguration;
   contextAttributes: ContextAttributes;
@@ -45,6 +46,7 @@ const EMPTY: FormState = {
   narratorPersonality: '',
   visibility: 'PRIVATE',
   moderation: 'STRICT',
+  rpgMechanicsEnabled: true,
   adventureStart: '',
   modelConfiguration: { aiModel: 'GPT54_MINI', maxTokenLimit: 100, temperature: 0.8 },
   contextAttributes: { nudge: '', authorsNote: '', scene: '', bump: '', bumpFrequency: 0 },
@@ -338,6 +340,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               narratorPersonality: data.narratorPersonality ?? '',
               visibility: data.visibility,
               moderation: data.moderation,
+              rpgMechanicsEnabled: data.rpgMechanicsEnabled,
               adventureStart: data.adventureStart,
               modelConfiguration: data.modelConfiguration,
               contextAttributes: data.contextAttributes,
@@ -570,6 +573,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           narratorPersonality: form.narratorPersonality || null,
           visibility: form.visibility,
           moderation: form.moderation,
+          rpgMechanicsEnabled: form.rpgMechanicsEnabled,
           adventureStart: form.adventureStart,
           lorebook: createLorebook.map((e) => ({
             name: e.name,
@@ -621,6 +625,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               narratorName: form.narratorName || null,
               narratorPersonality: form.narratorPersonality || null,
               moderation: form.moderation,
+              rpgMechanicsEnabled: form.rpgMechanicsEnabled,
               adventureStart: form.adventureStart,
               modelConfiguration: form.modelConfiguration,
               contextAttributes: form.contextAttributes,
@@ -642,6 +647,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
             narratorName: form.narratorName || null,
             narratorPersonality: form.narratorPersonality || null,
             moderation: form.moderation,
+            rpgMechanicsEnabled: form.rpgMechanicsEnabled,
             adventureStart: form.adventureStart,
             modelConfiguration: form.modelConfiguration,
             contextAttributes: form.contextAttributes,
@@ -786,6 +792,20 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
                 <option value="PERMISSIVE">{t('form.options.permissive')}</option>
                 <option value="DISABLED">{t('form.options.disabled')}</option>
               </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                {t('form.fields.rpgMechanics')}
+                <Tooltip content={t('form.tooltips.rpgMechanics')} position="top"><Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" /></Tooltip>
+              </label>
+              <input
+                type="checkbox"
+                checked={form.rpgMechanicsEnabled}
+                onChange={set('rpgMechanicsEnabled')}
+                disabled={readOnly}
+                className="h-4 w-4 cursor-pointer rounded border-border !accent-primary disabled:cursor-not-allowed"
+              />
             </div>
 
             <div className="flex flex-col gap-1.5">

@@ -33,6 +33,7 @@ export type AdventureDetails = {
   narratorPersonality: string | null;
   visibility: string;
   moderation: string;
+  rpgMechanicsEnabled: boolean;
   imageUrl: string | null;
   creationDate: string;
   lastUpdateDate: string;

@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../../lib/utils';
 
 type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
@@ -11,18 +12,20 @@ type TooltipProps = {
   delay?: number;
 };
 
-function getPositionClasses(position: TooltipPosition): string {
+const TOOLTIP_OFFSET = 8;
+
+function getPositionStyle(position: TooltipPosition, rect: DOMRect): CSSProperties {
   switch (position) {
     case 'top':
-      return 'bottom-full left-1/2 transform -translate-x-1/2 mb-2';
+      return { left: rect.left + rect.width / 2, top: rect.top - TOOLTIP_OFFSET, transform: 'translate(-50%, -100%)' };
     case 'bottom':
-      return 'top-full left-1/2 transform -translate-x-1/2 mt-2';
+      return { left: rect.left + rect.width / 2, top: rect.bottom + TOOLTIP_OFFSET, transform: 'translate(-50%, 0)' };
     case 'left':
-      return 'right-full top-1/2 transform -translate-y-1/2 mr-2';
+      return { left: rect.left - TOOLTIP_OFFSET, top: rect.top + rect.height / 2, transform: 'translate(-100%, -50%)' };
     case 'right':
-      return 'left-full top-1/2 transform -translate-y-1/2 ml-2';
+      return { left: rect.right + TOOLTIP_OFFSET, top: rect.top + rect.height / 2, transform: 'translate(0, -50%)' };
     default:
-      return 'bottom-full left-1/2 transform -translate-x-1/2 mb-2';
+      return { left: rect.left + rect.width / 2, top: rect.top - TOOLTIP_OFFSET, transform: 'translate(-50%, -100%)' };
   }
 }
 
@@ -49,6 +52,8 @@ function Tooltip({
   delay = 500,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   // Store the timer id without forcing re-renders while hovering.
   const timeoutRef = useRef<number | null>(null);
 
@@ -62,6 +67,9 @@ function Tooltip({
   const handleMouseEnter = () => {
     clearTooltipTimer();
     timeoutRef.current = window.setTimeout(() => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setTriggerRect(rect);
       setIsVisible(true);
     }, delay);
   };
@@ -83,21 +91,22 @@ function Tooltip({
   }
 
   return (
-    <div className="relative inline-block" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <div ref={triggerRef} className="relative inline-block" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       {children}
-      {isVisible && (
+      {isVisible && triggerRect && createPortal(
         <div
+          style={getPositionStyle(position, triggerRect)}
           className={cn(
-            'absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 dark:bg-gray-100 dark:text-gray-900 rounded shadow-lg whitespace-nowrap pointer-events-none',
-            'animate-in fade-in-0 zoom-in-95 duration-200',
-            getPositionClasses(position),
+            'fixed z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 dark:bg-gray-100 dark:text-gray-900 rounded shadow-lg whitespace-nowrap pointer-events-none',
+            'animate-in fade-in-0 duration-200',
             className
           )}
         >
           {content}
           {/* Arrow */}
           <div className={cn('absolute w-0 h-0 border-4 border-transparent', getArrowClasses(position))} />
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
