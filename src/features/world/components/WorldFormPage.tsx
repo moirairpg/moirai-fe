@@ -509,7 +509,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
                       <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
                         <Upload className="h-3.5 w-3.5" />
                         {t('form.actions.importLorebook')}
-                        <input type="file" accept=".json" className="sr-only" onChange={handleLorebookImport} />
+                        <input type="file" accept=".json" className="hidden" onChange={handleLorebookImport} />
                       </label>
                     )}
                     {!addingNew && editingIndex === null && (
