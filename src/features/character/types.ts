@@ -41,6 +41,11 @@ export type PlayerCharacterDetails = {
   attributes: CharacterAttributes;
   skills: CharacterSkills;
   signatureSkill: CharacterSignatures;
+  xp: number;
+  level: number;
+  unspentAttributePoints: number;
+  unspentSkillPoints: number;
+  levelUpXpTarget: number;
   imageUrl: string | null;
   uiImagePositionX: number | null;
   uiImagePositionY: number | null;

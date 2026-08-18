@@ -23,6 +23,21 @@
       "attributePointsLeft": "Pontos de atributo restantes: {{count}}",
       "skillPointsLeft": "Pontos de perícia restantes: {{count}}"
     },
+    "levelUp": {
+      "button": "Subir de nível",
+      "title": "Subir de nível — {{name}} (Nível {{level}})",
+      "levelChip": "Nível {{level}} · {{xp}}/100 XP",
+      "progressTitle": "Progressão",
+      "progressDetail": "{{xp}}/{{target}} XP · faltam {{remaining}} XP para o próximo nível · {{percent}}%",
+      "unspentChip": "{{count}} pontos não gastos",
+      "attributePointsLeft": "Pontos de atributo restantes: {{count}}",
+      "skillPointsLeft": "Pontos de perícia restantes: {{count}}",
+      "attributeCosts": "níveis 4–5 custam 2 pts",
+      "reset": "Resetar",
+      "pointsLeftHint": "Salvar desabilitado — {{count}} pontos restantes",
+      "nothingToPlaceHint": "Nada a alocar — gaste pelo menos um ponto",
+      "bankedHint": "{{count}} pontos sem alocação possível ficam guardados"
+    },
     "attributes": {
       "title": "Atributos",
       "remaining": "Pontos restantes: {{count}}",

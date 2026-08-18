@@ -5,14 +5,20 @@ import { Minus, Plus, Star } from 'lucide-react';
 import { apiFetch, extractApiError, notifyError, notifySuccess } from '../../../utils/api';
 import { useCharacterClasses } from '../hooks/useCharacterClasses';
 import { useAttributeAllocation } from '../hooks/useAttributeAllocation';
+import { useAttributeVocabulary } from '../hooks/useAttributeVocabulary';
 import { useSkillAllocation } from '../hooks/useSkillAllocation';
 import { useSkillVocabulary } from '../hooks/useSkillVocabulary';
-import type { PlayerCharacterDetails } from '../types';
+import type { CharacterAttributes, CharacterSignatures, CharacterSkills, PlayerCharacterDetails } from '../types';
+
+const ATTRIBUTE_HIGH_LEVEL_COST = 2;
 
 type RespecModalProps = {
   characterId: string;
   characterName: string;
   currentClass: string;
+  attributes: CharacterAttributes | null;
+  skills: CharacterSkills | null;
+  signatureSkill: CharacterSignatures | null;
   onSaved: (details: PlayerCharacterDetails) => void;
   onClose: () => void;
 };
@@ -64,13 +70,53 @@ function Row(props: RowProps) {
   );
 }
 
-export default function RespecModal({ characterId, characterName, currentClass, onSaved, onClose }: RespecModalProps) {
+export default function RespecModal({
+  characterId,
+  characterName,
+  currentClass,
+  attributes,
+  skills,
+  signatureSkill,
+  onSaved,
+  onClose,
+}: RespecModalProps) {
   const { t } = useTranslation('character');
   const { classes } = useCharacterClasses();
   const { vocabulary } = useSkillVocabulary();
+  const { vocabulary: attributeVocabulary } = useAttributeVocabulary();
   const [selectedClass, setSelectedClass] = useState(currentClass);
-  const allocation = useAttributeAllocation();
-  const skillAllocation = useSkillAllocation(selectedClass);
+
+  const currentProfile = classes.find((option) => option.name === currentClass) ?? null;
+  const attributeHighCostFrom = (attributeVocabulary?.creation.levelCap ?? 0) + 1;
+
+  const attributeBudget = attributes && attributeVocabulary
+    ? Object.values(attributes).reduce(
+        (sum, level) => sum + Math.min(level, attributeHighCostFrom - 1)
+          + Math.max(0, level - (attributeHighCostFrom - 1)) * ATTRIBUTE_HIGH_LEVEL_COST,
+        0)
+    : undefined;
+
+  const skillBudget = skills && signatureSkill && currentProfile && vocabulary
+    ? Object.entries(skills).reduce(
+        (sum, [name, level]) => sum + level * (currentProfile.favoredSkills.includes(name)
+          ? vocabulary.creation.favoredCost
+          : vocabulary.creation.offClassCost),
+        0)
+      + ((Object.values(signatureSkill)[0] ?? vocabulary.creation.signatureStartingLevel)
+        - vocabulary.creation.signatureStartingLevel) * vocabulary.creation.favoredCost
+    : undefined;
+
+  const allocation = useAttributeAllocation(
+    attributeBudget !== undefined && attributeVocabulary
+      ? { points: attributeBudget, levelCap: attributeVocabulary.maxLevel }
+      : undefined,
+  );
+  const skillAllocation = useSkillAllocation(
+    selectedClass,
+    skillBudget !== undefined && vocabulary
+      ? { points: skillBudget, levelCap: vocabulary.maxLevel }
+      : undefined,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 

@@ -70,12 +70,16 @@
       "addEntry": "Add Entry",
       "advanced": "Advanced",
       "importJson": "Import JSON",
+      "importLorebook": "Import Entries",
       "clearWorld": "Clear World",
       "clearLorebook": "Clear Lorebook",
       "removeCharacter": "Remove from adventure",
       "leave": "Leave adventure"
     },
     "optional": "optional",
+    "warnings": {
+      "duplicateLorebook": "Some imported entries have names that already existed and were marked with \" - DUPLICATE\". Rename or remove them before saving."
+    },
     "sections": {
       "basicData": "Basic Data",
       "storyNarration": "Story Narration",
@@ -131,6 +135,8 @@
     "roll": {
       "line": "{{character}} attempts {{target}} — {{difficulty}} (DC {{dc}}): d20 {{natural}}{{breakdown}} = {{total}} — {{outcome}}",
       "impossibleLine": "{{character}} attempts {{target}} — Impossible — CRITICAL FAILURE",
+      "xpLine": "You gained {{amount}} XP ({{total}}/{{target}})",
+      "levelUpLine": "{{character}} reached level {{level}} (+{{attributePoints}} attribute point, +{{skillPoints}} skill points)",
       "difficulties": {
         "EASY": "Easy",
         "MEDIUM": "Medium",

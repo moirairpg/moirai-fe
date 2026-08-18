@@ -3,7 +3,12 @@ import type { CharacterSignatures, CharacterSkills } from '../types';
 import { useCharacterClasses } from './useCharacterClasses';
 import { useSkillVocabulary } from './useSkillVocabulary';
 
-export function useSkillAllocation(characterClass: string) {
+type SkillAllocationOptions = {
+  points?: number;
+  levelCap?: number;
+};
+
+export function useSkillAllocation(characterClass: string, options?: SkillAllocationOptions) {
   const { vocabulary } = useSkillVocabulary();
   const { classes } = useCharacterClasses();
   const profile = classes.find((option) => option.name === characterClass) ?? null;
@@ -18,6 +23,8 @@ export function useSkillAllocation(characterClass: string) {
 
   const skills = vocabulary?.skills ?? [];
   const creation = vocabulary?.creation ?? null;
+  const points = options?.points ?? creation?.points ?? 0;
+  const levelCap = options?.levelCap ?? creation?.levelCap ?? 0;
   const isReady = creation !== null && profile !== null;
 
   const levelOf = (skill: string) => pending[skill] ?? 0;
@@ -30,7 +37,7 @@ export function useSkillAllocation(characterClass: string) {
     : skills.reduce((sum, skill) => sum + levelOf(skill.name) * costOf(skill.name), 0) +
       signatureRaise * creation.favoredCost;
 
-  const remaining = (creation?.points ?? 0) - spent;
+  const remaining = points - spent;
   const signatureLevel = (creation?.signatureStartingLevel ?? 0) + signatureRaise;
 
   const increment = (skill: string) =>
@@ -60,21 +67,20 @@ export function useSkillAllocation(characterClass: string) {
     ));
 
   const importLevels = (importedLevels: Record<string, number>, importedSignatureLevel: number) => {
-    const cap = creation?.levelCap ?? 0;
     const start = creation?.signatureStartingLevel ?? 0;
     setPending(Object.fromEntries(
-      Object.entries(importedLevels).map(([name, level]) => [name, Math.min(Math.max(level, 0), cap)]),
+      Object.entries(importedLevels).map(([name, level]) => [name, Math.min(Math.max(level, 0), levelCap)]),
     ));
-    setSignatureRaise(Math.min(Math.max(importedSignatureLevel, start), cap) - start);
+    setSignatureRaise(Math.min(Math.max(importedSignatureLevel, start), levelCap) - start);
   };
 
   const canIncrement = (skill: string) =>
-    isReady && levelOf(skill) < creation.levelCap && remaining >= costOf(skill);
+    isReady && levelOf(skill) < levelCap && remaining >= costOf(skill);
 
   const canDecrement = (skill: string) => levelOf(skill) > 0;
 
   const canIncrementSignature =
-    isReady && signatureLevel < creation.levelCap && remaining >= creation.favoredCost;
+    isReady && signatureLevel < levelCap && remaining >= creation.favoredCost;
 
   const canDecrementSignature = signatureRaise > 0;
 

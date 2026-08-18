@@ -10,6 +10,7 @@ export const NOTIFICATION_KIND = {
   ADVENTURE_ACCESS_GRANTED: 'ADVENTURE_ACCESS_GRANTED',
   ADVENTURE_ACCESS_LEVEL_CHANGED: 'ADVENTURE_ACCESS_LEVEL_CHANGED',
   ADVENTURE_ACCESS_REVOKED: 'ADVENTURE_ACCESS_REVOKED',
+  CHARACTER_LEVEL_UP: 'CHARACTER_LEVEL_UP',
 } as const;
 
 export type NotificationKind = typeof NOTIFICATION_KIND[keyof typeof NOTIFICATION_KIND];
@@ -22,6 +23,9 @@ export type NotificationMetadata = {
   worldId?: string;
   worldName?: string;
   level?: string;
+  characterId?: string;
+  characterName?: string;
+  newLevel?: number;
 } | null;
 
 const ROSTER_CHANGED_KINDS: readonly NotificationKind[] = [

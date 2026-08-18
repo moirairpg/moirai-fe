@@ -70,12 +70,16 @@
       "addEntry": "Adicionar entrada",
       "advanced": "Avançado",
       "importJson": "Importar JSON",
+      "importLorebook": "Importar entradas",
       "clearWorld": "Limpar Mundo",
       "clearLorebook": "Limpar Livro de Lore",
       "removeCharacter": "Remover da aventura",
       "leave": "Sair da aventura"
     },
     "optional": "opcional",
+    "warnings": {
+      "duplicateLorebook": "Algumas entradas importadas têm nomes que já existiam e foram marcadas com \" - DUPLICATE\". Renomeie ou remova essas entradas antes de salvar."
+    },
     "sections": {
       "basicData": "Dados Básicos",
       "storyNarration": "Narração",
@@ -131,6 +135,8 @@
     "roll": {
       "line": "{{character}} tenta {{target}} — {{difficulty}} (DC {{dc}}): d20 {{natural}}{{breakdown}} = {{total}} — {{outcome}}",
       "impossibleLine": "{{character}} tenta {{target}} — Impossível — FALHA CRÍTICA",
+      "xpLine": "Você ganhou {{amount}} XP ({{total}}/{{target}})",
+      "levelUpLine": "{{character}} alcançou o nível {{level}} (+{{attributePoints}} ponto de atributo, +{{skillPoints}} pontos de perícia)",
       "difficulties": {
         "EASY": "Fácil",
         "MEDIUM": "Média",

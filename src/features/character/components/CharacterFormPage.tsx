@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'lucide-react';
+import { ChevronUp, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, RotateCcw } from 'lucide-react';
 import { apiFetch, api, extractApiError, notifyError, notifySuccess } from '../../../utils/api';
 import { EntityBanner } from '../../../shared/view/ui';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
@@ -21,8 +21,17 @@ import type {
   PlayerCharacterDetails,
 } from '../types';
 import AttributeSection from './AttributeSection';
+import LevelUpModal from './LevelUpModal';
 import RespecModal from './RespecModal';
 import SkillSection from './SkillSection';
+
+type CharacterProgression = {
+  xp: number;
+  level: number;
+  unspentAttributePoints: number;
+  unspentSkillPoints: number;
+  levelUpXpTarget: number;
+};
 
 type CharacterFormPageProps = { mode: 'view' | 'edit' | 'create' };
 
@@ -38,6 +47,7 @@ const EMPTY: CharacterFormInput = {
 
 export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { characterId } = useParams<{ characterId: string }>();
   const { t } = useTranslation('character');
   const { classes } = useCharacterClasses();
@@ -60,6 +70,8 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const { reset: resetAllocation } = allocation;
   const skillAllocation = useSkillAllocation(form.characterClass);
   const [respecOpen, setRespecOpen] = useState(false);
+  const [levelUpOpen, setLevelUpOpen] = useState(false);
+  const [progression, setProgression] = useState<CharacterProgression | null>(null);
 
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
@@ -68,7 +80,9 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
   const canEdit = mode === 'view' && (isOwner || isAdmin);
   const canDelete = mode !== 'create' && (isOwner || isAdmin);
   const isClassless = mode !== 'create' && form.characterClass === '';
-  const canRespec = mode !== 'create' && (isOwner || isAdmin);
+  const canRespec = mode !== 'create' && isOwner;
+  const unspentPoints = (progression?.unspentAttributePoints ?? 0) + (progression?.unspentSkillPoints ?? 0);
+  const canSpendPoints = mode === 'view' && isOwner && unspentPoints > 0 && !isClassless;
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
@@ -145,10 +159,26 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
         setAttributes(data.attributes);
         setSkills(data.skills);
         setSignatureSkill(data.signatureSkill);
+        setProgression({
+          xp: data.xp,
+          level: data.level,
+          unspentAttributePoints: data.unspentAttributePoints,
+          unspentSkillPoints: data.unspentSkillPoints,
+          levelUpXpTarget: data.levelUpXpTarget,
+        });
       })
       .catch(() => setError(t('form.errors.loadFailed')))
       .finally(() => setLoading(false));
   }, [mode, characterId, resetAllocation]);
+
+  useEffect(() => {
+    if (mode !== 'view' || loading) return;
+
+    if ((location.state as { openLevelUp?: boolean } | null)?.openLevelUp) {
+      setLevelUpOpen(true);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [mode, loading, location.state, location.pathname, navigate]);
 
   const set = (field: keyof CharacterFormInput) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -306,8 +336,26 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
       <div className="flex-1 overflow-y-auto px-6 py-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+              {mode === 'view' && progression && (
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                  {t('form.levelUp.levelChip', { level: progression.level, xp: progression.xp })}
+                </span>
+              )}
+              {mode === 'view' && unspentPoints > 0 && (
+                <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                  {t('form.levelUp.unspentChip', { count: unspentPoints })}
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
+              {canSpendPoints && (
+                <button type="button" onClick={() => setLevelUpOpen(true)} className="flex items-center gap-1.5 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-500/90">
+                  <ChevronUp className="h-3.5 w-3.5" />
+                  {t('form.levelUp.button')}
+                </button>
+              )}
               {mode === 'create' && (
                 <label className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
                   {t('form.actions.importJson')}
@@ -371,6 +419,33 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
               <textarea rows={4} value={form.physicalDescription} onChange={set('physicalDescription')} disabled={readOnly} className={`${TEXTAREA_CLASS}${errorBorder(form.physicalDescription)}`} />
             </div>
           </div>
+
+          {mode === 'view' && progression && (
+            <div className="flex flex-col gap-2 rounded-md border border-border p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t('form.levelUp.progressTitle')}
+                </span>
+                <span className="text-sm font-medium text-foreground">
+                  {t('form.levelUp.levelChip', { level: progression.level, xp: progression.xp })}
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${Math.round((progression.xp / progression.levelUpXpTarget) * 100)}%` }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {t('form.levelUp.progressDetail', {
+                  xp: progression.xp,
+                  target: progression.levelUpXpTarget,
+                  remaining: progression.levelUpXpTarget - progression.xp,
+                  percent: Math.round((progression.xp / progression.levelUpXpTarget) * 100),
+                })}
+              </span>
+            </div>
+          )}
 
           {mode === 'create' && <AttributeSection mode="create" allocation={allocation} />}
           {mode === 'view' && attributes && <AttributeSection mode="view" values={attributes} />}
@@ -489,15 +564,53 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           characterId={characterId}
           characterName={form.name}
           currentClass={form.characterClass}
+          attributes={attributes}
+          skills={skills}
+          signatureSkill={signatureSkill}
           onSaved={(details) => {
             setForm((prev) => ({ ...prev, characterClass: details.characterClass ?? '' }));
             setAttributes(details.attributes);
             setSkills(details.skills);
             setSignatureSkill(details.signatureSkill);
+            setProgression({
+              xp: details.xp,
+              level: details.level,
+              unspentAttributePoints: details.unspentAttributePoints,
+              unspentSkillPoints: details.unspentSkillPoints,
+              levelUpXpTarget: details.levelUpXpTarget,
+            });
             setRespecOpen(false);
             navigate(`/character/${characterId}/view`);
           }}
           onClose={() => setRespecOpen(false)}
+        />
+      )}
+
+      {levelUpOpen && characterId && progression && attributes && skills && signatureSkill && (
+        <LevelUpModal
+          characterId={characterId}
+          characterName={form.name}
+          characterClass={form.characterClass}
+          level={progression.level}
+          attributes={attributes}
+          skills={skills}
+          signatureSkill={signatureSkill}
+          unspentAttributePoints={progression.unspentAttributePoints}
+          unspentSkillPoints={progression.unspentSkillPoints}
+          onSaved={(details) => {
+            setAttributes(details.attributes);
+            setSkills(details.skills);
+            setSignatureSkill(details.signatureSkill);
+            setProgression({
+              xp: details.xp,
+              level: details.level,
+              unspentAttributePoints: details.unspentAttributePoints,
+              unspentSkillPoints: details.unspentSkillPoints,
+              levelUpXpTarget: details.levelUpXpTarget,
+            });
+            setLevelUpOpen(false);
+          }}
+          onClose={() => setLevelUpOpen(false)}
         />
       )}
 

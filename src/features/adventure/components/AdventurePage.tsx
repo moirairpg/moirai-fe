@@ -253,6 +253,33 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         });
         break;
 
+      case 'XP_GAINED':
+        appendMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          relatedMessageId: update.messageId,
+          content: t('game.roll.xpLine', {
+            amount: update.xpGain.amount,
+            total: update.xpGain.total,
+            target: update.xpGain.levelUpTarget,
+          }),
+        });
+        break;
+
+      case 'LEVEL_UP':
+        appendMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          relatedMessageId: update.messageId,
+          content: t('game.roll.levelUpLine', {
+            character: update.levelUp.characterName,
+            level: update.levelUp.newLevel,
+            attributePoints: update.levelUp.attributePoints,
+            skillPoints: update.levelUp.skillPoints,
+          }),
+        });
+        break;
+
       case 'NARRATION_FAILED':
         break;
     }

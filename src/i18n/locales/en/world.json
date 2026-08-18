@@ -36,7 +36,11 @@
       "done": "Done",
       "addEntry": "Add Entry",
       "importJson": "Import JSON",
+      "importLorebook": "Import Entries",
       "clearLorebook": "Clear Lorebook"
+    },
+    "warnings": {
+      "duplicateLorebook": "Some imported entries have names that already existed and were marked with \" - DUPLICATE\". Rename or remove them before saving."
     },
     "sections": {
       "basicData": "Basic Data",
