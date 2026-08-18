@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +15,7 @@ type ActiveInvite = { invitationId: string; adventureName: string };
 
 export function NotificationPanel() {
   const { t } = useTranslation('notifications');
+  const navigate = useNavigate();
   const { systemNotifications } = useSystemNotificationsWebSocket();
   const { isPanelOpen, togglePanel } = useNotificationPanel();
   const { mutate: markRead } = useReadNotification();
@@ -82,6 +84,26 @@ export function NotificationPanel() {
                     }
                     onDecline={() => handleDecline(n.publicId)}
                   />
+                );
+              }
+
+              if (n.isInteractable && n.metadata?.kind === NOTIFICATION_KIND.CHARACTER_LEVEL_UP) {
+                return (
+                  <button
+                    key={n.publicId}
+                    type="button"
+                    onClick={() => {
+                      if (!isRead) handleRead(n.publicId);
+                      togglePanel();
+                      navigate(`/character/${n.metadata?.characterId}/view`, { state: { openLevelUp: true } });
+                    }}
+                    className="flex w-full cursor-pointer flex-col items-start gap-1 border-b border-border/50 px-4 py-3 text-left font-medium transition-colors last:border-b-0 hover:bg-accent/50"
+                  >
+                    <p className="text-sm text-foreground">{n.message}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(n.creationDate), { addSuffix: true })}
+                    </p>
+                  </button>
                 );
               }
 

@@ -14,7 +14,7 @@ import { useAdventureCommands } from '../hooks/useAdventureCommands';
 import { speakerKey, useSpeakerColors } from '../hooks/useSpeakerColors';
 import { useAuth } from '../../../components/auth/context/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
-import type { AdventureMessageUpdate } from '../hooks/useAdventureWebSocket';
+import type { AdventureMessageUpdate, DiceRollSummary } from '../hooks/useAdventureWebSocket';
 import type { AdventureMessage } from '../types';
 import type { CommandDefinition, ParsedCommand } from '../commands/types';
 
@@ -159,6 +159,38 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
   const lastNarratorMessage = reversedMessages.find((m) => m.role === 'narrator');
   const ownsLastPlayerMessage = Boolean(user?.publicId) && lastPlayerMessage?.authorId === user?.publicId;
 
+  const rollTargetLabel = useCallback((target: { attribute: string | null; skill: string | null }) => {
+    if (target.skill) {
+      return t([`form.skills.names.${target.skill}`, `form.skills.signatures.${target.skill}`], {
+        ns: 'character',
+        defaultValue: target.skill,
+      });
+    }
+
+    return target.attribute
+      ? t(`form.attributes.names.${target.attribute}`, { ns: 'character', defaultValue: target.attribute })
+      : '';
+  }, [t]);
+
+  const rollBreakdown = useCallback((roll: DiceRollSummary) => {
+    const parts: string[] = [];
+
+    if (roll.attribute) {
+      const label = t(`form.attributes.names.${roll.attribute}`, { ns: 'character', defaultValue: roll.attribute });
+      parts.push(`${label} ${roll.attributeLevel}`);
+    }
+
+    if (roll.skill) {
+      const label = t([`form.skills.names.${roll.skill}`, `form.skills.signatures.${roll.skill}`], {
+        ns: 'character',
+        defaultValue: roll.skill,
+      });
+      parts.push(`${label} ${roll.skillLevel}`);
+    }
+
+    return parts.map((part) => ` + ${part}`).join('');
+  }, [t]);
+
   const handleUpdate = useCallback((update: AdventureMessageUpdate) => {
     switch (update.change) {
       case 'MESSAGE_REMOVED':
@@ -191,6 +223,63 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
         break;
       }
 
+      case 'DICE_ROLLED':
+        appendMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          relatedMessageId: update.messageId,
+          content: t('game.roll.line', {
+            character: update.roll.characterName,
+            target: rollTargetLabel(update.roll),
+            difficulty: t(`game.roll.difficulties.${update.roll.difficulty}`),
+            dc: update.roll.dc,
+            natural: update.roll.naturalRoll,
+            breakdown: rollBreakdown(update.roll),
+            total: update.roll.total,
+            outcome: t(`game.roll.outcomes.${update.roll.outcome}`),
+          }),
+        });
+        break;
+
+      case 'IMPOSSIBLE_ACTION_ATTEMPTED':
+        appendMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          relatedMessageId: update.messageId,
+          content: t('game.roll.impossibleLine', {
+            character: update.impossibleAction.characterName,
+            target: rollTargetLabel(update.impossibleAction),
+          }),
+        });
+        break;
+
+      case 'XP_GAINED':
+        appendMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          relatedMessageId: update.messageId,
+          content: t('game.roll.xpLine', {
+            amount: update.xpGain.amount,
+            total: update.xpGain.total,
+            target: update.xpGain.levelUpTarget,
+          }),
+        });
+        break;
+
+      case 'LEVEL_UP':
+        appendMessage({
+          id: crypto.randomUUID(),
+          role: 'system',
+          relatedMessageId: update.messageId,
+          content: t('game.roll.levelUpLine', {
+            character: update.levelUp.characterName,
+            level: update.levelUp.newLevel,
+            attributePoints: update.levelUp.attributePoints,
+            skillPoints: update.levelUp.skillPoints,
+          }),
+        });
+        break;
+
       case 'NARRATION_FAILED':
         break;
     }
@@ -202,6 +291,9 @@ export default function AdventurePage({ adventureId }: AdventurePageProps) {
     removeMessagesFromIdInclusive,
     removeMessagesAfterId,
     replaceMessageContent,
+    rollTargetLabel,
+    rollBreakdown,
+    t,
   ]);
 
   const {

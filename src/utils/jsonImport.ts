@@ -1,5 +1,7 @@
 type LorebookImportEntry = { name: string; description: string; playerId?: string };
 
+export const DUPLICATE_SUFFIX = ' - DUPLICATE';
+
 type WorldImport = {
   name: string;
   description: string;
@@ -30,6 +32,35 @@ function parseLorebookEntries(val: unknown): LorebookImportEntry[] {
       ...(typeof e.playerId === 'string' && { playerId: e.playerId }),
     }))
     .filter((e) => e.name || e.description);
+}
+
+export function parseLorebookJson(raw: unknown): LorebookImportEntry[] {
+  if (Array.isArray(raw)) return parseLorebookEntries(raw);
+  if (typeof raw !== 'object' || raw === null) return [];
+  const j = raw as Record<string, unknown>;
+  return parseLorebookEntries(j.lorebookEntries ?? j.lorebook);
+}
+
+export function mergeLorebookEntries<T extends { name: string }>(existing: T[], incoming: T[]): T[] {
+  const taken = new Set(existing.map((entry) => entry.name.trim().toLowerCase()));
+
+  const merged = incoming.map((entry) => {
+    const key = entry.name.trim().toLowerCase();
+    if (!taken.has(key)) {
+      taken.add(key);
+      return entry;
+    }
+
+    const renamed = `${entry.name}${DUPLICATE_SUFFIX}`;
+    taken.add(renamed.trim().toLowerCase());
+    return { ...entry, name: renamed };
+  });
+
+  return [...existing, ...merged];
+}
+
+export function hasDuplicateLorebookEntries(entries: { name: string }[]): boolean {
+  return entries.some((entry) => entry.name.includes(DUPLICATE_SUFFIX));
 }
 
 export function parseWorldJson(raw: unknown): WorldImport {
@@ -88,16 +119,31 @@ type CharacterImport = {
   characterClass: string;
   personality: string;
   physicalDescription: string;
+  attributes: Record<string, number>;
+  skills: Record<string, number>;
+  signatureSkill: Record<string, number>;
 };
 
+function numberMap(val: unknown): Record<string, number> {
+  if (typeof val !== 'object' || val === null) return {};
+  return Object.fromEntries(
+    Object.entries(val as Record<string, unknown>).filter(
+      (entry): entry is [string, number] => typeof entry[1] === 'number',
+    ),
+  );
+}
+
 export function parseCharacterJson(raw: unknown): CharacterImport {
-  if (typeof raw !== 'object' || raw === null) return { name: '', characterClass: '', personality: '', physicalDescription: '' };
+  if (typeof raw !== 'object' || raw === null) return { name: '', characterClass: '', personality: '', physicalDescription: '', attributes: {}, skills: {}, signatureSkill: {} };
   const j = raw as Record<string, unknown>;
   return {
     name: str(j.name),
     characterClass: str(j.characterClass),
     personality: str(j.personality),
     physicalDescription: str(j.physicalDescription),
+    attributes: numberMap(j.attributes),
+    skills: numberMap(j.skills),
+    signatureSkill: numberMap(j.signatureSkill),
   };
 }
 

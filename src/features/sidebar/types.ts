@@ -33,6 +33,7 @@ export type AdventureDetails = {
   narratorPersonality: string | null;
   visibility: string;
   moderation: string;
+  rpgMechanicsEnabled: boolean;
   imageUrl: string | null;
   creationDate: string;
   lastUpdateDate: string;
@@ -53,6 +54,8 @@ export type AdventureMembershipSummary = {
   name: string;
   characterClass: string | null;
   imageUrl: string | null;
+  uiImagePositionX: number | null;
+  uiImagePositionY: number | null;
 };
 
 export type WorldLorebookEntry = {

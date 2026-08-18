@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Info, Pencil, Trash2, Plus, Loader2 } from 'lucide-react';
+import { Info, Pencil, Trash2, Plus, Loader2, Upload } from 'lucide-react';
 import type { WorldDetails } from '../../sidebar/types';
 import { apiFetch, api, extractApiError, notifyError, notifySuccess } from '../../../utils/api';
 import { EntityBanner, Tooltip } from '../../../shared/view/ui';
@@ -11,7 +11,7 @@ import { AssetMembersSection } from '../../../shared/components/AssetMembersSect
 import { useAssetMembers } from '../../../shared/hooks/useAssetMembers';
 import { useAuth } from '../../../components/auth';
 import { EMPTY_LOREBOOK_ENTRY as EMPTY_ENTRY, type LorebookEntry } from '../../../shared/types/lorebook';
-import { useJsonImport, parseWorldJson } from '../../../utils/jsonImport';
+import { useJsonImport, parseWorldJson, parseLorebookJson, mergeLorebookEntries, hasDuplicateLorebookEntries } from '../../../utils/jsonImport';
 import { buildImagePrompt } from '../../../utils/imagePrompt';
 import { resolveImagePosition } from '../../../utils/imagePosition';
 
@@ -86,10 +86,15 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   const handleDelete = async () => {
     setConfirmingDelete(false);
     const res = await apiFetch(`/api/worlds/${worldId}`, { method: 'DELETE' });
-    if (res.ok) navigate('/my-stuff');
+    if (res.ok) {
+      notifySuccess(t('toast.deleted', { ns: 'common' }));
+      navigate('/my-stuff');
+    }
   };
 
-  const isValid = form.name.trim() !== '' && form.description.trim() !== '' && form.adventureStart.trim() !== '';
+  const hasDuplicateEntries = hasDuplicateLorebookEntries(lorebook);
+
+  const isValid = form.name.trim() !== '' && form.description.trim() !== '' && form.adventureStart.trim() !== '' && !hasDuplicateEntries;
   const errorBorder = (value: string) => submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
 
@@ -100,6 +105,14 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
     setLorebookFilter('');
     setDeletedIds([]);
     setCanManage(false);
+    setIsOwner(false);
+    setImageFile(null);
+    setAddingNew(false);
+    setNewDraft(EMPTY_ENTRY);
+    setEditingIndex(null);
+    setEditDraft(EMPTY_ENTRY);
+    setSavedAssetSignature('');
+    setSavedVisibility('PRIVATE');
     if (mode === 'create') {
       setForm(EMPTY);
       setLorebook([]);
@@ -176,7 +189,13 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
       ...(data.narratorName && { narratorName: data.narratorName }),
       ...(data.narratorPersonality && { narratorPersonality: data.narratorPersonality }),
     }));
-    if (data.lorebook.length) setLorebook(data.lorebook.map(({ name, description }) => ({ name, description })));
+    if (data.lorebook.length) setLorebook(mergeLorebookEntries([], data.lorebook.map(({ name, description }) => ({ name, description }))));
+  });
+
+  const handleLorebookImport = useJsonImport((raw) => {
+    const entries = parseLorebookJson(raw);
+    if (!entries.length) return;
+    setLorebook((prev) => mergeLorebookEntries(prev, entries.map(({ name, description }) => ({ name, description }))));
   });
 
   const handleImageUpload = async (file: File) => {
@@ -326,7 +345,9 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('form.errors.saveFailed'));
+      const message = e instanceof Error ? e.message : t('form.errors.saveFailed');
+      setError(message);
+      notifyError(message);
       setSaving(false);
     }
   };
@@ -465,37 +486,52 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
           <div className="flex flex-col gap-5 rounded-md border border-border p-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('form.sections.lorebook')}</span>
-              {!readOnly && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={lorebookFilter}
-                    onChange={(e) => setLorebookFilter(e.target.value)}
-                    placeholder={t('form.placeholders.filterLorebook')}
-                    className="w-40 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  {lorebook.length > 0 && !addingNew && editingIndex === null && (
-                    <button
-                      type="button"
-                      onClick={() => { setLorebook([]); setLorebookFilter(''); }}
-                      className="rounded-md border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-muted"
-                    >
-                      {t('form.actions.clearLorebook')}
-                    </button>
-                  )}
-                  {!addingNew && editingIndex === null && (
-                    <button
-                      type="button"
-                      onClick={() => setAddingNew(true)}
-                      className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      {t('form.actions.addEntry')}
-                    </button>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={lorebookFilter}
+                  onChange={(e) => setLorebookFilter(e.target.value)}
+                  placeholder={t('form.placeholders.filterLorebook')}
+                  className="w-40 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                {!readOnly && (
+                  <>
+                    {lorebook.length > 0 && !addingNew && editingIndex === null && (
+                      <button
+                        type="button"
+                        onClick={() => { setLorebook([]); setLorebookFilter(''); }}
+                        className="rounded-md border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-muted"
+                      >
+                        {t('form.actions.clearLorebook')}
+                      </button>
+                    )}
+                    {!addingNew && editingIndex === null && (
+                      <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted">
+                        <Upload className="h-3.5 w-3.5" />
+                        {t('form.actions.importLorebook')}
+                        <input type="file" accept=".json" className="hidden" onChange={handleLorebookImport} />
+                      </label>
+                    )}
+                    {!addingNew && editingIndex === null && (
+                      <button
+                        type="button"
+                        onClick={() => setAddingNew(true)}
+                        className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        {t('form.actions.addEntry')}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
+
+            {hasDuplicateEntries && (
+              <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {t('form.warnings.duplicateLorebook')}
+              </p>
+            )}
 
             {addingNew && (
               <LorebookEntryForm
@@ -555,7 +591,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
       {!readOnly && (
         <div className="border-t border-border bg-background px-6 py-4">
           <div className="mx-auto flex w-full max-w-5xl gap-3">
-            <button type="submit" disabled={saving || !canSave} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+            <button type="submit" disabled={saving || !canSave || hasDuplicateEntries} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
               {saving ? t('form.actions.saving') : t('form.actions.save')}
             </button>
             <button type="button" onClick={() => navigate(-1)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">

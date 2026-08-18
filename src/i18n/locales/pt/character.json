@@ -16,6 +16,90 @@
       "physicalDescription": "Descrição física"
     },
     "classPlaceholder": "Selecione uma classe",
+    "overspent": "Pontos gastos em excesso",
+    "respec": {
+      "button": "Redistribuir pontos",
+      "title": "Redistribuir pontos — {{name}}",
+      "attributePointsLeft": "Pontos de atributo restantes: {{count}}",
+      "skillPointsLeft": "Pontos de perícia restantes: {{count}}"
+    },
+    "levelUp": {
+      "button": "Subir de nível",
+      "title": "Subir de nível — {{name}} (Nível {{level}})",
+      "levelChip": "Nível {{level}} · {{xp}}/100 XP",
+      "progressTitle": "Progressão",
+      "progressDetail": "{{xp}}/{{target}} XP · faltam {{remaining}} XP para o próximo nível · {{percent}}%",
+      "unspentChip": "{{count}} pontos não gastos",
+      "attributePointsLeft": "Pontos de atributo restantes: {{count}}",
+      "skillPointsLeft": "Pontos de perícia restantes: {{count}}",
+      "attributeCosts": "níveis 4–5 custam 2 pts",
+      "reset": "Resetar",
+      "pointsLeftHint": "Salvar desabilitado — {{count}} pontos restantes",
+      "nothingToPlaceHint": "Nada a alocar — gaste pelo menos um ponto",
+      "bankedHint": "{{count}} pontos sem alocação possível ficam guardados"
+    },
+    "attributes": {
+      "title": "Atributos",
+      "remaining": "Pontos restantes: {{count}}",
+      "reset": "Redefinir",
+      "increase": "Aumentar",
+      "decrease": "Diminuir",
+      "names": {
+        "STRENGTH": "Força",
+        "AGILITY": "Agilidade",
+        "VIGOR": "Vigor",
+        "INTELLIGENCE": "Inteligência",
+        "AWARENESS": "Perspicácia",
+        "CHARISMA": "Carisma"
+      }
+    },
+    "skills": {
+      "title": "Perícias",
+      "classSkills": "Perícias de classe",
+      "otherSkills": "Outras perícias",
+      "signatureBadge": "Assinatura",
+      "costPerLevel_one": "{{count}} ponto por nível",
+      "costPerLevel_other": "{{count}} pontos por nível",
+      "remaining": "Pontos restantes: {{count}}",
+      "needsClass": "O personagem precisa de uma classe",
+      "reset": "Redefinir",
+      "increase": "Aumentar",
+      "decrease": "Diminuir",
+      "names": {
+        "ATHLETICS": "Atletismo",
+        "ACROBATICS": "Acrobacia",
+        "MELEE": "Corpo a corpo",
+        "MARKSMANSHIP": "Pontaria",
+        "BRAWL": "Briga",
+        "STEALTH": "Furtividade",
+        "ENDURANCE": "Resistência",
+        "LORE": "Conhecimento",
+        "ALCHEMY": "Alquimia",
+        "DESTRUCTION": "Destruição",
+        "RESTORATION": "Restauração",
+        "ILLUSION": "Ilusão",
+        "CONJURATION": "Conjuração",
+        "ALTERATION": "Alteração",
+        "PERCEPTION": "Percepção",
+        "SURVIVAL": "Sobrevivência",
+        "INTUITION": "Intuição",
+        "PERSUASION": "Persuasão",
+        "DECEPTION": "Dissimulação",
+        "INTIMIDATION": "Intimidação",
+        "PERFORMANCE": "Performance"
+      },
+      "signatures": {
+        "INSPIRE": "Inspiração",
+        "DEADEYE": "Olho Certeiro",
+        "BERSERK": "Frenesi",
+        "ZEAL": "Fervor",
+        "SPELLWEAVE": "Tecelagem Arcana",
+        "BACKSTAB": "Apunhalada",
+        "HEX": "Maldição",
+        "BLESSING": "Bênção",
+        "COMMUNE": "Comunhão"
+      }
+    },
     "actions": {
       "back": "Voltar",
       "save": "Salvar",
@@ -39,6 +123,7 @@
     "MAGE": "Mago",
     "CLERIC": "Clérigo",
     "ROGUE": "Ladino",
-    "WITCH": "Bruxo"
+    "WITCH": "Bruxo",
+    "DRUID": "Druida"
   }
 }

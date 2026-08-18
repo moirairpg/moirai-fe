@@ -9,6 +9,7 @@
       "narratorPersonality": "Narrator Personality",
       "visibility": "Visibility",
       "moderation": "Moderation",
+      "rpgMechanics": "Enable RPG mechanics",
       "multiplayer": "Multiplayer",
       "adventureStart": "Adventure Start",
       "lorebook": "Lorebook",
@@ -29,6 +30,7 @@
       "world": "Sets the starting scene, lore, and narrator for this adventure",
       "visibility": "Who can see this adventure",
       "moderation": "How tightly content is filtered — flagged messages are discarded entirely",
+      "rpgMechanics": "Whether this adventure uses RPG mechanics, such as dice checks",
       "aiModel": "The AI model powering this adventure",
       "maxTokenLimit": "How long AI responses can be",
       "temperature": "Lower = more consistent, higher = more creative",
@@ -68,12 +70,16 @@
       "addEntry": "Add Entry",
       "advanced": "Advanced",
       "importJson": "Import JSON",
+      "importLorebook": "Import Entries",
       "clearWorld": "Clear World",
       "clearLorebook": "Clear Lorebook",
       "removeCharacter": "Remove from adventure",
       "leave": "Leave adventure"
     },
     "optional": "optional",
+    "warnings": {
+      "duplicateLorebook": "Some imported entries have names that already existed and were marked with \" - DUPLICATE\". Rename or remove them before saving."
+    },
     "sections": {
       "basicData": "Basic Data",
       "storyNarration": "Story Narration",
@@ -124,6 +130,27 @@
       "The threads of destiny intertwine...",
       "Ancient forces stir..."
     ]
+  },
+  "game": {
+    "roll": {
+      "line": "{{character}} attempts {{target}} — {{difficulty}} (DC {{dc}}): d20 {{natural}}{{breakdown}} = {{total}} — {{outcome}}",
+      "impossibleLine": "{{character}} attempts {{target}} — Impossible — CRITICAL FAILURE",
+      "xpLine": "You gained {{amount}} XP ({{total}}/{{target}})",
+      "levelUpLine": "{{character}} reached level {{level}} (+{{attributePoints}} attribute point, +{{skillPoints}} skill points)",
+      "difficulties": {
+        "EASY": "Easy",
+        "MEDIUM": "Medium",
+        "HARD": "Hard",
+        "VERY_HARD": "Very hard",
+        "FORMIDABLE": "Formidable"
+      },
+      "outcomes": {
+        "CRITICAL_FAILURE": "CRITICAL FAILURE",
+        "FAILURE": "Failure",
+        "SUCCESS": "Success",
+        "CRITICAL_SUCCESS": "CRITICAL SUCCESS"
+      }
+    }
   },
   "invite": {
     "title": "Invite players",

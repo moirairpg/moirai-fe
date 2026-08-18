@@ -9,6 +9,7 @@
       "narratorPersonality": "Personalidade do Narrador",
       "visibility": "Visibilidade",
       "moderation": "Moderação",
+      "rpgMechanics": "Ativar mecânicas de RPG",
       "multiplayer": "Multijogador",
       "adventureStart": "Início da Aventura",
       "lorebook": "Livro de Lore",
@@ -29,6 +30,7 @@
       "world": "Define a cena inicial, o lore e o narrador desta aventura",
       "visibility": "Quem pode ver esta aventura",
       "moderation": "O quão rigoroso é o filtro de conteúdo — mensagens sinalizadas são descartadas inteiramente",
+      "rpgMechanics": "Se esta aventura usa mecânicas de RPG, como testes de dados",
       "aiModel": "O modelo de IA que alimenta esta aventura",
       "maxTokenLimit": "O tamanho máximo das respostas da IA",
       "temperature": "Menor = mais consistente, maior = mais criativo",
@@ -68,12 +70,16 @@
       "addEntry": "Adicionar entrada",
       "advanced": "Avançado",
       "importJson": "Importar JSON",
+      "importLorebook": "Importar entradas",
       "clearWorld": "Limpar Mundo",
       "clearLorebook": "Limpar Livro de Lore",
       "removeCharacter": "Remover da aventura",
       "leave": "Sair da aventura"
     },
     "optional": "opcional",
+    "warnings": {
+      "duplicateLorebook": "Algumas entradas importadas têm nomes que já existiam e foram marcadas com \" - DUPLICATE\". Renomeie ou remova essas entradas antes de salvar."
+    },
     "sections": {
       "basicData": "Dados Básicos",
       "storyNarration": "Narração",
@@ -124,6 +130,27 @@
       "Os fios do destino se entrelaçam...",
       "Forças ancestrais despertam..."
     ]
+  },
+  "game": {
+    "roll": {
+      "line": "{{character}} tenta {{target}} — {{difficulty}} (DC {{dc}}): d20 {{natural}}{{breakdown}} = {{total}} — {{outcome}}",
+      "impossibleLine": "{{character}} tenta {{target}} — Impossível — FALHA CRÍTICA",
+      "xpLine": "Você ganhou {{amount}} XP ({{total}}/{{target}})",
+      "levelUpLine": "{{character}} alcançou o nível {{level}} (+{{attributePoints}} ponto de atributo, +{{skillPoints}} pontos de perícia)",
+      "difficulties": {
+        "EASY": "Fácil",
+        "MEDIUM": "Média",
+        "HARD": "Difícil",
+        "VERY_HARD": "Muito difícil",
+        "FORMIDABLE": "Formidável"
+      },
+      "outcomes": {
+        "CRITICAL_FAILURE": "FALHA CRÍTICA",
+        "FAILURE": "Falha",
+        "SUCCESS": "Sucesso",
+        "CRITICAL_SUCCESS": "SUCESSO CRÍTICO"
+      }
+    }
   },
   "invite": {
     "title": "Convidar jogadores",

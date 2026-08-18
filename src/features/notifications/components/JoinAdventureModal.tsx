@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiFetch, api, extractApiError } from '../../../utils/api';
+import { objectPositionOf } from '../../../utils/imagePosition';
 import { useCharacterClasses } from '../../character/hooks/useCharacterClasses';
 import type { PlayerCharacterSummary } from '../../collection/types';
 import type { PlayerCharacterDetails } from '../../character/types';
@@ -83,7 +84,12 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
           <div className="flex flex-col gap-4">
             <div className="flex gap-4">
               {detail.imageUrl ? (
-                <img src={detail.imageUrl} alt={detail.name} className="h-40 w-32 flex-shrink-0 rounded-md object-cover" />
+                <img
+                  src={detail.imageUrl}
+                  alt={detail.name}
+                  className="h-40 w-32 flex-shrink-0 rounded-md object-cover"
+                  style={{ objectPosition: objectPositionOf(detail.uiImagePositionX, detail.uiImagePositionY) }}
+                />
               ) : (
                 <div className="flex h-40 w-32 flex-shrink-0 items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
                   {detail.name.charAt(0)}
@@ -96,6 +102,11 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
                 <p className="whitespace-pre-wrap text-sm text-muted-foreground">{detail.physicalDescription}</p>
               </div>
             </div>
+            {detail.characterClass === null && (
+              <span className="self-start rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                {t('invite.join.needsClass')}
+              </span>
+            )}
             <div className="flex justify-between">
               <button
                 type="button"
@@ -107,7 +118,7 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
               <button
                 type="button"
                 onClick={() => choose(detail.id)}
-                disabled={joiningId !== null}
+                disabled={joiningId !== null || detail.characterClass === null}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 {joiningId === detail.id ? t('invite.join.joining') : t('invite.join.choose')}
@@ -153,7 +164,12 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
                       className="flex w-40 flex-shrink-0 flex-col gap-2 rounded-md border border-border p-2"
                     >
                       {character.imageUrl ? (
-                        <img src={character.imageUrl} alt={character.name} className="h-28 w-full rounded object-cover" />
+                        <img
+                          src={character.imageUrl}
+                          alt={character.name}
+                          className="h-28 w-full rounded object-cover"
+                          style={{ objectPosition: objectPositionOf(character.uiImagePositionX, character.uiImagePositionY) }}
+                        />
                       ) : (
                         <div className="flex h-28 w-full items-center justify-center rounded bg-muted text-lg text-muted-foreground">
                           {character.name.charAt(0)}
@@ -161,11 +177,16 @@ export function JoinAdventureModal({ invitationId, adventureName, onJoined, onCl
                       )}
                       <span className="truncate text-sm font-medium text-foreground">{character.name}</span>
                       <span className="truncate text-xs text-muted-foreground">{labelOf(character.characterClass)}</span>
+                      {character.characterClass === null && (
+                        <span className="self-start rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                          {t('invite.join.needsClass')}
+                        </span>
+                      )}
                       <div className="mt-1 flex gap-1.5">
                         <button
                           type="button"
                           onClick={() => choose(character.id)}
-                          disabled={joiningId !== null}
+                          disabled={joiningId !== null || character.characterClass === null}
                           className="flex-1 rounded-md bg-primary px-2 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                         >
                           {joiningId === character.id ? t('invite.join.joining') : t('invite.join.choose')}
