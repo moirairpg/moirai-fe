@@ -119,6 +119,7 @@ type CharacterImport = {
   characterClass: string;
   personality: string;
   physicalDescription: string;
+  background: string;
   attributes: Record<string, number>;
   skills: Record<string, number>;
   signatureSkill: Record<string, number>;
@@ -134,13 +135,14 @@ function numberMap(val: unknown): Record<string, number> {
 }
 
 export function parseCharacterJson(raw: unknown): CharacterImport {
-  if (typeof raw !== 'object' || raw === null) return { name: '', characterClass: '', personality: '', physicalDescription: '', attributes: {}, skills: {}, signatureSkill: {} };
+  if (typeof raw !== 'object' || raw === null) return { name: '', characterClass: '', personality: '', physicalDescription: '', background: '', attributes: {}, skills: {}, signatureSkill: {} };
   const j = raw as Record<string, unknown>;
   return {
     name: str(j.name),
     characterClass: str(j.characterClass),
     personality: str(j.personality),
     physicalDescription: str(j.physicalDescription),
+    background: str(j.background),
     attributes: numberMap(j.attributes),
     skills: numberMap(j.skills),
     signatureSkill: numberMap(j.signatureSkill),

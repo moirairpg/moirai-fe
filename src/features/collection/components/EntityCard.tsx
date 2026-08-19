@@ -41,6 +41,7 @@ type CharacterCardProps = {
   id: string;
   name: string;
   classLabel: string | null;
+  background: string;
   imageUrl?: string | null;
   onDelete: (id: string) => void;
   uiImagePositionX?: number | null;
@@ -54,7 +55,7 @@ export function EntityCard(props: EntityCardProps) {
   const [isConfirming, setIsConfirming] = useState(false);
   const { t } = useTranslation('collection');
 
-  const bodyText = props.kind === 'character' ? null : props.description;
+  const bodyText = props.kind === 'character' ? props.background : props.description;
   const viewPath = `${BASE_PATH[props.kind]}/${props.id}/view`;
   const editPath = `${BASE_PATH[props.kind]}/${props.id}/edit`;
 
@@ -142,7 +143,7 @@ export function EntityCard(props: EntityCardProps) {
 
       <div className="flex flex-col gap-1.5 p-3">
         <p className="truncate text-sm font-semibold text-foreground">{props.name}</p>
-        {bodyText !== null && <p className="line-clamp-2 text-xs text-muted-foreground">{bodyText}</p>}
+        {bodyText && <p className="line-clamp-2 text-xs text-muted-foreground">{bodyText}</p>}
         {props.kind === 'character' ? (
           <span className="mt-1 inline-flex w-fit items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
             {props.classLabel ?? t('card.noClass')}

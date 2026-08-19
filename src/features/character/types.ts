@@ -38,6 +38,7 @@ export type PlayerCharacterDetails = {
   characterClass: string | null;
   personality: string;
   physicalDescription: string;
+  background: string;
   attributes: CharacterAttributes;
   skills: CharacterSkills;
   signatureSkill: CharacterSignatures;
@@ -60,6 +61,7 @@ export type CharacterFormInput = {
   characterClass: string;
   personality: string;
   physicalDescription: string;
+  background: string;
 };
 
 export type CharacterAdventureSummary = {

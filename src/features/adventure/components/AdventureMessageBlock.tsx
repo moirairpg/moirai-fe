@@ -43,8 +43,8 @@ export function AdventureMessageBlock({
     return (
       <div className="py-1">
         <textarea
-          className="w-full resize-none rounded border border-border bg-background px-2 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-          rows={3}
+          className="w-full resize-y rounded border border-border bg-background px-2 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          rows={10}
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={(e) => {

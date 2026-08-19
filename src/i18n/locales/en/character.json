@@ -13,7 +13,8 @@
       "name": "Name",
       "class": "Class",
       "personality": "Personality",
-      "physicalDescription": "Physical Description"
+      "physicalDescription": "Physical Description",
+      "background": "Background"
     },
     "classPlaceholder": "Select a class",
     "overspent": "Too many points spent",

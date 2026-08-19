@@ -71,7 +71,7 @@ function CharacterTab() {
     <CardGrid isLoading={isLoading} hasMore={hasMore} onLoadMore={loadMore}>
       <CreateAssetCard to="/character/new" label={t('create.character', { ns: 'collection' })} />
       {items.map((c) => (
-        <EntityCard key={c.id} kind="character" id={c.id} name={c.name} classLabel={classLabelOf(c.characterClass)} imageUrl={c.imageUrl} uiImagePositionX={c.uiImagePositionX} uiImagePositionY={c.uiImagePositionY} onDelete={handleDelete} />
+        <EntityCard key={c.id} kind="character" id={c.id} name={c.name} classLabel={classLabelOf(c.characterClass)} background={c.background} imageUrl={c.imageUrl} uiImagePositionX={c.uiImagePositionX} uiImagePositionY={c.uiImagePositionY} onDelete={handleDelete} />
       ))}
     </CardGrid>
   );
