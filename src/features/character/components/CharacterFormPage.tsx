@@ -43,6 +43,7 @@ const EMPTY: CharacterFormInput = {
   characterClass: '',
   personality: '',
   physicalDescription: '',
+  background: '',
 };
 
 export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
@@ -107,6 +108,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
       characterClass: data.characterClass,
       personality: data.personality,
       physicalDescription: data.physicalDescription,
+      background: data.background,
     });
     setImportedSheet(data);
   });
@@ -151,6 +153,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
           characterClass: data.characterClass ?? '',
           personality: data.personality,
           physicalDescription: data.physicalDescription,
+          background: data.background,
         });
         setImageUrl(data.imageUrl ?? null);
         setUiImagePositionX(data.uiImagePositionX ?? 0.5);
@@ -187,7 +190,8 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
     form.name.trim() !== '' &&
     form.characterClass !== '' &&
     form.personality.trim() !== '' &&
-    form.physicalDescription.trim() !== '';
+    form.physicalDescription.trim() !== '' &&
+    form.background.trim() !== '';
 
   const canSave = hasBasicData && (mode !== 'create' || (allocation.isComplete && skillAllocation.isComplete));
 
@@ -198,6 +202,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
       { label: 'Class', value: form.characterClass },
       { label: 'Personality', value: form.personality },
       { label: 'Appearance', value: form.physicalDescription },
+      { label: 'Background', value: form.background },
     ],
   });
 
@@ -249,6 +254,7 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
       name: form.name,
       personality: form.personality,
       physicalDescription: form.physicalDescription,
+      background: form.background,
       uiImagePositionX,
       uiImagePositionY,
     };
@@ -412,6 +418,11 @@ export default function CharacterFormPage({ mode }: CharacterFormPageProps) {
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground">{t('form.fields.personality')}</label>
               <textarea rows={4} value={form.personality} onChange={set('personality')} disabled={readOnly} className={`${TEXTAREA_CLASS}${errorBorder(form.personality)}`} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground">{t('form.fields.background')}</label>
+              <textarea rows={4} value={form.background} onChange={set('background')} disabled={readOnly} className={`${TEXTAREA_CLASS}${errorBorder(form.background)}`} />
             </div>
 
             <div className="flex flex-col gap-1.5">

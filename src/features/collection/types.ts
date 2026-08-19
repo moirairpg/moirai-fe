@@ -29,6 +29,7 @@ export type PlayerCharacterSummary = {
   ownerUsername: string;
   name: string;
   characterClass: string | null;
+  background: string;
   imageUrl: string | null;
   uiImagePositionX: number | null;
   uiImagePositionY: number | null;

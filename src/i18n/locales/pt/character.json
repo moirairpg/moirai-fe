@@ -13,7 +13,8 @@
       "name": "Nome",
       "class": "Classe",
       "personality": "Personalidade",
-      "physicalDescription": "Descrição física"
+      "physicalDescription": "Descrição física",
+      "background": "Antecedentes"
     },
     "classPlaceholder": "Selecione uma classe",
     "overspent": "Pontos gastos em excesso",
