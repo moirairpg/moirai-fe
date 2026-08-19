@@ -218,8 +218,9 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
   } = useAssetMembers('adventures', adventureId, mode !== 'create' && canManageAccess);
 
   const hasAssetChanges = assetSignatureOf(form, lorebook, deletedIds, uiImagePositionX, uiImagePositionY) !== savedAssetSignature;
+  const hasImageChanges = imageFile !== null;
   const hasAccessChanges = hasMemberChanges || form.visibility !== savedVisibility;
-  const canSave = mode === 'create' || hasAssetChanges || (canManageAccess && hasAccessChanges);
+  const canSave = mode === 'create' || hasAssetChanges || hasImageChanges || (canManageAccess && hasAccessChanges);
   const errorBorder = (value: string, required = true) => required && submitted && !value.trim() ? ' border-red-500' : '';
   const title = mode === 'create' ? t('form.title.new') : mode === 'edit' ? t('form.title.edit') : t('form.title.fallback');
 
@@ -555,6 +556,10 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
         { label: 'Description', value: form.description },
         { label: 'Adventure Start', value: form.adventureStart },
       ],
+      lorebook: {
+        entries: mode === 'create' ? createLorebook : lorebook,
+        text: `${form.description}\n${form.adventureStart}`,
+      },
     });
     const blob = await api.imageGenerations.generate(prompt);
     const file = new File([blob], 'generated.png', { type: 'image/png' });
@@ -630,6 +635,7 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
               { label: 'Description', value: form.description },
               { label: 'Adventure Start', value: form.adventureStart },
             ],
+            lorebook: { entries: createLorebook, text: `${form.description}\n${form.adventureStart}` },
           });
           const blob = await api.imageGenerations.generate(prompt, { silent: true });
           const file = new File([blob], 'generated.png', { type: 'image/png' });
@@ -697,6 +703,16 @@ export default function AdventureFormPage({ mode }: AdventureFormPageProps) {
           } else {
             allSaved = false;
             notifyError(await extractApiError(updateRes) ?? t('form.errors.saveFailed'));
+          }
+        }
+
+        if (imageFile) {
+          const uploadRes = await api.adventure.uploadImage(adventureId!, imageFile, { silent: true });
+
+          if (uploadRes.ok) setImageFile(null);
+          else {
+            allSaved = false;
+            notifyError(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
           }
         }
 
