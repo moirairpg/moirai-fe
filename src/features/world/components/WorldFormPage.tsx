@@ -80,8 +80,9 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
   } = useAssetMembers('worlds', worldId, mode !== 'create' && canManageAccess);
 
   const hasAssetChanges = assetSignatureOf(form, lorebook, deletedIds, uiImagePositionX, uiImagePositionY) !== savedAssetSignature;
+  const hasImageChanges = imageFile !== null;
   const hasAccessChanges = hasMemberChanges || form.visibility !== savedVisibility;
-  const canSave = mode === 'create' || hasAssetChanges || (canManageAccess && hasAccessChanges);
+  const canSave = mode === 'create' || hasAssetChanges || hasImageChanges || (canManageAccess && hasAccessChanges);
 
   const handleDelete = async () => {
     setConfirmingDelete(false);
@@ -222,6 +223,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
         { label: 'Description', value: form.description },
         { label: 'Adventure Start', value: form.adventureStart },
       ],
+      lorebook: { entries: lorebook, text: `${form.description}\n${form.adventureStart}` },
     });
     const blob = await api.imageGenerations.generate(prompt);
     const file = new File([blob], 'generated.png', { type: 'image/png' });
@@ -283,6 +285,7 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
               { label: 'Description', value: form.description },
               { label: 'Adventure Start', value: form.adventureStart },
             ],
+            lorebook: { entries: lorebook, text: `${form.description}\n${form.adventureStart}` },
           });
           const blob = await api.imageGenerations.generate(prompt, { silent: true });
           const file = new File([blob], 'generated.png', { type: 'image/png' });
@@ -324,6 +327,16 @@ export default function WorldFormPage({ mode }: WorldFormPageProps) {
           } else {
             allSaved = false;
             notifyError(await extractApiError(updateRes) ?? t('form.errors.saveFailed'));
+          }
+        }
+
+        if (imageFile) {
+          const uploadRes = await api.world.uploadImage(worldId!, imageFile, { silent: true });
+
+          if (uploadRes.ok) setImageFile(null);
+          else {
+            allSaved = false;
+            notifyError(await extractApiError(uploadRes) ?? t('form.errors.saveFailed'));
           }
         }
 
